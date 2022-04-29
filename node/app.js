@@ -9,11 +9,15 @@ let bodyParser = require("body-parser");
 const {MongoClient} = require("mongodb");
 
 ////////////////MODIFICAR ESTO EN FUNCION DE NUESTROS JS//////////////////////
-let songsRepository = require("./repositories/songsRepository");            //
-var indexRouter = require('./routes/index');                                //
-const usersRepository = require("./repositories/usersRepository.js");       //
-const commentsRepository = require("./repositories/commentsRepository")     //
-////////////////MODIFICAR ESTO EN FUNCION DE NUESTROS JS//////////////////////
+//let songsRepository = require("./repositories/songsRepository");          //
+//var indexRouter = require('./routes/index');                              //
+//const usersRepository = require("./repositories/usersRepository.js");     //
+//const commentsRepository = require("./repositories/commentsRepository")   //
+////////////////MODIFICADO: //////////////////////////////////////////////////
+const usersRepository = require('./repositories/usersRepository')           //
+                                                                            //
+// ///////////////////////////////////////////////////////////////////////////
+
 
 const url = 'mongodb+srv://admin:admin@cluster0.6uext.mongodb.net/myFirstDatabase?retryWrites=true&w=majority';
 
@@ -88,7 +92,9 @@ require("./routes/api/songsAPIv1.0.js")(app, songsRepository, usersRepository);/
                                                                                ///////
 usersRepository.init(app, MongoClient);                                            //
 require("./routes/users.js")(app, usersRepository);                               //
-////////////////MODIFICAR ESTO EN FUNCION DE NUESTROS JS///////////////////////////
+////////////////MODOFICADO: ///////////////////////////////////////////////////////
+
+usersRepository.init(app, MongoClient);
 
 
 // view engine setup
