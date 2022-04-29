@@ -14,9 +14,10 @@ const {MongoClient} = require("mongodb");
 //const usersRepository = require("./repositories/usersRepository.js");     //
 //const commentsRepository = require("./repositories/commentsRepository")   //
 ////////////////MODIFICADO: //////////////////////////////////////////////////
-const usersRepository = require('./repositories/usersRepository')           //
-                                                                            //
-// ///////////////////////////////////////////////////////////////////////////
+var indexRouter = require('./routes/index');                                //
+const usersRepository = require('./repositories/usersRepository')           /////
+const publicationsRepository = require('./repositories/publicationsRepository')//                                                                            //
+// //////////////////////////////////////////////////////////////////////////////
 
 
 const url = 'mongodb+srv://admin:admin@cluster0.6uext.mongodb.net/myFirstDatabase?retryWrites=true&w=majority';
@@ -64,38 +65,44 @@ app.use(bodyParser.urlencoded({extended: true}));
 app.set('connectionStrings', url);
 
 ////////////////MODIFICAR ESTO EN FUNCION DE NUESTROS JS//////////////////////
-const userSessionRouter = require('./routes/userSessionRouter');            //
-const userAudiosRouter = require('./routes/userAudiosRouter');              //
-app.use("/songs/add", userSessionRouter);                                   //
-app.use("/songs/**", userSessionRouter);                                    //
-app.use("/publications", userSessionRouter);                                //
-app.use("/songs/buy", userSessionRouter);                                   //
-app.use("/purchases", userSessionRouter);                                   //
-app.use("/audios/", userAudiosRouter);                                      //
-app.use("/shop/", userSessionRouter)                                        //
+//const userSessionRouter = require('./routes/userSessionRouter');            //
+//const userAudiosRouter = require('./routes/userAudiosRouter');              //
+//app.use("/songs/add", userSessionRouter);                                   //
+//app.use("/songs/**", userSessionRouter);                                    //
+//app.use("/publications", userSessionRouter);                                //
+//app.use("/songs/buy", userSessionRouter);                                   //
+//app.use("/purchases", userSessionRouter);                                   //
+//app.use("/audios/", userAudiosRouter);                                      //
+//app.use("/shop/", userSessionRouter)                                        //
                                                                             //
                                                                             ///////
-const userAuthorRouter = require('./routes/userAuthorRouter');                  //
-app.use("/songs/edit", userAuthorRouter);                                       //
-app.use("/songs/delete", userAuthorRouter);                                     //
+//const userAuthorRouter = require('./routes/userAuthorRouter');                  //
+//app.use("/songs/edit", userAuthorRouter);                                       //
+//app.use("/songs/delete", userAuthorRouter);                                     //
                                                                                 //
-const userTokenRouter = require('./routes/userTokenRouter');                    //
-app.use("/api/v1.0/songs/", userTokenRouter);                                   //
+//const userTokenRouter = require('./routes/userTokenRouter');                    //
+//app.use("/api/v1.0/songs/", userTokenRouter);                                   //
                                                                                //
-songsRepository.init(app, MongoClient);                                        //
-commentsRepository.init(app, MongoClient)                                      //
+//songsRepository.init(app, MongoClient);                                        //
+//commentsRepository.init(app, MongoClient)                                      //
                                                                                //
-require("./routes/songs.js")(app, songsRepository, commentsRepository);        //
-require("./routes/authors.js")(app);                                           //
-require("./routes/comments")(app, commentsRepository)                          //
-require("./routes/api/songsAPIv1.0.js")(app, songsRepository, usersRepository);//
+//require("./routes/songs.js")(app, songsRepository, commentsRepository);        //
+//require("./routes/authors.js")(app);                                           //
+//require("./routes/comments")(app, commentsRepository)                          //
+//require("./routes/api/songsAPIv1.0.js")(app, songsRepository, usersRepository);//
                                                                                ///////
-usersRepository.init(app, MongoClient);                                            //
-require("./routes/users.js")(app, usersRepository);                               //
-////////////////MODOFICADO: ///////////////////////////////////////////////////////
+//usersRepository.init(app, MongoClient);                                            //
+//require("./routes/users.js")(app, usersRepository);                               //
+////////////////MODIFICADO: ///////////////////////////////////////////////////////
+const userSessionRouter = require('./routes/userSessionRouter');                //
+usersRepository.init(app, MongoClient);                                         //
+publicationsRepository.init(app,MongoClient);                                   //
 
-usersRepository.init(app, MongoClient);
-
+require("./routes/publications.js")(app, usersRepository, publicationsRepository);                                                              //
+app.use("/publications/**", userSessionRouter);                                  //
+                                                                                ////
+//                                                                                   //
+////////////////////////////////////////////////////////////////////////////////////
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));

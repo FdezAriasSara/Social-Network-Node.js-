@@ -1,0 +1,56 @@
+{% extends "layout.twig" %}
+{% block title %} Mis publicaciones {% endblock %}
+
+{% block main_container %}
+    <h2>Mis publicaciones</h2>
+
+    <div class="row">
+
+        <div class="col-sm-20 panel">
+
+            {% for publi in publications %}
+
+                <div class="col-sm-10">
+
+                    <div class="frontpage_square">
+                        <h5>{{ publi.title }}</h5>
+                        <h6>{{ publi.content }}</h6>
+                        <p>{{ publi.dateofcreation }}</p>
+                        <img src="{{ publi.pictureURL }}" class="img img-responsive full-width" />
+                    </div>
+
+                </div>
+
+            {% endfor %}
+
+
+
+
+        </div>
+
+    </div>
+
+
+    <!-- Paginación mostrar la actual y 2 anteriores y dos siguientes -->
+    <div class="row text-center">
+        <ul class="pagination">
+
+            {% for page in pages %}
+
+                <li class="page-item" id="pi-{{ page }}">
+                    <a class="page-link" href="/publications/list?page={{ page }}">{{ page }}</a>
+                </li>
+
+            {% endfor %}
+
+            <script>
+
+                $("#pi-"+"{{ currentPage }}").addClass("active");
+
+            </script>
+
+
+        </ul>
+    </div>
+
+{% endblock %}
