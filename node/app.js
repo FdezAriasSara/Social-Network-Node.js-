@@ -99,7 +99,9 @@ usersRepository.init(app, MongoClient);                                         
 publicationsRepository.init(app,MongoClient);                                   //
 
 require("./routes/publications.js")(app, usersRepository, publicationsRepository);                                                              //
-app.use("/publications/**", userSessionRouter);                                  //
+app.use("/publications/**", userSessionRouter);
+require("./routes/users.js")(app,usersRepository);
+//
                                                                                 ////
 //                                                                                   //
 ////////////////////////////////////////////////////////////////////////////////////
