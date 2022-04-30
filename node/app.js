@@ -96,12 +96,13 @@ app.set('connectionStrings', url);
 ////////////////MODIFICADO: ///////////////////////////////////////////////////////
 const userSessionRouter = require('./routes/userSessionRouter');                //
 usersRepository.init(app, MongoClient);                                         //
-publicationsRepository.init(app,MongoClient);                                   //
+publicationsRepository.init(app,MongoClient);
 
-require("./routes/publications.js")(app, usersRepository, publicationsRepository);                                                              //
+
+require("./routes/publications.js")(app, usersRepository, publicationsRepository);//                                                              //
 app.use("/publications/**", userSessionRouter);                                  //
                                                                                 ////
-//                                                                                   //
+//                                                                                //
 ////////////////////////////////////////////////////////////////////////////////////
 
 // view engine setup

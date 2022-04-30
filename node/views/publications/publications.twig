@@ -1,23 +1,24 @@
-{% extends "layout.twig" %}
+{% extends "../layout.twig" %}
 {% block title %} Mis publicaciones {% endblock %}
 
 {% block main_container %}
-    <h2>Mis publicaciones</h2>
+    <h1>Mis publicaciones</h1>
 
     <div class="row">
 
-        <div class="col-sm-20 panel">
 
             {% for publi in publications %}
 
-                <div class="col-sm-10">
+                <div class="col-xs-6 col-sm-6 col-md-4 col-lg-3" >
 
-                    <div class="frontpage_square">
-                        <h5>{{ publi.title }}</h5>
-                        <h6>{{ publi.content }}</h6>
-                        <p>{{ publi.dateofcreation }}</p>
-                        <img src="{{ publi.pictureURL }}" class="img img-responsive full-width" />
-                    </div>
+
+                        <div style="width:200px; padding:1rem; border-style: solid; border-color: black; border-radius: 1rem">
+                            <h3>{{ publi.title }}</h3>
+                            <h5 class=>{{ publi.content }}</h5>
+                            <p>{{ publi.dateofcreation }}</p>
+                            <img src="/images/{{ publi.pictureURL }}" class="img img-responsive full-width rounded-1" />
+                        </div>
+
 
                 </div>
 
@@ -26,7 +27,6 @@
 
 
 
-        </div>
 
     </div>
 
