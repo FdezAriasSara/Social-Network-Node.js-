@@ -70,8 +70,10 @@ module.exports = function (app, usersRepository) {
      * si alguno de los anteriores campos no ha sido completado o tiene errores, el usuario será notificado mediante mensajes de error.
      * -El email debe tener el formato nombre@dominio . El nombre y los apellidos no pueden contener números,
      * y la contraseña ha de contener al menos letras y números.
+     * (Los mensajes de error se envían por medio de la URL)
      */
     app.post('/users/signup', function (req, res) {
+
         if (req.body.email == null || req.body.password == null) {
             res.redirect("/users/signup" +
                 "?message=Debes rellenar todos los campos para registrarte como usuario." +
@@ -85,13 +87,19 @@ module.exports = function (app, usersRepository) {
             res.redirect("/users/signup" +
                 "?message=Los campos de nombre y apellidos solamente aceptan letras , espacios o guiones." +
                 "&messageType=alert-danger ");
+        }else if(req.body.contraseña.equals(req.body.repContra)){
+
+            res.redirect("/users/signup" +
+                "?message=Las contraseñas no coinciden." +
+                "&messageType=alert-danger ");
+
         } else {
             let securePassword = app.get("crypto").createHmac('sha256', app.get('clave'))
                 .update(req.body.password).digest('hex');
             let user = {
                 email: req.body.email,
-                name:req.body.name,
-                surname:req.body.surname,
+                name:req.body.nombre,
+                surname:req.body.apellidos,
                 password: securePassword
             }
             usersRepository.insertUser(user).then(userId => {
