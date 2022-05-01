@@ -9,14 +9,14 @@
 
             {% for publi in publications %}
 
-                <div class="col-xs-6 col-sm-6 col-md-4 col-lg-3" >
+                <div class="col-xs-4 col-sm-4 col-md-3 col-lg-2" style="margin: 1rem">
 
 
-                        <div style="width:200px; padding:1rem; border-style: solid; border-color: black; border-radius: 1rem">
+                        <div style="width:200px; margin: 1rem">
                             <h3>{{ publi.title }}</h3>
                             <h5 class=>{{ publi.content }}</h5>
                             <p>{{ publi.dateofcreation }}</p>
-                            <img src="/images/{{ publi.pictureURL }}" class="img img-responsive full-width rounded-1" />
+                            <img src="/images/{{ publi.pictureURL }}" class="img img-responsive full-width " />
                         </div>
 
 
