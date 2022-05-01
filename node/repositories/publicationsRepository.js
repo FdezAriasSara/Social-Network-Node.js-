@@ -12,17 +12,28 @@ module.exports = {
             const publicationsCollection = database.collection(collectionName);
 
             let publicationsOfUser = []
-            publicationsOfUser = await publicationsCollection.find({userID: userObjectID}, {publications: 1, _id:0})?.toArray();
+            publicationsOfUser = await publicationsCollection.find({userID: userObjectID}, {publications: 1, _id:1})?.toArray();
 
-            if(publicationsOfUser.length > 0 ){ //Si ya tiene publicaciones, insertamos la nueva
-                await publicationsCollection.update({userID: userObjectID}, {$push: { publications: publication } } );
-            }else{ //Si no tiene publicaciones, creamos el documento
+            if(publicationsOfUser.length == 0){//Nunca ha hecho publicaciones
+                //Si no tiene publicaciones, creamos el documento
                 await publicationsCollection.insert({userID: userObjectID, publications: [publication] });
+            }else{
+                if(publicationsOfUser[0].publications.length > 0 ){ //Si ya tiene publicaciones, y
+                    //la array de publicaciones NO está vacia insertamos la nueva
+                    await publicationsCollection.update({userID: userObjectID}, {$push: { publications: publication } } );
+                }else{
+                    //Si el documento de publicaciones existe, pero por un casual, la array de publicaciones está vacía, la creamos
+                    //añadiendo la publicacion
+                    await publicationsCollection.insert({userID: userObjectID, publications: [publication] });
+                }
             }
 
 
-            const result = await publicationsCollection.insertOne(publication);
-            return result.insertedId;
+
+
+
+
+            return publicationsOfUser._id;
         } catch (error) {
             throw (error);
 
@@ -30,7 +41,7 @@ module.exports = {
     },
     findAllPublicationsByAuthorAndPage: async function (authorObjectID, page){
 
-        const limit = 10; //TOTAL_PUBLICATIONS_PER_PAGE
+        const limit = 9; //TOTAL_PUBLICATIONS_PER_PAGE
         const client = await this.mongoClient
             .connect(this.app.get('connectionStrings'));
         const database = client.db("redsocial");
