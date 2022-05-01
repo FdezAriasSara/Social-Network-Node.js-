@@ -1,3 +1,4 @@
+const {isEmail} = require("validator");
 module.exports = function (app, usersRepository) {
     const emailRegexp = new RegExp("\\w*\\@\\w*\\.\\w*");
     const nombreYapellidosRegExp = new RegExp("[a-zA-Z]+('-'|' '[a-zA-Z])*");
@@ -80,33 +81,42 @@ module.exports = function (app, usersRepository) {
                 "&messageType=alert-danger ");
         } else if (!req.body.email.match(emailRegexp)) {
             res.redirect("/users/signup" +
-                "?message=El formato del email es incorrecto." +
+                "?message=El formato del email es incorrecto. Debe ser parecido al siguiente: nombre@dominio.dominio" +
                 "&messageType=alert-danger ");
         } else if (!req.body.nombre.match(nombreYapellidosRegExp) || !req.body.apellidos.match(nombreYapellidosRegExp)) {
 
             res.redirect("/users/signup" +
                 "?message=Los campos de nombre y apellidos solamente aceptan letras , espacios o guiones." +
                 "&messageType=alert-danger ");
-        }else if(req.body.contraseña===req.body.repContra){
+        } else if (req.body.contraseña == req.body.repContra) {
 
             res.redirect("/users/signup" +
                 "?message=Las contraseñas no coinciden." +
                 "&messageType=alert-danger ");
 
         } else {
-            let securePassword = app.get("crypto").createHmac('sha256', app.get('clave'))
-                .update(req.body.password).digest('hex');
-            let user = {
-                email: req.body.email,
-                name:req.body.nombre,
-                surname:req.body.apellidos,
-                password: securePassword
+            let email={
+                email:req.body.email
             }
-            usersRepository.insertUser(user).then(userId => {
-                res.redirect("/users/login" + '?message=Nuevo usuario registrado.' + "&messageType=alert-info");
-            }).catch(error => {
-                res.redirect("/users/signup" + '?message=Se ha producido un error al registrar el usuario.' + "&messageType=alert-danger");
-            });
+            usersRepository.findUser(email).then(user=>{
+                if(user==null){
+                    let securePassword = app.get("crypto").createHmac('sha256', app.get('clave'))
+                        .update(req.body.password).digest('hex');
+                    let user = {
+                        email: req.body.email,
+                        name: req.body.nombre,
+                        surname: req.body.apellidos,
+                        password: securePassword
+                    }
+                    usersRepository.createUser(user).then(userId => {
+                        res.redirect("/users/login" + '?message= ¡Te has registrado con éxito! Inicia sesión:' + "&messageType=alert-info");
+                    }).catch(error => {
+                        res.redirect("/users/signup" + '?message=Se ha producido un error al registrar tu usuario. Inténtalo de nuevo.' + "&messageType=alert-danger");
+                    });
+                }else
+                    res.redirect("/users/signup" + '?message=Ya existe un usuario con ese correo electrónico.' + "&messageType=alert-danger");
+            }).catch(error=>error.redirect("/users/signup" + '?message=Se ha producido un error al registrar tu usuario. Inténtalo de nuevo.' + "&messageType=alert-danger"));
+
         }
     });
 }
