@@ -74,7 +74,7 @@ module.exports = function (app, usersRepository) {
      */
     app.post('/users/signup', function (req, res) {
 
-        if (req.body.email == null || req.body.password == null) {
+        if (req.body.email == null || req.body.contraseña == null) {
             res.redirect("/users/signup" +
                 "?message=Debes rellenar todos los campos para registrarte como usuario." +
                 "&messageType=alert-danger ");
@@ -87,7 +87,7 @@ module.exports = function (app, usersRepository) {
             res.redirect("/users/signup" +
                 "?message=Los campos de nombre y apellidos solamente aceptan letras , espacios o guiones." +
                 "&messageType=alert-danger ");
-        }else if(req.body.contraseña.equals(req.body.repContra)){
+        }else if(req.body.contraseña===req.body.repContra){
 
             res.redirect("/users/signup" +
                 "?message=Las contraseñas no coinciden." +
