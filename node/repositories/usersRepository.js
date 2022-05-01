@@ -14,7 +14,13 @@ module.exports = {
             const database = client.db("redsocial");
             const collectionName = 'users';
             const usersCollection = database.collection(collectionName);
-            const result = await usersCollection.insertOne(user);
+            let userComplete = {
+                ...user,
+                invitesSent: [],
+                invitesReceived: [],
+                friendships:[]
+            }
+            const result = await usersCollection.insertOne(userComplete);
             return result.insertedId;
         } catch (error) {
             throw (error);
@@ -101,7 +107,7 @@ module.exports = {
 
             //Establecemos la amistad entre el emisor y el receptor
 
-            await usersCollection.update(filterUsers, {$push: { firendships: receiverObjectID } } );
+            await usersCollection.update(filterUsers, {$push: { friendships: receiverObjectID } } );
 
 
 
@@ -117,7 +123,7 @@ module.exports = {
 
             //Establecemos la amistad entre el receptor y el emisor
 
-            await usersCollection.update(filterUsers, {$push: { firendships: senderObjectID } } );
+            await usersCollection.update(filterUsers, {$push: { friendships: senderObjectID } } );
 
 
 
