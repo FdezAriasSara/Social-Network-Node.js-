@@ -9,14 +9,20 @@
 
             {% for publi in publications %}
 
-                <div class="col-xs-4 col-sm-4 col-md-3 col-lg-2" style="margin: 1rem">
 
+                <div class="col-xs-4 col-sm-4 col-md-3 col-lg-2 border" style="margin: 1rem">
 
-                        <div style="width:200px; margin: 1rem">
-                            <h3>{{ publi.title }}</h3>
-                            <h5 class=>{{ publi.content }}</h5>
-                            <p>{{ publi.dateofcreation }}</p>
-                            <img src="/images/{{ publi.pictureURL }}" class="img img-responsive full-width " />
+                        <div class="border">
+                            <div style="width:200px; margin: 1rem">
+                                <h3>{{ publi.title }}</h3>
+                                <h5 class=>{{ publi.content }}</h5>
+                                <p>{{ publi.dateofcreation }}</p>
+                                {% if publi.pictureURL %}
+                                    <div class="container-fluid">
+                                    <img src="/images/{{ publi.pictureURL }}" class="img img-responsive full-width " />
+                                    </div>
+                                {% endif %}
+                            </div>
                         </div>
 
 

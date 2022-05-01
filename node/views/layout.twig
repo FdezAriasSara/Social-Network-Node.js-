@@ -24,11 +24,14 @@
             <img src="/images/logo.png"  alt="logo"/>
         </div>
         <div class="collapse navbar-collapse" id="myNavbar">
-            <ul class="nav navbar-nav">
+            {% if isLogedIn %}
+                <ul class="nav navbar-nav">
 
-                <li id="mypublication"><a href="/publications/list">Publicaciones</a></li>
+                    <li id="listOwmPosts"><a href="/publications/list">Mis Publicaciones</a></li>
+                    <li id="addPost"><a href="/publications/add">Añadir Publicación</a></li>
 
-            </ul>
+                </ul>
+            {% endif %}
             <ul class="nav navbar-nav navbar-right">
 
                 {% if isLogedIn %}

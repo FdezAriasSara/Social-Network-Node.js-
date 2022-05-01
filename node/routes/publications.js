@@ -91,7 +91,9 @@ module.exports = function (app, usersRepository, publicationsRepository) {
 
     //GET FORMULARIO DE CREACION DE PUBLICACION
     app.get("/publications/add", function (req, res) {
-        res.render("publications/add.twig");
+        //BORRAR DESPUES DE QUE ALGUIEN IMLPEMENTE EL LOGIN:
+        req.session.user = "elseñor@delanoche.com"
+        res.render("publications/add.twig",{isLogedIn: ( req.session.user!=null && req.session.user!= 'undefined')});
     });
 
 
@@ -123,14 +125,31 @@ module.exports = function (app, usersRepository, publicationsRepository) {
                 return;
             }
 
-            //Generate random UUID unique for the image
-            let randomUUIDForImage = uuidv4();
-            let publication = {
-                dateofcreation: new Date(),
-                content: req.body.description,
-                title: req.body.title,
-                pictureURL: randomUUIDForImage + '.png'
-            };
+            let publication;
+            if(req.files != null){//Se envió imagen
+
+                //Generate random UUID unique for the image
+                let randomUUIDForImage = uuidv4();
+                 publication = {
+                    dateofcreation: new Date(),
+                    content: req.body.description,
+                    title: req.body.title,
+                    pictureURL: randomUUIDForImage + '.png'
+                };
+
+
+            }else{
+
+
+                publication = {
+                    dateofcreation: new Date(),
+                    content: req.body.description,
+                    title: req.body.title
+                };
+
+            }
+
+
 
             //Find ObjectID of current user:
             let currentID = await usersRepository.findUser({email: req.session.user},
@@ -140,15 +159,23 @@ module.exports = function (app, usersRepository, publicationsRepository) {
 
             await publicationsRepository.insertPublication(publication, ObjectId(currentID[0]._id))
                 .then( publicationDocumentID => {
-                    let imagen = req.files.imgPubli;
-                    imagen.mv(app.get("uploadPath") + '\\public\\images\\' + randomUUIDForImage + '.png',
-                        function (err) {
-                            if(err){
-                                res.send("Error al subir la imagen.");
-                            }else{
-                                res.redirect("/publications/list");
-                            }
-                        });
+                    if(req.files != null){
+
+                        let imagen = req.files.imgPubli;
+                        imagen.mv(app.get("uploadPath") + '\\public\\images\\' + randomUUIDForImage + '.png',
+                            function (err) {
+                                if(err){
+                                    res.send("Error al subir la imagen.");
+                                }else{
+                                    res.redirect("/publications/list");
+                                }
+                            });
+
+                    }else{
+                        res.redirect("/publications/list");
+                    }
+
+
 
                 })
                 .catch(error => {
