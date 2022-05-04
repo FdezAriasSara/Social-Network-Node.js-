@@ -16,7 +16,8 @@ const {MongoClient} = require("mongodb");
 ////////////////MODIFICADO: //////////////////////////////////////////////////
 var indexRouter = require('./routes/index');                                //
 const usersRepository = require('./repositories/usersRepository')           /////
-const publicationsRepository = require('./repositories/publicationsRepository')//                                                                            //
+const publicationsRepository = require('./repositories/publicationsRepository')
+const messagesRepository = require('./repositories/messagesRepository')         //                                                                            //
 // //////////////////////////////////////////////////////////////////////////////
 
 
@@ -101,7 +102,7 @@ const userTokenRouter = require('./routes/userTokenRouter');
 
 usersRepository.init(app, MongoClient);
 publicationsRepository.init(app,MongoClient,usersRepository);
-
+messagesRepository.init(app,MongoClient)
 
 
 
@@ -109,12 +110,12 @@ app.use("/publications/**", userSessionRouter);
 
 //No especifico /api/users/login porque para acceder no es necesario token
 app.use("/api/friends/list", userTokenRouter);
-app.use("/api/message/**", userTokenRouter);
+app.use("/api/message/add", userTokenRouter);
 app.use("/api/conversation/**", userTokenRouter);
 
 
 require("./routes/publications.js")(app, usersRepository, publicationsRepository);
-require("./routes/api/chatAPI")(app, publicationsRepository, usersRepository);
+require("./routes/api/chatAPI")(app, publicationsRepository, usersRepository, messagesRepository);
 
 
 ////////////////////////////////////////////////////////////////////////////////////
