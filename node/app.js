@@ -96,7 +96,7 @@ app.set('connectionStrings', url);
 ////////////////MODIFICADO: ///////////////////////////////////////////////////////
 const userSessionRouter = require('./routes/userSessionRouter');                //
 usersRepository.init(app, MongoClient);                                         //
-publicationsRepository.init(app,MongoClient);
+publicationsRepository.init(app,MongoClient,usersRepository);
 
 
 require("./routes/publications.js")(app, usersRepository, publicationsRepository);//                                                              //

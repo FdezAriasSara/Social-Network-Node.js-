@@ -18,64 +18,41 @@ module.exports = function (app, usersRepository, publicationsRepository) {
 
         //busco el usuario logeado para obtener sus publicaciones
         //BORRAR CUANDO ALGUIEN IMPLEMENTE EL LOGN
-        req.session.user = "elseñor@delanoche.com"
+        req.session.user = "elber@galarga.com"
+
+
+        //Si no estoy logeado, me manda a la pagina de inicio de sesion
+        if(!req.session.user){
+            res.render("/login")
+            ;        }
 
         usersRepository.findUser({email: req.session.user}, {})
-            .then(users => {
+            .then(async users => {
 
                 //Cuando recibo el user, obtengo el _id y busco las publicaciones
 
                 if(users.length < 0 ){
+                    //Como lo que se devuelve al buscar un usuario es una array,
+                    // si no contiene nada significa que no encontró el usuario
                     res.status(500);
-                    res.render("/error",
+                    res.render("error.twig",
                         {
-                            message: "Error listando tus publicaciones, tu email no existe",
-                            error: error
+                            message: "Error reconociendo usuario: no existe",
+                            error: new Error()
                         });
                     return;
                 }
+                //Si se devuelve algo en la array, debería ser un solo usuario, se selecciona el primer elemento
                 let user = users[0];
-                publicationsRepository.findAllPublicationsByAuthorAndPage( ObjectId(user._id), page)
-                    .then((publications) => {
 
-
-                        let lastPage = publications.total / TOTAL_PUBLICATIONS_PER_PAGE;
-                        if (publications.total % TOTAL_PUBLICATIONS_PER_PAGE > 0) { // Sobran decimales
-                            lastPage = lastPage + 1;
-                        }
-                        let pages = []; // paginas mostrar
-                        for (let i = page - 2; i <= page + 2; i++) {
-                            if (i > 0 && i <= lastPage) {
-                                pages.push(i);
-                            }
-                        }
-
-
-                        let realPublications = publications.publicationsArray
-
-                        //Formateamos la fecha para que no salga con hora,minuto,segundos y zona horaria:
-                        realPublications.forEach(pub => {
-                            pub.dateofcreation = new Date(pub.dateofcreation).toLocaleString().split(',')[0]
-                        })
-
-                        res.render("publications/publications.twig",
-                            {
-                                publications: realPublications,
-                                isLogedIn:( req.session.user!=null && req.session.user!= 'undefined'),
-                                pages: pages,
-                                currentPage: page
-                            });
-
-                    })
-                    .catch((error) => {
-                        res.send("Se ha producido un error al listar las publicaciones del usuario: " + error)
-                    })
+                //Metodo para reutilizar código, renderiza las publicaciones del usuario que se pase como parametro
+                await renderPublicationsOf(user._id,page, req,res);
 
 
 
             })
             .catch(error => {
-                res.render("/error",
+                res.render("error.twig",
                     {
                         message: "Error listando tus publicaciones",
                         error: error
@@ -92,7 +69,7 @@ module.exports = function (app, usersRepository, publicationsRepository) {
     //GET FORMULARIO DE CREACION DE PUBLICACION
     app.get("/publications/add", function (req, res) {
         //BORRAR DESPUES DE QUE ALGUIEN IMLPEMENTE EL LOGIN:
-        req.session.user = "elseñor@delanoche.com"
+        req.session.user = "elber@galarga.com"
         res.render("publications/add.twig",{isLogedIn: ( req.session.user!=null && req.session.user!= 'undefined')});
     });
 
@@ -101,7 +78,14 @@ module.exports = function (app, usersRepository, publicationsRepository) {
     app.post("/publications/add", async function (req, res){
 
         //BORRAR DESPUES DE QUE ALGUIEN IMLPEMENTE EL LOGIN:
-        req.session.user = "elseñor@delanoche.com"
+        req.session.user = "elber@galarga.com"
+
+        //Si no estoy logeado, me manda a la pagina de inicio de sesion
+        if(!req.session.user){
+            res.render("/login")
+            ;        }
+
+
         if(req.session.user == null || req.session.user == undefined){
             res.render("login.twig")
         }else{
@@ -192,4 +176,168 @@ module.exports = function (app, usersRepository, publicationsRepository) {
 
     });
 
+
+
+    //GET LISTAR PUBLICACIONES
+    app.get("/publications/friend/:friendId", function (req, res) {
+
+
+        let page = parseInt(req.query.page); // Es String !!!
+        if (typeof req.query.page === "undefined"
+            || req.query.page === null
+            || req.query.page === "0") {
+            // Puede no venir el param
+            page = 1;
+        }
+
+        //busco el usuario logeado para obtener sus publicaciones
+        //BORRAR CUANDO ALGUIEN IMPLEMENTE EL LOGN
+        req.session.user = "elber@galarga.com"
+        
+
+        //Si no estoy logeado, me manda a la pagina de inicio de sesion
+        if(!req.session.user){
+            res.render("/login")
+;        }
+
+
+        //Id textual del amigo
+        let friendId = req.params.friendId;
+
+        //Miramos si mi usuario existe
+        usersRepository.findUser({email: req.session.user}, {})
+            .then( async users => {
+
+                //Cuando recibo el user, obtengo el _id y busco las publicaciones
+
+                if(users.length < 0 ){
+                    //Como lo que se devuelve al buscar un usuario es una array,
+                    // si no contiene nada significa que no encontró el usuario
+                    res.status(500);
+                    res.render("error.twig",
+                        {
+                            message: "Error reconociendo usuario: no existe",
+                            error: new Error()
+                        });
+                    return;
+                }
+                //Si se devuelve algo en la array, debería ser un solo usuario, se selecciona el primer elemento
+                let myself = users[0];
+
+
+                //Checkeamos que soy amigo del usuario del que pido las publicaciones
+                usersRepository.isFriendOf(myself._id, ObjectId(friendId))
+                    .then((response)=>{
+                        //Si hay respuesta, es true o false.
+
+                        if(response === true){ //Son amigos
+
+                            //Metodo para reutilizar código, renderiza las publicaciones del usuario que se pase como parametro
+                            renderPublicationsOf(friendId,page, req,res);
+
+                        }else{ //No son amigos
+
+                            res.render("error.twig",
+                                {
+                                    message: "El usuario " + req.session.user
+                                        + " NO es amigo del usuario con ID: " + friendId ,
+                                    error: new Error()
+                                });
+
+
+                        }
+
+
+                    })
+                    .catch((error)=>{
+
+                        res.render("error.twig",
+                            {
+                                message: "Error comprobando si el usuario " + req.session.user
+                                    + " es amigo del usuario con ID: " + friendId ,
+                                error: error
+                            });
+
+                    });
+
+
+
+
+            })
+            .catch(error => {
+                res.render("error.twig",
+                    {
+                        message: "Error listando publicaciones del amigo " + friendId ,
+                        error: error
+                    });
+            })
+
+
+
+    });
+
+
+
+
+    async function renderPublicationsOf(userStringId, page, req, res) {
+
+        publicationsRepository.findAllPublicationsByAuthorAndPage( ObjectId(userStringId), page)
+            .then((publications) => {
+
+
+                //Si el usuario tiene alguna publicacion
+                if(publications.total != 0){
+
+                    let lastPage = publications.total / TOTAL_PUBLICATIONS_PER_PAGE;
+                    if (publications.total % TOTAL_PUBLICATIONS_PER_PAGE > 0) { // Sobran decimales
+                        lastPage = lastPage + 1;
+                    }
+                    let pages = []; // paginas mostrar
+                    for (let i = page - 2; i <= page + 2; i++) {
+                        if (i > 0 && i <= lastPage) {
+                            pages.push(i);
+                        }
+                    }
+
+
+                    let realPublications = publications.publicationsArray
+
+                    //Formateamos la fecha para que no salga con hora,minuto,segundos y zona horaria:
+                    realPublications.forEach(pub => {
+                        pub.dateofcreation = new Date(pub.dateofcreation).toLocaleString().split(',')[0]
+                    })
+
+                    res.render("publications/publications.twig",
+                        {
+                            publications: realPublications,
+                            isLogedIn:( req.session.user!=null && req.session.user!= 'undefined'),
+                            pages: pages,
+                            currentPage: page,
+                            author: publications.author
+                        });
+
+                }else{ //El usuario aun no tiene publicaciones
+
+                    res.render("publications/publications.twig",
+                        {
+                            publications: [],
+                            isLogedIn:( req.session.user!=null && req.session.user!= 'undefined'),
+                            pages: 1,
+                            currentPage: 1,
+                            author: publications.author
+                        });
+
+                }
+
+
+
+            })
+            .catch((error) => {
+                res.send("Se ha producido un error al listar las publicaciones del usuario: " + error)
+            })
+
+    }
+
+
 }
+
