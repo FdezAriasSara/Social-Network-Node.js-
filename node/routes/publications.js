@@ -68,6 +68,8 @@ module.exports = function (app, usersRepository, publicationsRepository) {
 
     //GET FORMULARIO DE CREACION DE PUBLICACION
     app.get("/publications/add", function (req, res) {
+
+
         //BORRAR DESPUES DE QUE ALGUIEN IMLPEMENTE EL LOGIN:
         req.session.user = "elber@galarga.com"
         res.render("publications/add.twig",{isLogedIn: ( req.session.user!=null && req.session.user!= 'undefined')});
@@ -76,6 +78,8 @@ module.exports = function (app, usersRepository, publicationsRepository) {
 
     //POST FORMULARIO DE CREACION DE PUBLICACION
     app.post("/publications/add", async function (req, res){
+
+
 
         //BORRAR DESPUES DE QUE ALGUIEN IMLPEMENTE EL LOGIN:
         req.session.user = "elber@galarga.com"
@@ -193,7 +197,7 @@ module.exports = function (app, usersRepository, publicationsRepository) {
         //busco el usuario logeado para obtener sus publicaciones
         //BORRAR CUANDO ALGUIEN IMPLEMENTE EL LOGN
         req.session.user = "elber@galarga.com"
-        
+
 
         //Si no estoy logeado, me manda a la pagina de inicio de sesion
         if(!req.session.user){
