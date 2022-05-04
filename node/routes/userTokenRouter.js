@@ -18,6 +18,9 @@ userTokenRouter.use(
                                 res.status(403); // Forbidden
                                 res.json({authorized: false, error: 'Token inválido o caducado'});
                             } else { // dejamos correr la petición
+
+                                //Si pasa la petición, no hace falta hacer búsquedas o volteretas para buscar el email
+                                //relacionado con un toke, lo tenemos aquí
                                 res.user = infoToken.user;
                                 next();
                             }

@@ -97,21 +97,24 @@ app.set('connectionStrings', url);
 
 ////////////////MODIFICADO: ////////////////////////////////////////////////////////////////////////////////////
 const userSessionRouter = require('./routes/userSessionRouter');
+const userTokenRouter = require('./routes/userTokenRouter');
+
 usersRepository.init(app, MongoClient);
 publicationsRepository.init(app,MongoClient,usersRepository);
 
 
-require("./routes/publications.js")(app, usersRepository, publicationsRepository);
-require("./routes/api/songsAPIv1.0.js")(app, publicationsRepository, usersRepository);
 
-const userTokenRouter = require('./routes/userTokenRouter');
+
+app.use("/publications/**", userSessionRouter);
 
 //No especifico /api/users/login porque para acceder no es necesario token
-app.use("/api/list/**", userTokenRouter);
+app.use("/api/friends/list", userTokenRouter);
 app.use("/api/message/**", userTokenRouter);
 app.use("/api/conversation/**", userTokenRouter);
 
-app.use("/publications/**", userSessionRouter);
+
+require("./routes/publications.js")(app, usersRepository, publicationsRepository);
+require("./routes/api/chatAPI")(app, publicationsRepository, usersRepository);
 
 
 ////////////////////////////////////////////////////////////////////////////////////
