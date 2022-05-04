@@ -111,11 +111,11 @@ app.use("/publications/**", userSessionRouter);
 //No especifico /api/users/login porque para acceder no es necesario token
 app.use("/api/friends/list", userTokenRouter);
 app.use("/api/message/add", userTokenRouter);
-app.use("/api/conversation/**", userTokenRouter);
-
+app.use("/api/coversation/", userTokenRouter);
 
 require("./routes/publications.js")(app, usersRepository, publicationsRepository);
 require("./routes/api/chatAPI")(app, publicationsRepository, usersRepository, messagesRepository);
+
 
 
 ////////////////////////////////////////////////////////////////////////////////////

@@ -13,14 +13,34 @@ module.exports = {
                 .connect(this.app.get('connectionStrings'));
             const database = client.db("redsocial");
             const collectionName = 'messages';
-            const usersCollection = database.collection(collectionName);
+            const messagesCollection = database.collection(collectionName);
 
            let messageWithDate = {
                ...message,
                date: new Date()
            }
-            const result = await usersCollection.insertOne(messageWithDate);
+            const result = await messagesCollection.insertOne(messageWithDate);
             return result.insertedId;
+        } catch (error) {
+            throw (error);
+
+        }
+
+    },
+
+    getMessagesFromTo: async function (fromEmail, toEmail){
+
+        try {
+            const client = await this.mongoClient
+                .connect(this.app.get('connectionStrings'));
+            const database = client.db("redsocial");
+            const collectionName = 'messages';
+            const messagesCollection = database.collection(collectionName);
+
+
+            const messages = await messagesCollection.find({senderEmail: fromEmail, receiverEmail: toEmail}, {}).toArray();
+
+            return messages;
         } catch (error) {
             throw (error);
 

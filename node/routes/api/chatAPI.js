@@ -200,4 +200,47 @@ module.exports = function (app, publicationsRepository, usersRepository, message
 
     });
 
+    app.post('/api/coversation/', async function (req,res){
+
+        try{
+
+            let myself = res.user;
+
+            let otherUser = null;
+
+            usersRepository.findUser({_id: ObjectId(req.body.idOtherUser)}, {})
+                .then( otherUsers => {
+                    otherUser = otherUsers[0];
+                })
+                .catch(error => {
+                    res.status(500);
+                    res.json({
+                        message: "Error identificando ID del otro usuario",
+                        error: error
+                    })
+                })
+
+
+            //primero pillamos los mensajes que le envié yo y luego los que me envió él.
+            //Unimos las dos arrays
+            let messages = await messagesRepository.getMessagesFromTo(myself, otherUser)
+            messages =messages.concat( await messagesRepository.getMessagesFromTo(otherUser, myself))
+
+            messages.sort( (a,b) => a.date - b.date);
+
+            res.status(200);
+            res.json({
+                messages: messages
+            })
+
+        }catch(e){
+            res.status(500);
+            res.json({
+                message: "Se ha producido un error al leer conversación",
+                error: e
+            })
+        }
+
+    });
+
 }
