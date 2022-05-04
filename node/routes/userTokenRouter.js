@@ -3,7 +3,7 @@ const express = require('express');
 const userTokenRouter = express.Router();
 userTokenRouter.use(
     function (req, res, next) {
-            console.log("userAuthorRouter");
+
 
             let token = req.headers['token']
                 || req.body.token ||
