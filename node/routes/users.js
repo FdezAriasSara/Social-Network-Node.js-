@@ -75,7 +75,7 @@ module.exports = function (app, usersRepository) {
      */
     app.post('/users/signup', function (req, res) {
 
-        if (req.body.email == null || req.body.contraseña == null) {
+        if (req.body.email|| req.body.contraseña) {
             res.redirect("/users/signup" +
                 "?message=Debes rellenar todos los campos para registrarte como usuario." +
                 "&messageType=alert-danger ");
@@ -88,18 +88,16 @@ module.exports = function (app, usersRepository) {
             res.redirect("/users/signup" +
                 "?message=Los campos de nombre y apellidos solamente aceptan letras , espacios o guiones." +
                 "&messageType=alert-danger ");
-        } else if (req.body.contraseña == req.body.repContra) {
+        } else if (req.body.contraseña.normalize() === req.body.repContra.normalize()) {
 
             res.redirect("/users/signup" +
                 "?message=Las contraseñas no coinciden." +
                 "&messageType=alert-danger ");
 
         } else {
-            let email={
-                email:req.body.email
-            }
-            usersRepository.findUser(email).then(user=>{
-                if(user==null){
+
+            usersRepository.findUser({email: req.body.email},{}).then(user=>{//buscando el amail
+                if(user.length==0){
                     let securePassword = app.get("crypto").createHmac('sha256', app.get('clave'))
                         .update(req.body.password).digest('hex');
                     let user = {
@@ -107,6 +105,7 @@ module.exports = function (app, usersRepository) {
                         name: req.body.nombre,
                         surname: req.body.apellidos,
                         password: securePassword
+
                     }
                     usersRepository.createUser(user).then(userId => {
                         res.redirect("/users/login" + '?message= ¡Te has registrado con éxito! Inicia sesión:' + "&messageType=alert-info");
