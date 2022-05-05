@@ -15,35 +15,35 @@ import org.openqa.selenium.WebElement;
 import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.data.domain.Pageable;
+import com.mongodb.DB;
+import com.mongodb.DBCollection;
+import com.mongodb.MongoClient;
 
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 
-@SpringBootTest
+
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class SdiPractica134ApplicationTests {
 
 
     //static String PathFirefox = "C:\\Program Files\\Mozilla Firefox\\firefox.exe";
     //static String Geckodriver = "C:\\Path\\geckodriver-v0.30.0-win64.exe";
-    static String Geckodriver = "C:\\Users\\usuario\\Desktop\\Eii\\AÑO 3 GRADO INGENIERIA INFORMATICA\\Sistemas Distribuidos e Internet\\Lab\\sesion05\\PL-SDI-Sesión5-material\\geckodriver-v0.30.0-win64.exe";
+   // static String Geckodriver = "C:\\Users\\usuario\\Desktop\\Eii\\AÑO 3 GRADO INGENIERIA INFORMATICA\\Sistemas Distribuidos e Internet\\Lab\\sesion05\\PL-SDI-Sesión5-material\\geckodriver-v0.30.0-win64.exe";
     //sebas
     //static String Geckodriver ="C:\\Users\\sebas\\Downloads\\TERCERO\\SEGUNDO CUATRIMESTRE\\SDI\\PL-SDI-Sesión5-material\\PL-SDI-Sesión5-material\\geckodriver-v0.30.0-win64.exe";
 
     //ce
-    static String PathFirefox = "C:\\Program Files\\Mozilla Firefox\\firefox.exe";
+   // static String PathFirefox = "C:\\Program Files\\Mozilla Firefox\\firefox.exe";
    // static String Geckodriver = "E:\\UNIOVI\\TERCERO\\Segundo cuatri\\SDI\\PL-SDI-Sesión5-material\\geckodriver-v0.30.0-win64.exe"; //CASA
     //static String Geckodriver = "C:\\Users\\Sara\\Desktop\\Universidad\\3-tercer curso\\segundo cuatri\\(SDI)-Sistemas Distribuidos e Internet\\Sesión5-material\\geckodriver-v0.30.0-win64.exe";
 
-    /* SARA
+    /* SARA */
     static String PathFirefox = "C:\\Program Files\\Mozilla Firefox\\firefox.exe";
     //static String Geckodriver = "C:\\Path\\geckodriver-v0.30.0-win64.exe";
     static String Geckodriver = "C:\\Users\\Sara\\Desktop\\Universidad\\3-tercer curso\\segundo cuatri\\(SDI)-Sistemas Distribuidos e Internet\\Sesión5-material\\geckodriver-v0.30.0-win64.exe";
-*/
+
     //static String PathFirefox = "/Applications/Firefox.app/Contents/MacOS/firefox-bin";
     // static String Geckodriver = "/Users/USUARIO/selenium/geckodriver-v0.30.0-macos";
 
@@ -51,15 +51,11 @@ class SdiPractica134ApplicationTests {
     static WebDriver driver = getDriver(PathFirefox, Geckodriver);
     static String URL = "http://localhost:8090";
 
-    @Autowired
-    private UsersRepository usersRepository;
 
-    @Autowired
-    private LogRepository logRepository;
+    MongoClient dbClient ;
+    DB database ;
+    DBCollection usersCollection;
 
-
-    @Autowired
-    private PostsRepository postsRepository;
 
 
     //Común a Windows y a MACOSX
@@ -84,12 +80,26 @@ class SdiPractica134ApplicationTests {
     //Antes de la primera prueba
     @BeforeAll
     static public void begin() {
+        //To access mongo database
+        try{
+            dbClient=MongoClients.create();
+            database=client.getDatabase();
+            usersCollection=database.getCollection("users");
+
+        }
+        catch(MongoException ex){
+            throw ex;
+        }
+
     }
 
     //Al finalizar la última prueba
     @AfterAll
     static public void end() {
         //Cerramos el navegador al finalizar las pruebas
+        Bson query=eq("name","test");
+        var res=doc.deleteMany(query);
+        dbClient.close();
         driver.quit();
     }
 
@@ -99,7 +109,7 @@ class SdiPractica134ApplicationTests {
     @Test
     @Order(1)
     void PR01_1() {
-        int userBefore = usersRepository.countUsers();
+        int userBefore = usersCollection.
         PO_SignUpView.goToSignUpPage(driver);
         PO_SignUpView.fillForm(driver,"martin@email.com","Martin","Beltran",
                 "password","password");

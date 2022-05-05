@@ -1,4 +1,4 @@
-const {isEmail} = require("validator");
+
 module.exports = function (app, usersRepository) {
     const emailRegexp = new RegExp("\\w*\\@\\w*\\.\\w*");
     const nombreYapellidosRegExp = new RegExp("[a-zA-Z]+('-'|' '[a-zA-Z])*");
@@ -75,7 +75,7 @@ module.exports = function (app, usersRepository) {
      */
     app.post('/users/signup', function (req, res) {
 
-        if (req.body.email|| req.body.contraseña) {
+        if (!req.body.email|| !req.body.contraseña || !req.body.repContra || !req.body.nombre || !req.body.apellidos) {
             res.redirect("/users/signup" +
                 "?message=Debes rellenar todos los campos para registrarte como usuario." +
                 "&messageType=alert-danger ");
@@ -88,7 +88,7 @@ module.exports = function (app, usersRepository) {
             res.redirect("/users/signup" +
                 "?message=Los campos de nombre y apellidos solamente aceptan letras , espacios o guiones." +
                 "&messageType=alert-danger ");
-        } else if (req.body.contraseña.normalize() === req.body.repContra.normalize()) {
+        } else if (req.body.contraseña != req.body.repContra) {
 
             res.redirect("/users/signup" +
                 "?message=Las contraseñas no coinciden." +
@@ -99,7 +99,7 @@ module.exports = function (app, usersRepository) {
             usersRepository.findUser({email: req.body.email},{}).then(user=>{//buscando el amail
                 if(user.length==0){
                     let securePassword = app.get("crypto").createHmac('sha256', app.get('clave'))
-                        .update(req.body.password).digest('hex');
+                        .update(req.body.contraseña).digest('hex');
                     let user = {
                         email: req.body.email,
                         name: req.body.nombre,
@@ -110,11 +110,11 @@ module.exports = function (app, usersRepository) {
                     usersRepository.createUser(user).then(userId => {
                         res.redirect("/users/login" + '?message= ¡Te has registrado con éxito! Inicia sesión:' + "&messageType=alert-info");
                     }).catch(error => {
-                        res.redirect("/users/signup" + '?message=Se ha producido un error al registrar tu usuario. Inténtalo de nuevo.' + "&messageType=alert-danger");
+                        res.redirect("/users/signup" + '?message=Se ha producido un error al registrar tu usuario. Inténtalo de nuevo' + "&messageType=alert-danger");
                     });
                 }else
                     res.redirect("/users/signup" + '?message=Ya existe un usuario con ese correo electrónico.' + "&messageType=alert-danger");
-            }).catch(error=>error.redirect("/users/signup" + '?message=Se ha producido un error al registrar tu usuario. Inténtalo de nuevo.' + "&messageType=alert-danger"));
+            }).catch(error=>res.redirect("/users/signup" + '?message=Se ha producido un error al registrar tu usuario, inténtalo de nuevo.' + "&messageType=alert-danger"));
 
         }
     });
