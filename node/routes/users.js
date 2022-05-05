@@ -3,8 +3,8 @@ module.exports = function (app, usersRepository) {
     const emailRegexp = new RegExp("\\w*\\@\\w*\\.\\w*");
     const nombreYapellidosRegExp = new RegExp("[a-zA-Z]+('-'|' '[a-zA-Z])*");
     const pswdRegExp = new RegExp("^(?=.*\\d)(?=.*[a-z])(?=.*[A-Z]).{6,}$")//passwords must have at least eight characters, with at least one letter and one number.
-    app.get('/users', function (req, res) {
-        res.send('lista de usuarios')
+    app.get('/users/list', function (req, res) {
+        res.send('TODO:lista de usuarios')
         ;
     })
     app.get('/users/login', function (req, res) {
@@ -25,7 +25,7 @@ module.exports = function (app, usersRepository) {
      *     si el usuario NO es administrador->se le redirige a la vista “Ver listado de usuarios de la red social”
      */
     app.post('/users/login', function (req, res) {
-        if (req.body.email == null || req.body.password == null) {
+        if (!req.body.email ||! req.body.contraseña ) {
             res.redirect("/users/login" +
                 "?message=Debes rellenar todos los campos para iniciar sesión." +
                 "&messageType=alert-danger ");
@@ -34,8 +34,9 @@ module.exports = function (app, usersRepository) {
                 "?message=El formato del email es incorrecto." +
                 "&messageType=alert-danger ");
         } else {
+
             let securePassword = app.get("crypto").createHmac('sha256', app.get('clave'))
-                .update(req.body.password).digest('hex');
+                .update(req.body.contraseña).digest('hex');
             let filter = {
                 email: req.body.email,
                 password: securePassword
@@ -52,7 +53,17 @@ module.exports = function (app, usersRepository) {
 
                 } else {
                     req.session.user = user.email;
-                    res.redirect("/publications");
+                    //TODO : CAMBIAR CUANDO LA FUNCIONALIDAD DEL REQUISITO 2 ESTÉ HECHA
+                    res.redirect("/users/list" );
+                    /*
+                    res.render("/nombreVistauserList.twig")
+                    {
+
+                            isLogedIn:( req.session.user!=null && req.session.user!= 'undefined')
+
+                    };
+                    */
+
                 }
             }).catch(error => {
                 req.session.user = null;
