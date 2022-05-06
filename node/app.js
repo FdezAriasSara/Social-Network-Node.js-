@@ -14,8 +14,10 @@ const {MongoClient} = require("mongodb");
 //const usersRepository = require("./repositories/usersRepository.js");     //
 //const commentsRepository = require("./repositories/commentsRepository")   //
 ////////////////MODIFICADO: //////////////////////////////////////////////////
-                              //
-         //                                                                            //
+var indexRouter = require('./routes/index');                                //
+const usersRepository = require('./repositories/usersRepository')           /////
+const publicationsRepository = require('./repositories/publicationsRepository')
+const messagesRepository = require('./repositories/messagesRepository')         //                                                                            //
 // //////////////////////////////////////////////////////////////////////////////
 
 
@@ -96,23 +98,11 @@ app.set('connectionStrings', url);
 
 ////////////////MODIFICADO: ////////////////////////////////////////////////////////////////////////////////////
 const userSessionRouter = require('./routes/userSessionRouter');
-app.use("/publications/**", userSessionRouter);
-
 const userTokenRouter = require('./routes/userTokenRouter');
-//No especifico /api/users/login porque para acceder no es necesario token
-app.use("/api/friends/list", userTokenRouter);
-app.use("/api/message/add", userTokenRouter); //Funciona
-app.use("/api/conversation", userTokenRouter);
-
-
-
-const usersRepository = require('./repositories/usersRepository')           /////
-const publicationsRepository = require('./repositories/publicationsRepository')
-const messagesRepository = require('./repositories/messagesRepository')
 
 usersRepository.init(app, MongoClient);
 publicationsRepository.init(app,MongoClient,usersRepository);
-messagesRepository.init(app,MongoClient)
+
 
 
 
@@ -120,15 +110,16 @@ app.use("/publications/**", userSessionRouter);
 
 //No especifico /api/users/login porque para acceder no es necesario token
 app.use("/api/friends/list", userTokenRouter);
-app.use("/api/message/add", userTokenRouter);
+app.use("/api/message/**", userTokenRouter);
 app.use("/api/conversation/**", userTokenRouter);
+app.use("/publications/**", userSessionRouter);
 
-
-require("./routes/publications.js")(app, usersRepository, publicationsRepository);
-require("./routes/api/chatAPI")(app, publicationsRepository, usersRepository, messagesRepository);
-
-
-///////////////////////////////////////////////////////////////////////////////////////////////
+require("./routes/users.js")(app,usersRepository);
+require("./routes/publications.js")(app, usersRepository, publicationsRepository);//                                                              //
+require("./routes/api/chatAPI")(app, publicationsRepository, usersRepository);//
+                                   ////
+//                                                                                //
+////////////////////////////////////////////////////////////////////////////////////
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -139,7 +130,7 @@ app.use(express.json());
 app.use(express.urlencoded({extended: false}));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
-var indexRouter = require("./routes/index")
+
 app.use('/', indexRouter);
 
 // catch 404 and forward to error handler
