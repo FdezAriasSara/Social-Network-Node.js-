@@ -12,7 +12,7 @@ module.exports = function (app, usersRepository) {
     });
     app.get('/users/logout', function (req, res) {
         req.session.user = null;
-        req.render("login",{
+        req.render("login.twig",{
             isLoggedIn:false
         });
     });
