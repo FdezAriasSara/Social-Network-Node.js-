@@ -1,4 +1,4 @@
-package com.uniovi.sdipractica134.pageobjects;
+package com.uniovi.sdipractica234.pageobjects;
 
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;

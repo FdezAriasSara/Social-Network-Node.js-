@@ -7,8 +7,14 @@
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <module name="tests-sdi-entrega2-34" />
+        <module name="sdi-entrega2-34" />
         <module name="test-entrega2-34" />
       </profile>
     </annotationProcessing>
+  </component>
+  <component name="JavacSettings">
+    <option name="ADDITIONAL_OPTIONS_OVERRIDE">
+      <module name="sdi-entrega2-34" options="--add-modules java.base" />
+    </option>
   </component>
 </project>
