@@ -1,6 +1,6 @@
 const {ObjectId} = require("mongodb")
 
-module.exports = function (app, publicationsRepository, usersRepository) {
+module.exports = function (app, publicationsRepository, usersRepository, messagesRepository) {
 
     app.get("/api/friends/list",  function (req, res) {
 
@@ -37,7 +37,7 @@ module.exports = function (app, publicationsRepository, usersRepository) {
                 }
 
                 //Ordena los nombre por orden alfabetico
-                //arrayOfFriends.sort( (a,b) => (a.name > b.name) ? 1 : ((b.name > a.name) ? -1 : 0 ));
+                arrayOfFriends.sort( (a,b) => a.name - b.name);
 
 
                 res.status(200);
@@ -113,6 +113,90 @@ module.exports = function (app, publicationsRepository, usersRepository) {
             })
         }
 
+
+    });
+
+
+    app.post("/api/message/add", async function (req, res) {
+
+        //Si en el cuerpo de la peticoon no hay ni receptor ni contenido del mensaje
+        if(!req.body.receiverEmail || !req.body.text){
+
+            res.status(401);
+            res.json({
+                message: "Falta email receptor o contenido del mensaje"
+            })
+            return;
+        }
+
+        try {
+
+
+
+
+            let sender = await usersRepository.findUser({email: res.user},{})
+            let receiver = await usersRepository.findUser({email: req.body.receiverEmail},{}) ;
+
+            sender = sender[0]
+            receiver = receiver[0]
+
+            usersRepository.isFriendOf( ObjectId(sender._id), ObjectId(receiver._id))
+                .then( areFriends => {
+
+                    if(areFriends){
+
+                        let message = {
+                            senderEmail : res.user,
+                            receiverEmail : req.body.receiverEmail,
+                            text : req.body.text,
+                            leido : false
+                        }
+                        messagesRepository.createMessage(message)
+                            .then( (resultId) => {
+
+                                res.status(200);
+                                res.json({
+                                    message: "Mensaje creado con exito."
+                                })
+
+
+                            })
+                            .catch( (error) => {
+
+                                res.status(500);
+                                res.json({
+                                    message: "Error al crear mensaje entre" + res.user + " y " + req.body.receiverEmail + ".",
+                                    error: error
+                                })
+
+                            })
+
+                    }else{
+
+                        res.status(500);
+                        res.json({
+                            message: "" + res.user + " y " + req.body.receiverEmail + " no son amigos"
+                        })
+
+                    }
+
+                })
+                .catch(error => {
+
+                    res.status(500);
+                    res.json({
+                        message: "Error comprobando si " + res.user + " y " + req.body.receiverEmail + " son amigos",
+                        error: error
+                    })
+
+                })
+
+        } catch (e) {
+            res.status(500);
+            res.json({
+                message: "Se ha producido un error al crear el mensaje."
+            })
+        }
 
     });
 
