@@ -81,8 +81,6 @@ module.exports = function (app, usersRepository, publicationsRepository) {
 
 
 
-        //BORRAR DESPUES DE QUE ALGUIEN IMLPEMENTE EL LOGIN:
-        req.session.user = "elber@galarga.com"
 
         //Si no estoy logeado, me manda a la pagina de inicio de sesion
         if(!req.session.user){
@@ -195,8 +193,8 @@ module.exports = function (app, usersRepository, publicationsRepository) {
         }
 
         //busco el usuario logeado para obtener sus publicaciones
-        //BORRAR CUANDO ALGUIEN IMPLEMENTE EL LOGN
-        req.session.user = "elber@galarga.com"
+
+
 
 
         //Si no estoy logeado, me manda a la pagina de inicio de sesion
