@@ -8,9 +8,9 @@ userSessionRouter.use(function (req, res, next) {
         }
     else
         {
-            next()
-            //console.log("va a: " + req.originalUrl);
-            //res.redirect("/users/login");
+
+            console.log("va a: " + req.originalUrl);
+            res.redirect("/users/login");
         }
     }
 )
