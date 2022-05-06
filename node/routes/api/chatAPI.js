@@ -41,7 +41,7 @@ module.exports = function (app, publicationsRepository, usersRepository, message
 
 
                 res.status(200);
-                res.send({friends: arrayOfFriends})
+                res.json({friends: arrayOfFriends})
 
             })
             .catch(error => {
@@ -200,7 +200,7 @@ module.exports = function (app, publicationsRepository, usersRepository, message
 
     });
 
-    app.post('/api/coversation/', async function (req,res){
+    app.post('/api/conversation', async function (req,res){
 
         try{
 
@@ -208,7 +208,7 @@ module.exports = function (app, publicationsRepository, usersRepository, message
 
             let otherUser = null;
 
-            usersRepository.findUser({_id: ObjectId(req.body.idOtherUser)}, {})
+           await usersRepository.findUser({_id: ObjectId(req.body.idOtherUser)}, {})
                 .then( otherUsers => {
                     otherUser = otherUsers[0];
                 })
@@ -223,8 +223,8 @@ module.exports = function (app, publicationsRepository, usersRepository, message
 
             //primero pillamos los mensajes que le envié yo y luego los que me envió él.
             //Unimos las dos arrays
-            let messages = await messagesRepository.getMessagesFromTo(myself, otherUser)
-            messages =messages.concat( await messagesRepository.getMessagesFromTo(otherUser, myself))
+            let messages = await messagesRepository.getMessagesFromTo(myself, otherUser.email)
+            messages =messages.concat( await messagesRepository.getMessagesFromTo(otherUser.email, myself))
 
             messages.sort( (a,b) => a.date - b.date);
 
