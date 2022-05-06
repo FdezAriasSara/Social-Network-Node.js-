@@ -97,14 +97,12 @@ app.set('connectionStrings', url);
 
 
 ////////////////MODIFICADO: ////////////////////////////////////////////////////////////////////////////////////
+// PRIMERO ROUTERS
 const userSessionRouter = require('./routes/userSessionRouter');
 const userTokenRouter = require('./routes/userTokenRouter');
 
-usersRepository.init(app, MongoClient);
-publicationsRepository.init(app,MongoClient,usersRepository);
-messagesRepository.init(app,MongoClient)
 
-
+//segundo : rutas con routers
 
 app.use("/publications/**", userSessionRouter);
 
@@ -113,6 +111,14 @@ app.use("/api/friends/list", userTokenRouter);
 app.use("/api/message/add", userTokenRouter);
 app.use("/api/conversation/**", userTokenRouter);
 
+//TERCERO REPOS
+
+
+usersRepository.init(app, MongoClient);
+publicationsRepository.init(app,MongoClient,usersRepository);
+messagesRepository.init(app,MongoClient)
+
+//CUARTO REQUIRES
 
 require("./routes/publications.js")(app, usersRepository, publicationsRepository);
 require("./routes/api/chatAPI")(app, publicationsRepository, usersRepository, messagesRepository);
