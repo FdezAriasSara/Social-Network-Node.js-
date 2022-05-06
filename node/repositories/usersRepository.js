@@ -1,3 +1,4 @@
+const {ObjectId} = require("mongodb");
 module.exports = {
 
     mongoClient: null,
@@ -14,7 +15,13 @@ module.exports = {
             const database = client.db("redsocial");
             const collectionName = 'users';
             const usersCollection = database.collection(collectionName);
-            const result = await usersCollection.insertOne(user);
+            let userComplete = {
+                ...user,
+                invitesSent: [],
+                invitesReceived: [],
+                friendships:[]
+            }
+            const result = await usersCollection.insertOne(userComplete);
             return result.insertedId;
         } catch (error) {
             throw (error);
@@ -32,6 +39,21 @@ module.exports = {
             const collectionName = 'users';
             const usersCollection = database.collection(collectionName);
             const users = await usersCollection.find(filter, options).toArray();
+            return users;
+        } catch (error) {
+            throw (error);
+        }
+    },
+
+
+    findUserByStringId: async function (stringId){
+        try {
+
+            const client = await this.mongoClient.connect(this.app.get('connectionStrings'));
+            const database = client.db("redsocial");
+            const collectionName = 'users';
+            const usersCollection = database.collection(collectionName);
+            const users = await usersCollection.find({_id:ObjectId(stringId)}, {}).toArray();
             return users;
         } catch (error) {
             throw (error);
@@ -101,7 +123,7 @@ module.exports = {
 
             //Establecemos la amistad entre el emisor y el receptor
 
-            await usersCollection.update(filterUsers, {$push: { firendships: receiverObjectID } } );
+            await usersCollection.update(filterUsers, {$push: { friendships: receiverObjectID } } );
 
 
 
@@ -117,7 +139,7 @@ module.exports = {
 
             //Establecemos la amistad entre el receptor y el emisor
 
-            await usersCollection.update(filterUsers, {$push: { firendships: senderObjectID } } );
+            await usersCollection.update(filterUsers, {$push: { friendships: senderObjectID } } );
 
 
 
@@ -125,6 +147,30 @@ module.exports = {
             throw (error);
         }
 
+    },
+//Checkea que el usuario con ID MyObjectId es amigo de OtherUserObjectId
+    isFriendOf: async function (MyObjectId, OtherUserObjectId) {
+        try {
+
+            const client = await this.mongoClient.connect(this.app.get('connectionStrings'));
+            const database = client.db("redsocial");
+            const collectionName = 'users';
+            const usersCollection = database.collection(collectionName);
+
+            const users = await usersCollection.find({_id: MyObjectId}, {}).toArray();
+            const myself = users[0];
+            let friendShipExists = false;
+            for(let i = 0; i < myself.friendships.length; i++){
+                if(myself.friendships[i].equals(OtherUserObjectId)){
+                    friendShipExists = true;
+                    break;
+                }
+            }
+
+            return friendShipExists;
+        } catch (error) {
+            throw (error);
+        }
     }
 
 

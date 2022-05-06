@@ -2,33 +2,46 @@
 {% block title %} Mis publicaciones {% endblock %}
 
 {% block main_container %}
-    <h1>Mis publicaciones</h1>
+    <h1>Publicaciones de {{author}}</h1>
 
     <div class="row">
 
+
+        {% if publications.length != 0 %}
 
             {% for publi in publications %}
 
 
                 <div class="col-xs-4 col-sm-4 col-md-3 col-lg-2 border" style="margin: 1rem">
 
-                        <div class="border">
-                            <div style="width:200px; margin: 1rem">
-                                <h3>{{ publi.title }}</h3>
-                                <h5 class=>{{ publi.content }}</h5>
-                                <p>{{ publi.dateofcreation }}</p>
-                                {% if publi.pictureURL %}
-                                    <div class="container-fluid">
+                    <div class="border">
+                        <div style="width:200px; margin: 1rem">
+                            <h3>{{ publi.title }}</h3>
+                            <h5 class=>{{ publi.content }}</h5>
+                            <p>{{ publi.dateofcreation }}</p>
+                            {% if publi.pictureURL %}
+                                <div class="container-fluid">
                                     <img src="/images/{{ publi.pictureURL }}" class="img img-responsive full-width " />
-                                    </div>
-                                {% endif %}
-                            </div>
+                                </div>
+                            {% endif %}
                         </div>
+                    </div>
 
 
                 </div>
 
             {% endfor %}
+
+
+
+
+        {% else %}
+
+
+            <h4>El usuario no tiene publicaciones</h4>
+
+
+        {% endif %}
 
 
 

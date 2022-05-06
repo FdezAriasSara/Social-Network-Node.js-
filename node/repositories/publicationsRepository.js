@@ -1,7 +1,11 @@
+const {ObjectId} = require("mongodb");
 module.exports = {
-    mongoClient: null, app: null, init: function (app, mongoClient) {
+    mongoClient: null, app: null, usersRepository: null,
+
+    init: function (app, mongoClient, usersRepository) {
         this.mongoClient = mongoClient;
         this.app = app;
+        this.usersRepository = usersRepository;
     },
     insertPublication: async function (publication, userObjectID) {
         try {
@@ -39,7 +43,7 @@ module.exports = {
 
         }
     },
-    findAllPublicationsByAuthorAndPage: async function (authorObjectID, page){
+    findAllPublicationsByAuthorAndPage: async function (authorStringId, page){
 
         const limit = 9; //TOTAL_PUBLICATIONS_PER_PAGE
         const client = await this.mongoClient
@@ -48,14 +52,28 @@ module.exports = {
         const collectionName = 'publications';
         const publicationsCollection = database.collection(collectionName);
 
-        let publicationsDoc = await publicationsCollection.find({userID: authorObjectID}, {publications: 1, _id:0}).toArray();
+        let publicationsDoc = await publicationsCollection.find({userID: ObjectId(authorStringId)}, {publications: 1, _id:0}).toArray();
 
-        const totalPublicationsFromUser = publicationsDoc[0].publications.length;
+        let usersArray = await this.usersRepository.findUserByStringId(authorStringId)
 
+        let authorEmail = usersArray[0].email;
+
+        //En qué publicacion empieza la página
         let startOfPage = (page-1)*limit
-        let publicationsArray = publicationsDoc[0].publications.slice(startOfPage, startOfPage+limit )
 
-        return {publicationsArray: publicationsArray, total: totalPublicationsFromUser};
+        let publicationsArray //Array de publicaciones a devolver
+        let totalPublicationsFromUser = 0; //Numero total de publicaciones
+        //Si hay publicaciones de ese autor aun
+        if(publicationsDoc.length > 0){
+
+            publicationsArray = publicationsDoc[0].publications.slice(startOfPage, startOfPage+limit )
+            totalPublicationsFromUser = publicationsDoc[0].publications.length;
+        }
+
+
+
+
+        return {publicationsArray: publicationsArray, total: totalPublicationsFromUser, author: authorEmail};
 
     },
     findAllPublicationsByAuthor: async function (authorObjectID){

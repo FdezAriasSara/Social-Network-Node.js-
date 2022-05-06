@@ -94,14 +94,19 @@ app.set('connectionStrings', url);
 //usersRepository.init(app, MongoClient);                                            //
 //require("./routes/users.js")(app, usersRepository);                               //
 ////////////////MODIFICADO: ///////////////////////////////////////////////////////
+
 const userSessionRouter = require('./routes/userSessionRouter');                //
+const userTokenRouter = require('./routes/userTokenRouter');
 usersRepository.init(app, MongoClient);                                         //
-publicationsRepository.init(app,MongoClient);                                   //
+publicationsRepository.init(app,MongoClient);
+
 require("./routes/users.js")(app,usersRepository);
-require("./routes/publications.js")(app, usersRepository, publicationsRepository);                                                              //
+require("./routes/publications.js")(app, usersRepository, publicationsRepository);//                                                              //
+require("./routes/api/chatAPI")(app, publicationsRepository, usersRepository);
+
 app.use("/publications/**", userSessionRouter);                                  //
                                                                                 ////
-//                                                                                   //
+//                                                                                //
 ////////////////////////////////////////////////////////////////////////////////////
 
 // view engine setup

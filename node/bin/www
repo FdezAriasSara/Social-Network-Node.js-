@@ -37,7 +37,6 @@ let server = http.createServer(app);
 let privateKey = fs.readFileSync('./certificates/alice.key', 'utf8');//
 let certificate = fs.readFileSync('./certificates/alice.crt', 'utf8');//
 let credentials = {key: privateKey, cert: certificate};//////////////////////7/////
-///////////////////////////////////////////////
 let httpsServer = https.createServer(credentials, app);////////////////////////////
 httpsServer.listen(4000);/////////////////////////////////////////////////////
 ////////////////POR SI QUEREMOS HTTPS//////////////////////////////////////////////
