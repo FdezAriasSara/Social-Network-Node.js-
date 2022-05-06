@@ -1,12 +1,12 @@
 package com.uniovi.sdipractica234;
 
+
 import com.mongodb.MongoException;
 import com.mongodb.client.MongoClient;
-;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
-
+import com.uniovi.sdipractica234.pageobjects.PO_SignUpView;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.junit.jupiter.api.*;
@@ -42,13 +42,14 @@ class SdiPractica234ApplicationTests {
 
     static WebDriver driver = getDriver(PathFirefox, Geckodriver);
     static String URL = "http://localhost:8090";
-
+    private String signUpURL="http://localhost:8090/users/signup";
     static MongoClient mongoClient= MongoClients.create("mongodb+srv://admin:admin@cluster0.6uext.mongodb.net/myFirstDatabase?retryWrites=true&w=majority");
 
     static MongoDatabase db;
     static MongoCollection<Document> usersCollection;
     static MongoCollection<Document> publiCollection;
-    static MongoCollection<Document> msgsCollection;
+    static  MongoCollection<Document>  msgsCollection;
+
 
     //Común a Windows y a MACOSX
     public static WebDriver getDriver(String PathFirefox, String Geckodriver) {
@@ -60,7 +61,7 @@ class SdiPractica234ApplicationTests {
 
     @BeforeEach
     public void setUp() {
-        driver.navigate().to(URL);
+      //  driver.navigate().to(URL);
     } //Después de cada prueba se borran las cookies del navegador
 
     @AfterEach
@@ -72,47 +73,47 @@ class SdiPractica234ApplicationTests {
     //Antes de la primera prueba
     @BeforeAll
     static public void begin() {
-        try{
-            db=mongoClient.getDatabase("sdi-entrega2-34");
+    try{
+            db=mongoClient.getDatabase("redsocial");
             usersCollection=  db.getCollection("users");
             publiCollection=  db.getCollection("publications");
             msgsCollection=  db.getCollection("messages");
-        }catch(MongoException ex){
-            throw ex;
-
-        }
-    }
+    }catch (MongoException e){
+      throw e;
+    }}
 
     //Al finalizar la última prueba
     @AfterAll
     static public void end() {
       Bson query=eq("name","test");
-      var deleteUsers=usersCollection.deleteMany(query);
+        var deleteUsers=usersCollection.deleteMany(query);
         var deletePublications=usersCollection.deleteMany(query);
         var deleteMessages=usersCollection.deleteMany(query);
         mongoClient.close();
         driver.quit();
     }
 
-/*
+
 
     //[Prueba1-1] Registro de Usuario con datos válidos.
     @Test
     @Order(1)
     void PR01_1() {
-        //int userBefore = usersRepository.countUsers();
-        usersCollection.countDocuments()
+       PO_SignUpView.goToSignUpPage(driver);
+       long usersBefore=usersCollection.countDocuments();
+
         PO_SignUpView.goToSignUpPage(driver);
-        PO_SignUpView.fillForm(driver,"martin@email.com","Martin","Beltran",
-                "password","password");
+        PO_SignUpView.fillForm(driver,"sara@email.com","Sara","Fernández Arias",
+               "password","password");
+       Document user=usersCollection.find(eq("email","sara@email.com")).first();
+        Assertions.assertTrue(user!=null);
+       Assertions.assertTrue(usersBefore < usersCollection.countDocuments());
+        //now we remove the document from the database.
+        usersCollection.deleteOne(eq("email","sara@email.com"));
 
-        Assertions.assertTrue(usersRepository.findByUsername("martin@email.com") != null);
-        Assertions.assertTrue(usersRepository.countUsers() > userBefore);
-
-        usersRepository.deleteByUsername("martin@email.com");
     }
 
-
+/*
     //[Prueba1-2] Registro de Usuario con datos inválidos (username vacío, nombre vacío, apellidos vacíos).
     @Test
     @Order(2)
