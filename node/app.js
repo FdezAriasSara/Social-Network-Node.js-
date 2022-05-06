@@ -115,9 +115,17 @@ publicationsRepository.init(app,MongoClient,usersRepository);
 messagesRepository.init(app,MongoClient)
 
 
+
+app.use("/publications/**", userSessionRouter);
+
+//No especifico /api/users/login porque para acceder no es necesario token
+app.use("/api/friends/list", userTokenRouter);
+app.use("/api/message/add", userTokenRouter);
+app.use("/api/conversation/**", userTokenRouter);
+
+
 require("./routes/publications.js")(app, usersRepository, publicationsRepository);
 require("./routes/api/chatAPI")(app, publicationsRepository, usersRepository, messagesRepository);
-
 
 
 ////////////////////////////////////////////////////////////////////////////////////
@@ -132,7 +140,6 @@ app.use(express.urlencoded({extended: false}));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
-var indexRouter = require('./routes/index');
 app.use('/', indexRouter);
 
 // catch 404 and forward to error handler
