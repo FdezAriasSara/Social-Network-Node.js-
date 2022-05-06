@@ -140,56 +140,47 @@ module.exports = function (app, publicationsRepository, usersRepository, message
             sender = sender[0]
             receiver = receiver[0]
 
-            usersRepository.isFriendOf( ObjectId(sender._id), ObjectId(receiver._id))
-                .then( areFriends => {
-
-                    if(areFriends){
-
-                        let message = {
-                            senderEmail : res.user,
-                            receiverEmail : req.body.receiverEmail,
-                            text : req.body.text,
-                            leido : false
-                        }
-                        messagesRepository.createMessage(message)
-                            .then( (resultId) => {
-
-                                res.status(200);
-                                res.json({
-                                    message: "Mensaje creado con exito."
-                                })
+           let areFriends =  await usersRepository.isFriendOf( sender._id, receiver._id)
 
 
-                            })
-                            .catch( (error) => {
+            if(areFriends === true){
 
-                                res.status(500);
-                                res.json({
-                                    message: "Error al crear mensaje entre" + res.user + " y " + req.body.receiverEmail + ".",
-                                    error: error
-                                })
+                let message = {
+                    senderEmail : res.user,
+                    receiverEmail : req.body.receiverEmail,
+                    text : req.body.text,
+                    leido : false
+                }
+                messagesRepository.createMessage(message)
+                    .then( (resultId) => {
 
-                            })
+                        res.status(200);
+                        res.json({
+                            message: "Mensaje creado con exito."
+                        })
 
-                    }else{
+
+                    })
+                    .catch( (error) => {
 
                         res.status(500);
                         res.json({
-                            message: "" + res.user + " y " + req.body.receiverEmail + " no son amigos"
+                            message: "Error al crear mensaje entre" + res.user + " y " + req.body.receiverEmail + ".",
+                            error: error
                         })
 
-                    }
-
-                })
-                .catch(error => {
-
-                    res.status(500);
-                    res.json({
-                        message: "Error comprobando si " + res.user + " y " + req.body.receiverEmail + " son amigos",
-                        error: error
                     })
 
+            }else{
+
+                res.status(500);
+                res.json({
+                    message: "" + res.user + " y " + req.body.receiverEmail + " no son amigos"
                 })
+
+            }
+
+
 
         } catch (e) {
             res.status(500);
@@ -226,7 +217,7 @@ module.exports = function (app, publicationsRepository, usersRepository, message
             let messages = await messagesRepository.getMessagesFromTo(myself, otherUser.email)
             messages =messages.concat( await messagesRepository.getMessagesFromTo(otherUser.email, myself))
 
-            messages.sort( (a,b) => a.date - b.date);
+            messages.sort( (a,b) => b.date - a.date);
 
             res.status(200);
             res.json({
