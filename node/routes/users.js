@@ -12,6 +12,9 @@ module.exports = function (app, usersRepository) {
     });
     app.get('/users/logout', function (req, res) {
         req.session.user = null;
+        req.render("login",{
+            isLoggedIn:false
+        });
     });
     app.get('/users/signup', function (req, res) {
         res.render("signup.twig");
