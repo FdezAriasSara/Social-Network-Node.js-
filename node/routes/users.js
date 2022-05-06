@@ -8,16 +8,20 @@ module.exports = function (app, usersRepository) {
         ;
     })
     app.get('/users/login', function (req, res) {
-        res.render("login.twig");
+        res.render("login.twig",{
+            isLogedIn:false
+        });
     });
     app.get('/users/logout', function (req, res) {
         req.session.user = null;
         req.render("login.twig",{
-            isLoggedIn:false
+            isLogedIn:false
         });
     });
     app.get('/users/signup', function (req, res) {
-        res.render("signup.twig");
+        res.render("signup.twig",{
+            isLogedIn:false
+        });
     });
     /**
      * Método que envía los datos de inicio de sesión a la base de datos, para identificar al usuario.
@@ -47,7 +51,7 @@ module.exports = function (app, usersRepository) {
             let options = {};
 
             usersRepository.findUser(filter, options).then(user => {
-                if (user == null) {
+                if (user == null || user.length <= 0) {
                     req.session.user = null;
 
                     res.redirect("/users/login" +
@@ -55,9 +59,9 @@ module.exports = function (app, usersRepository) {
                         "&messageType=alert-danger ");
 
                 } else {
-                    req.session.user = user.email;
+                    req.session.user = user[0].email;
                     //TODO : CAMBIAR CUANDO LA FUNCIONALIDAD DEL REQUISITO 2 ESTÉ HECHA
-                    res.redirect("/users/list" );
+                    res.redirect("/publications/add" );
                     /*
                     res.render("/nombreVistauserList.twig")
                     {

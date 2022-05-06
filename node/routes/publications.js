@@ -71,8 +71,7 @@ module.exports = function (app, usersRepository, publicationsRepository) {
 
 
 
-
-        res.render("publications/add.twig",{isLogedIn: ( req.session.user!=null && req.session.user!= 'undefined')});
+        res.render("publications/add.twig",{isLogedIn: ( req.session.user )});
     });
 
 
