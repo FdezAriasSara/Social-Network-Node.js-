@@ -10,7 +10,9 @@ import com.uniovi.sdipractica234.pageobjects.PO_SignUpView;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.junit.jupiter.api.*;
+import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
 import org.openqa.selenium.firefox.FirefoxDriver;
 
 
@@ -100,31 +102,35 @@ class SdiPractica234ApplicationTests {
     @Order(1)
     void PR01_1() {
        PO_SignUpView.goToSignUpPage(driver);
-       long usersBefore=usersCollection.countDocuments();
+       long usersBefore=usersCollection.countDocuments();//Number of users prior to sign up process.
 
         PO_SignUpView.goToSignUpPage(driver);
         PO_SignUpView.fillForm(driver,"sara@email.com","Sara","Fernández Arias",
                "password","password");
        Document user=usersCollection.find(eq("email","sara@email.com")).first();
-        Assertions.assertTrue(user!=null);
-       Assertions.assertTrue(usersBefore < usersCollection.countDocuments());
+        Assertions.assertTrue(user!=null);//check that the user can be found by  his/her email
+       Assertions.assertTrue(usersBefore < usersCollection.countDocuments());//Check that the number of documents increases after registering.
         //now we remove the document from the database.
         usersCollection.deleteOne(eq("email","sara@email.com"));
 
     }
 
-/*
+
     //[Prueba1-2] Registro de Usuario con datos inválidos (username vacío, nombre vacío, apellidos vacíos).
     @Test
     @Order(2)
     void PR01_2() {
-
-        int userBefore = usersRepository.countUsers();
+        PO_SignUpView.goToSignUpPage(driver);
+        long usersBefore=usersCollection.countDocuments(); //Number of users prior to sign up process.
+        String failureMessage="Debes rellenar todos los campos para registrarte como usuario.";
         PO_SignUpView.goToSignUpPage(driver);
         PO_SignUpView.fillForm(driver,"","","",
                 "password","password");
-
-        Assertions.assertTrue(usersRepository.countUsers() ==userBefore);
+        String found=driver.findElement(By.className("alert")).getText();
+        Assertions.assertTrue(found!=null);
+        Assertions.assertEquals(failureMessage,found);//to make the test fail in case the verbose alert is not displayed
+        //The register will not take place since all fields are required.
+       Assertions.assertTrue(usersBefore == usersCollection.countDocuments());//Check that the number of documents REMAINS EQUAL
 
     }
 
@@ -133,12 +139,16 @@ class SdiPractica234ApplicationTests {
     @Test
     @Order(3)
     public void PR01_3() {
-        int userBefore = usersRepository.countUsers();
         PO_SignUpView.goToSignUpPage(driver);
-        PO_SignUpView.fillForm(driver,"martin@email.com","Martin","Beltran",
-                "pass","pass");
-
-        Assertions.assertTrue(usersRepository.countUsers() ==userBefore);
+        long usersBefore=usersCollection.countDocuments(); //Number of users prior to sign up process.
+        PO_SignUpView.goToSignUpPage(driver);
+        PO_SignUpView.fillForm(driver,"sara@email.com","Sara","Fernández",
+                "pass","pass123");
+        String alert="Las contraseñas no coinciden.";
+        String found=driver.findElement(By.className("alert")).getText();
+        Assertions.assertTrue(found!=null);
+       Assertions.assertEquals(alert,found);//to make the test fail in case the verbose alert is not displayed
+        Assertions.assertTrue(usersCollection.countDocuments()==usersBefore);//Check that the number of documents remains equals
 
 
 
@@ -150,19 +160,18 @@ class SdiPractica234ApplicationTests {
     public void PR01_4() {
 
         PO_SignUpView.goToSignUpPage(driver);
-        PO_SignUpView.fillForm(driver,"martin@email.com","Martin","Beltran",
-                "password","password");
-
-        int userBefore = usersRepository.countUsers();
-        Assertions.assertTrue(usersRepository.findByUsername("martin@email.com") != null);
-
+        long usersBefore=usersCollection.countDocuments(); //Number of users prior to sign up process.
         PO_SignUpView.goToSignUpPage(driver);
-        PO_SignUpView.fillForm(driver,"martin@email.com","Martin","Beltran",
-                "password","password");
-
-        Assertions.assertTrue(usersRepository.countUsers() ==userBefore);
+        PO_SignUpView.fillForm(driver,"user01@email.com","Sara","Fernández",
+                "pass","pass");
+        //check that the alert message is displayed.
+        String alert="Las contraseñas no coinciden.";
+        String found=driver.findElement(By.className("alert")).getText();
+        Assertions.assertTrue(found!=null);
+        Assertions.assertEquals(alert,found);//to make the test fail in case the verbose alert is not displayed
+        Assertions.assertTrue(usersCollection.countDocuments() ==usersBefore);
     }
-
+/*
     //[Prueba2-1] Inicio de sesión con datos válidos (administrador).
     @Test
     @Order(5)

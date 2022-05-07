@@ -20,7 +20,7 @@ public class PO_LoginView extends PO_NavView{
 
 
     public static void goToLoginPage(WebDriver driver){
-        driver.get("localhost:8090/login");
+        driver.get("localhost:8090/users/login");
     }
 
     static public void fillForm(WebDriver driver, String usernamep,  String passwordp) {

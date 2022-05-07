@@ -7,7 +7,7 @@
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <module name="tests-sdi-entrega2-34" />
-        <module name="sdi-entrega2-34" />
+        <module name="sdi-entrega2-test-34" />
         <module name="test-entrega2-34" />
       </profile>
     </annotationProcessing>
