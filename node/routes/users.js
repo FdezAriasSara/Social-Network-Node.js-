@@ -16,6 +16,7 @@ module.exports = function (app, usersRepository, publicationsRepository, message
         let filter ={ role: {$exists:false} }; //Nunca listaremos al admin ya que el admin no se puede eliminar a sí mismo.
         let options = {};
         let admin = true;
+        let searchCriteria = "";
         //Buscamos el usuario autenticado para saber si es admin o no y cambiar el filtrado de búsqueda
         //según el resultado.
         usersRepository.findUser({email: {$in: [req.session.user]}}, {}).then( result =>{
@@ -23,7 +24,22 @@ module.exports = function (app, usersRepository, publicationsRepository, message
                 if(result[0].role === undefined){ // Si no tiene definido el campo rol significa que no es un administrador.
                     //Los usuarios sin rol administrador tienen la lista con paginación.
                     admin = false;
-                    filter = {email: {$nin:[result[0].email]}, role: {$exists:false}} //excluimos al propio usuario que hace la consulta
+                    //Crearemos el criterio de listado de usuarios en función de si se ha insertado un parámetro de
+                    //búsqueda o no.
+                    if(req.query.search != null && typeof(req.query.search) != "undefined" && req.query.search != ""){
+                        filter = {
+                            email: {$nin:[result[0].email]}, //No incluimos el usuario que pide la lista
+                            $or:[
+                                {email: {$regex: ".*" + req.query.search + ".*", $options: 'i'}}, //Email,nombre,apellidos coincide con parámetro búsqueda
+                                {surname: {$regex: ".*" + req.query.search + ".*", $options: 'i'}},
+                                {name: {$regex: ".*" + req.query.search + ".*", $options: 'i'}}],
+                            role: {$exists:false}//No se incluyen administradores
+                        }
+                        searchCriteria= req.query.search;
+                    }else{
+                        filter = {email: {$nin:[result[0].email]}, role: {$exists:false}} //excluimos al propio usuario que hace la consulta
+                    }
+
                     let page = parseInt(req.query.page); // Es String !!!
                     if (typeof req.query.page === "undefined" || req.query.page === null || req.query.page === "0") { //
                        // Puede no venir el param
@@ -45,7 +61,8 @@ module.exports = function (app, usersRepository, publicationsRepository, message
                             pages: pages,
                             currentPage: page,
                             admin: admin,
-                            isLogedIn: req.session.user
+                            isLogedIn: req.session.user,
+                            searchCriteria:searchCriteria
                         }
                         res.render("user/list.twig", response)
                         return;
