@@ -4,17 +4,63 @@ module.exports = function (app, usersRepository) {
     const nombreYapellidosRegExp = new RegExp("[a-zA-Z]+('-'|' '[a-zA-Z])*");
     const pswdRegExp = new RegExp("^(?=.*\\d)(?=.*[a-z])(?=.*[A-Z]).{6,}$")//passwords must have at least eight characters, with at least one letter and one number.
 
+    /**
+     * Para poder listar usuarios hay que estar autenticados en la aplicación, esto se consigue a través
+     * del userSessionRouter y por eso no se comprueba aquí.
+     * Si el usuario identificado es Administrador, se le listarán todos los usuarios, excepto los administradores
+     * ya que no se pueden eliminar a sí mismos.
+     * El usuario con rol normal, lista a los demás usuarios no admins y se excluye a sí mismo.
+     * En esta app, solo los administradores tienen definido el campo 'rol'.
+     */
     app.get('/users/list', function (req, res) {
-        let filter ={}; //every user when admin
+        let filter ={ role: {$exists:false} }; //Nunca listaremos al admin ya que el admin no se puede eliminar a sí mismo.
         let options = {};
+        //Buscamos el usuario autenticado para saber si es admin o no y cambiar el filtrado de búsqueda
+        //según el resultado.
+        usersRepository.findUser({email: {$in: [req.session.user]}}, {}).then( result =>{
+            if(result.length != 0){
+                if(result[0].role === undefined){ // Si no tiene definido el campo rol significa que no es un administrador.
+                    //Los usuarios sin rol administrador tienen la lista con paginación.
+                    filter = {email: {$nin:[result[0].email]}, role: {$exists:false}} //excluimos al propio usuario que hace la consulta
+                    let page = parseInt(req.query.page); // Es String !!!
+                    if (typeof req.query.page === "undefined" || req.query.page === null || req.query.page === "0") { //
+                       // Puede no venir el param
+                        page = 1;
+                    }
+                    usersRepository.getUsersPg(filter, options, page).then( result=>{
+                        let lastPage = result.total / 5;
+                        if (result.total % 5 > 0) { // Sobran decimales
+                            lastPage = lastPage + 1;
+                        }
+                        let pages = []; // paginas mostrar
+                        for (let i = page - 2; i <= page + 2; i++) {
+                            if (i > 0 && i <= lastPage) {
+                                pages.push(i);
+                            }
+                        }
+                        let response = {
+                            users: result.users,
+                            pages: pages,
+                            currentPage: page
+                        }
+                        res.render("user/list.twig", response)
+                        return;
+                    })
+                }else{//si usuario administrador, lista sin paginacion.
+                    usersRepository.getUsers(filter, options).then(users =>{ //renderizamos el listado de usuarios de acuerdo con el criterio filter
+                        let response = {
+                            users: users
+                        }
+                        res.render("user/list.twig", response);
+                    });
+                }
+            }
 
-        usersRepository.getUsers(filter, options).then(users =>{
-           let response = {
-               users: users
-           }
-           res.render("user/list.twig", response);
-        });
-        ;
+            }
+
+        );
+
+
     })
     app.get('/users/login', function (req, res) {
         res.render("login.twig",{

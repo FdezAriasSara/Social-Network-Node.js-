@@ -113,6 +113,7 @@ app.use("/api/friends/list", userTokenRouter);
 app.use("/api/message/add", userTokenRouter);
 app.use("/api/conversation", userTokenRouter);
 app.use("/publications/**", userSessionRouter);
+app.use("/users/list", userSessionRouter);
 
 require("./routes/users.js")(app,usersRepository);
 require("./routes/publications.js")(app, usersRepository, publicationsRepository);//                                                              //
