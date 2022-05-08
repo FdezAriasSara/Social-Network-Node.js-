@@ -95,31 +95,34 @@ module.exports = function (app, usersRepository, publicationsRepository, message
         let filter = { _id: {$in: idsToDelete} , rol:{$exists:false}  }
         usersRepository.findUser({email: {$in: [req.session.user]}}, {}).then( result =>{
             if(result.length != 0) {
-                if (result[0].role === undefined) {
+                if (result[0].role === undefined) { //si el usuario identificado no tiene rol es que no es administrador. No puede borrar.
                     res.render("error.twig",
                         {
                             message: "Error borrando usuarios.",
                             error: "El usuario identificado no tiene privilegios de administrador."
                         });
-                }else{
+                }else{//Si es administrador, borramos.
+                    //Primero eliminamos las publicaciones de los usuarios que serán borrados..
                     deletePublications({userID:{$in: idsToDelete}}, function (result){
-                        if(result == null){
+                        if(result == null){ //Si hay error, paramos y lo enseñamos al usuario.
                             res.redirect("/users/list" +
                                 "?message="+ "Error eliminando publicaciones. No se pudo eliminar los registros." +
                                 "&messageType=alert-danger");
                         }
                         return;
                     });
+                    //Ahora eliminamos los mensajes de los usuarios que serán borrados..
                     deleteMessages({_id: {$in: idsToDelete}}, function(result){
-                        if(result == null){
+                        if(result == null){ //Si hay error, paramos y lo enseñamos al usuario.
                             res.redirect("/users/list" +
                                 "?message="+ "Error eliminando mensajes.. No se pudo eliminar los registros." +
                                 "&messageType=alert-danger");
                         }
                         return;
                     })
+                    //El último paso es eliminar a los usuarios en sí
                     usersRepository.deleteUsers(filter,{}).then( result=>{
-                                res.redirect('/users/list' +  "?message= Registros correctamente eliminados" +
+                                res.redirect('/users/list' +  "?message=Registros correctamente eliminados" +
                                     "&messageType=alert-success");
 
                         }
@@ -136,11 +139,13 @@ module.exports = function (app, usersRepository, publicationsRepository, message
         });
 
     });
+    //Elimina publicaciones de acuerdo con un criterio. Retorna null si ha habido error.
     function deletePublications(filterCriteria, callback){
         publicationsRepository.deletePublications(filterCriteria, {}).then(result=>{
             callback(true);
         }).catch(err=> callback(null));
     }
+    //Elimina mensajes de acuerdo con un criterio. Retorna null si ha habido error.
     function deleteMessages(filterCriteria, callback){
         usersRepository.getUsers(filterCriteria,
             {email:1, _id:0}).then(emailsToDelete => {
