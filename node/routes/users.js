@@ -1,8 +1,6 @@
-const {ObjectId} = require("mongodb");
-module.exports = function (app, usersRepository, publicationsRepository, messagesRepository) {
+
+module.exports = function (app, usersRepository) {
     const emailRegexp = new RegExp("\\w*\\@\\w*\\.\\w*");
-    const nombreYapellidosRegExp = new RegExp("[a-zA-Z]+('-'|' '[a-zA-Z])*");
-    const pswdRegExp = new RegExp("^(?=.*\\d)(?=.*[a-z])(?=.*[A-Z]).{6,}$")//passwords must have at least eight characters, with at least one letter and one number.
 
     /**
      * Para poder listar usuarios hay que estar autenticados en la aplicación, esto se consigue a través
@@ -264,16 +262,11 @@ module.exports = function (app, usersRepository, publicationsRepository, message
             res.redirect("/users/signup" +
                 "?message=Debes rellenar todos los campos para registrarte como usuario." +
                 "&messageType=alert-danger ");
-        } else if (!req.body.email.match(emailRegexp)) {
+        } else if (!emailRegexp.test(req.body.email)) {
             res.redirect("/users/signup" +
                 "?message=El formato del email es incorrecto. Debe ser parecido al siguiente: nombre@dominio.dominio" +
                 "&messageType=alert-danger ");
-        } else if (!req.body.nombre.match(nombreYapellidosRegExp) || !req.body.apellidos.match(nombreYapellidosRegExp)) {
-
-            res.redirect("/users/signup" +
-                "?message=Los campos de nombre y apellidos solamente aceptan letras , espacios o guiones." +
-                "&messageType=alert-danger ");
-        } else if (req.body.contraseña != req.body.repContra) {
+        }else if (req.body.contraseña != req.body.repContra) {
 
             res.redirect("/users/signup" +
                 "?message=Las contraseñas no coinciden." +
