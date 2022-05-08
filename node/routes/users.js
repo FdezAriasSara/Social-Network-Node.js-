@@ -91,7 +91,8 @@ module.exports = function (app, usersRepository, publicationsRepository, message
      * Al eliminar un usuario se ha de eliminar toda la información relativa a los mismos, los datos, publicaciones, amistades...
      */
     app.get('/users/list/delete/:ids', function (req,res) {//Los administradores no se pueden eliminar. No tienen atributo 'rol'
-        let filter = { _id: {$in: req.params.ids.split(',').map( id => ObjectId(id)), rol:{$exists:false}},  }
+        let idsToDelete = req.params.ids.split(',').map( id => ObjectId(id));
+        let filter = { _id: {$in: idsToDelete} , rol:{$exists:false}  }
         usersRepository.findUser({email: {$in: [req.session.user]}}, {}).then( result =>{
             if(result.length != 0) {
                 if (result[0].role === undefined) {
@@ -101,18 +102,32 @@ module.exports = function (app, usersRepository, publicationsRepository, message
                             error: "El usuario identificado no tiene privilegios de administrador."
                         });
                 }else{
+                    deletePublications({userID:{$in: idsToDelete}}, function (result){
+                        if(result == null){
+                            res.redirect("/users/list" +
+                                "?message="+ "Error eliminando publicaciones. No se pudo eliminar los registros." +
+                                "&messageType=alert-danger");
+                        }
+                        return;
+                    });
+                    deleteMessages({_id: {$in: idsToDelete}}, function(result){
+                        if(result == null){
+                            res.redirect("/users/list" +
+                                "?message="+ "Error eliminando mensajes.. No se pudo eliminar los registros." +
+                                "&messageType=alert-danger");
+                        }
+                        return;
+                    })
                     usersRepository.deleteUsers(filter,{}).then( result=>{
-                            if(result.length==0 || result.deletedCount == 0){
-                                res.send("No se pudieron eliminar bien los registros");
-                            }else{
-                                res.redirect('/users/list');
-                            }
+                                res.redirect('/users/list' +  "?message= Registros correctamente eliminados" +
+                                    "&messageType=alert-success");
+
                         }
 
                     ).catch(error => {
                         res.render("error.twig",
                             {
-                                message: "Error borrando usuarios.",
+                                message: "Error borrando usuarios aqui.",
                                 error: error
                             });
                     });
@@ -121,10 +136,20 @@ module.exports = function (app, usersRepository, publicationsRepository, message
         });
 
     });
-    function deletePublications(filterCriteria){
-
+    function deletePublications(filterCriteria, callback){
+        publicationsRepository.deletePublications(filterCriteria, {}).then(result=>{
+            callback(true);
+        }).catch(err=> callback(null));
     }
-    function deleteMessages(filterCriteria){
+    function deleteMessages(filterCriteria, callback){
+        usersRepository.getUsers(filterCriteria,
+            {email:1, _id:0}).then(emailsToDelete => {
+            messagesRepository.deleteMessages(
+                {$or: [{senderEmail: {$in:emailsToDelete}}, {receiverEmail: {$in:emailsToDelete}}]}
+                , {}).then(result=>{
+                callback(true);
+            }).catch(err=> callback(null));
+        }).catch(err => callback(null));
 
     }
     app.get('/users/login', function (req, res) {
