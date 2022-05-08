@@ -1,5 +1,5 @@
-
-module.exports = function (app, usersRepository) {
+const {ObjectId} = require("mongodb");
+module.exports = function (app, usersRepository, publicationsRepository, messagesRepository) {
     const emailRegexp = new RegExp("\\w*\\@\\w*\\.\\w*");
 
     /**
@@ -135,6 +135,15 @@ module.exports = function (app, usersRepository) {
                         }
                         return;
                     })
+                    //Ahora eliminamos amistades e invitaciones de los usuarios a eliminar
+                    deleteFriendShipsAndInvites(idsToDelete, function(result){
+                        if(result == null){ //Si hay error, paramos y lo enseñamos al usuario.
+                            res.redirect("/users/list" +
+                                "?message="+ "Error eliminando las amistades/invitaciones.. No se pudo eliminar los registros." +
+                                "&messageType=alert-danger");
+                        }
+                        return;
+                    });
                     //El último paso es eliminar a los usuarios en sí
                     usersRepository.deleteUsers(filter,{}).then( result=>{
                                 res.redirect('/users/list' +  "?message=Registros correctamente eliminados" +
@@ -154,6 +163,26 @@ module.exports = function (app, usersRepository) {
         });
 
     });
+
+    /**
+     * Elimina invitaciones enviadas,recibidas así como amistades en las que se encuentra un usuario que
+     * va ser eliminado. Si userID 1 va ser eliminado y es amigo de userID2, hay que borrar como amigo
+     * (al userID1) en userID2.
+     * Si userID3 va ser eliminado y mandó petición de amistad a userID4 y recibió una de userID5, la
+     * petición ha de ser eliminada de las recibidas en userID4 y de las enviadas en userID5.
+     * @param idsToDelete
+     * @param callback
+     */
+    function deleteFriendShipsAndInvites(idsToDelete, callback){
+        usersRepository.deleteFriendshipsAndInvites({},
+            { $pull: {
+                        invitesSent: { $in: idsToDelete },
+                        invitesReceived: { $in: idsToDelete } ,
+                        friendships: { $in: idsToDelete }
+                    }}).then(result=>{
+                        callback(true);
+        }).catch(err=> callback(null));
+    }
     //Elimina publicaciones de acuerdo con un criterio. Retorna null si ha habido error.
     function deletePublications(filterCriteria, callback){
         publicationsRepository.deletePublications(filterCriteria, {}).then(result=>{
