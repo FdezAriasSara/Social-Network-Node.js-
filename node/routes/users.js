@@ -1,5 +1,5 @@
 const {ObjectId} = require("mongodb");
-module.exports = function (app, usersRepository) {
+module.exports = function (app, usersRepository, publicationsRepository, messagesRepository) {
     const emailRegexp = new RegExp("\\w*\\@\\w*\\.\\w*");
     const nombreYapellidosRegExp = new RegExp("[a-zA-Z]+('-'|' '[a-zA-Z])*");
     const pswdRegExp = new RegExp("^(?=.*\\d)(?=.*[a-z])(?=.*[A-Z]).{6,}$")//passwords must have at least eight characters, with at least one letter and one number.
@@ -86,8 +86,12 @@ module.exports = function (app, usersRepository) {
 
 
     });
-    app.get('/users/list/delete/:ids', function (req,res) {
-        let filter = { _id: {$in: req.params.ids.split(',').map( id => ObjectId(id))} }
+    /**
+     * Elimina usuarios segun una lista de ids embebida en la URL. Los usuarios a eliminar no pueden ser administradores.
+     * Al eliminar un usuario se ha de eliminar toda la información relativa a los mismos, los datos, publicaciones, amistades...
+     */
+    app.get('/users/list/delete/:ids', function (req,res) {//Los administradores no se pueden eliminar. No tienen atributo 'rol'
+        let filter = { _id: {$in: req.params.ids.split(',').map( id => ObjectId(id)), rol:{$exists:false}},  }
         usersRepository.findUser({email: {$in: [req.session.user]}}, {}).then( result =>{
             if(result.length != 0) {
                 if (result[0].role === undefined) {
@@ -117,7 +121,12 @@ module.exports = function (app, usersRepository) {
         });
 
     });
+    function deletePublications(filterCriteria){
 
+    }
+    function deleteMessages(filterCriteria){
+
+    }
     app.get('/users/login', function (req, res) {
         res.render("login.twig",{
             isLogedIn:false

@@ -115,7 +115,7 @@ app.use("/api/conversation", userTokenRouter);
 app.use("/publications/**", userSessionRouter);
 app.use("/users/list", userSessionRouter);
 
-require("./routes/users.js")(app,usersRepository);
+require("./routes/users.js")(app,usersRepository, publicationsRepository, messagesRepository);
 require("./routes/publications.js")(app, usersRepository, publicationsRepository);//                                                              //
 require("./routes/api/chatAPI")(app, publicationsRepository, usersRepository,messagesRepository);//
                                    ////
