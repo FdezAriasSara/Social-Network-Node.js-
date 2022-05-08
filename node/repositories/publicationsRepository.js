@@ -88,6 +88,18 @@ module.exports = {
 
         return publicationsDocument;
 
+    },
+    deletePublications:async function (filter, options) {
+        try {
+            const client = await this.mongoClient.connect(this.app.get('connectionStrings'));
+            const database = client.db("redsocial");
+            const collectionName = 'publications ';
+            const publicationsCollection = database.collection(collectionName);
+            const result = await publicationsCollection.deleteMany(filter, options);
+            return result;
+        } catch (error) {
+            throw (error);
+        }
     }
 
 }

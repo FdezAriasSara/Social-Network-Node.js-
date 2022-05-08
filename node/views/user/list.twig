@@ -1,0 +1,98 @@
+{% extends "../layout.twig" %}
+{% block title %} Lista de usuarios {% endblock %}
+
+{% block main_container %}
+    <h1>Bienvenido, {{ isLogedIn }}</h1>
+    <h4>En la siguiente tabla puedes encontrar la lista de usuarios del sistema:</h4>
+    {% if not admin %}
+        <div class="row">
+            <div id="custom-search-input ">
+                <form method="get" action="/users/list">
+                    <div class="input-group col-xs-8 col-sm-6 col-md-4 col-lg-5 pull-right">
+                        <input id="search" type="text" class="search-query form-control"
+                               placeholder="Nombre, apellido o email de usuario" name="search"/>
+                        <span class="input-group-btn">
+                        <button class="btn" type="submit">
+                        <span class="glyphicon glyphicon-search"></span>
+                        </button>
+                    </span>
+                    </div>
+                </form>
+            </div>
+        </div>
+    {% endif %}
+    <table class="table table-hover" id="tableUsers">
+        <thead>
+        <tr>
+            <th scope="col">Email</th>
+            <th scope="col">Nombre</th>
+            <th scope="col">Apellidos</th>
+            {% if admin %}
+                <th>Eliminar</th>
+            {% else %}
+                <th scope="col">Invitación</th>
+            {% endif %}
+
+        </tr>
+        </thead>
+        <tbody>
+        {% for user in users %}
+            <tr>
+                <td>{{ user.email }}</td>
+                <td>{{ user.name }}</td>
+                <td>{{ user.surname }}</td>
+                {% if admin %}
+                    <td><input type="checkbox" id="{{ user._id }}"></td>
+                {% else %}
+                    <td>
+                        <button>
+                            -Amistad-
+                        </button>
+                    </td>
+                {% endif %}
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% if admin %}
+        <button type="button" id="deleteButton" class="btn btn-danger"> Borrar</button>
+    {% endif %}
+    <script>
+        /*<![CDATA[*/
+
+        $("#deleteButton").click(function () {
+            var usersToDelete = [];
+            $("input:checkbox:checked").each(function () {
+                usersToDelete.push($(this).attr('id')); //we insert id of user whose checkbox is checked.
+            });
+            var urlDelete = '/users/list/delete/';
+            for (var i = 0; i < usersToDelete.length; i++) {
+                if (i == usersToDelete.length - 1) {
+                    urlDelete += usersToDelete[i].toString();
+                } else {
+                    urlDelete += usersToDelete[i].toString() + ",";
+                }
+            }
+
+            location.replace(urlDelete);
+        });
+        /*]]>*/
+    </script>
+    <div class="row text-center">
+        <ul class="pagination">
+            {% for page in pages %}
+            <li class="page-item" id="pi-{{ page }}">
+                {% if (searchCriteria!="") %}
+                    <a class="page-link" href="/users/list/?page={{ page }} &?search={{ searchCriteria }}">{{ page }}</a>
+                {% else %}
+                    <a class="page-link" href="/users/list/?page={{ page }}">{{ page }}</a>
+                {% endif %}
+            </li>
+            {% endfor %}
+            <script>
+                $("#pi-" + "{{ currentPage }}").addClass("active");
+            </script>
+        </ul>
+    </div>
+
+{% endblock %}

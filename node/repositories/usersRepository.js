@@ -172,8 +172,46 @@ module.exports = {
             throw (error);
         }
     }
-
-
-
+    ,
+    getUsers: async function (filter, options) {
+        try {
+            const client = await this.mongoClient.connect(this.app.get('connectionStrings'));
+            const database = client.db("redsocial");
+            const collectionName = 'users';
+            const songsCollection = database.collection(collectionName);
+            const songs = await songsCollection.find(filter, options).toArray();
+            return songs;
+        } catch (error) {
+            throw (error);
+        }
+    },getUsersPg: async function (filter, options, page) {
+        try {
+            const limit = 5;
+            const client = await this.mongoClient.connect(this.app.get('connectionStrings'));
+            const database = client.db("redsocial");
+            const collectionName = 'users';
+            const usersCollection = database.collection(collectionName);
+            const usersFound = usersCollection.find(filter, options);
+            const usersCollectionCount = await usersFound.count();
+            const cursor = usersFound.skip((page - 1) * limit).limit(limit)
+            const users = await cursor.toArray();
+            const result = {users: users, total: usersCollectionCount};
+            return result;
+        } catch (error) {
+            throw (error);
+        }
+    },
+    deleteUsers:async function (filter, options) {
+        try {
+            const client = await this.mongoClient.connect(this.app.get('connectionStrings'));
+            const database = client.db("redsocial");
+            const collectionName = 'users';
+            const usersCollection = database.collection(collectionName);
+            const result = await usersCollection.deleteMany(filter, options);
+            return result;
+        } catch (error) {
+            throw (error);
+        }
+    }
 
 }
