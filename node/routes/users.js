@@ -3,8 +3,17 @@ module.exports = function (app, usersRepository) {
     const emailRegexp = new RegExp("\\w*\\@\\w*\\.\\w*");
     const nombreYapellidosRegExp = new RegExp("[a-zA-Z]+('-'|' '[a-zA-Z])*");
     const pswdRegExp = new RegExp("^(?=.*\\d)(?=.*[a-z])(?=.*[A-Z]).{6,}$")//passwords must have at least eight characters, with at least one letter and one number.
+
     app.get('/users/list', function (req, res) {
-        res.send('TODO:lista de usuarios')
+        let filter ={}; //every user when admin
+        let options = {};
+
+        usersRepository.getUsers(filter, options).then(users =>{
+           let response = {
+               users: users
+           }
+           res.render("user/list.twig", response);
+        });
         ;
     })
     app.get('/users/login', function (req, res) {

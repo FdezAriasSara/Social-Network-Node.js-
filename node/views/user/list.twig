@@ -1,0 +1,33 @@
+{% extends '../layout.twig' %}
+{% block title %} Lista de usuarios {% endblock %}
+{% block main_container %}
+<div class="container">
+
+    <div class="container">
+    <table class="table table-hover" id="tableUsers">
+        <thead>
+        <tr>
+            <th scope="col" >Email</th>
+            <th scope="col">Nombre</th>
+            <th scope="col">Apellidos</th>
+            <th>Eliminar</th>
+            <th scope="col">Invitación</th> <!-- Falta chequear que estas columnas sean mostradas si admin o normal-->
+        </tr>
+        </thead>
+        <tbody>
+        {% for user in users %}
+        <tr>
+            <td >{{ user.email }}</td>
+            <td >{{ user.name }}</td>
+            <td >{{ user.surname }}</td>
+            <td ><input type="checkbox" id="{{user.id}}"></td>
+            <td >
+                <button>
+                    -Amistad-
+                </button>
+            </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}

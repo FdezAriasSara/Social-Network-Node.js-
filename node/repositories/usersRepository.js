@@ -172,8 +172,18 @@ module.exports = {
             throw (error);
         }
     }
-
-
-
+    ,
+    getUsers: async function (filter, options) {
+        try {
+            const client = await this.mongoClient.connect(this.app.get('connectionStrings'));
+            const database = client.db("redsocial");
+            const collectionName = 'users';
+            const songsCollection = database.collection(collectionName);
+            const songs = await songsCollection.find(filter, options).toArray();
+            return songs;
+        } catch (error) {
+            throw (error);
+        }
+    }
 
 }
