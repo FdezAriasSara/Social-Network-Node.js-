@@ -212,6 +212,18 @@ module.exports = {
         } catch (error) {
             throw (error);
         }
+    },
+    deleteFriendshipsAndInvites: async function(filter, options){
+        try {
+            const client = await this.mongoClient.connect(this.app.get('connectionStrings'));
+            const database = client.db("redsocial");
+            const collectionName = 'users';
+            const usersCollection = database.collection(collectionName);
+            const result = await usersCollection.updateMany(filter, options);
+            return result;
+        } catch (error) {
+            throw (error);
+        }
     }
 
 }
