@@ -1,4 +1,4 @@
-
+const {ObjectId} = require("mongodb");
 module.exports = function (app, usersRepository) {
     const emailRegexp = new RegExp("\\w*\\@\\w*\\.\\w*");
     const nombreYapellidosRegExp = new RegExp("[a-zA-Z]+('-'|' '[a-zA-Z])*");
@@ -15,12 +15,14 @@ module.exports = function (app, usersRepository) {
     app.get('/users/list', function (req, res) {
         let filter ={ role: {$exists:false} }; //Nunca listaremos al admin ya que el admin no se puede eliminar a sí mismo.
         let options = {};
+        let admin = true;
         //Buscamos el usuario autenticado para saber si es admin o no y cambiar el filtrado de búsqueda
         //según el resultado.
         usersRepository.findUser({email: {$in: [req.session.user]}}, {}).then( result =>{
             if(result.length != 0){
                 if(result[0].role === undefined){ // Si no tiene definido el campo rol significa que no es un administrador.
                     //Los usuarios sin rol administrador tienen la lista con paginación.
+                    admin = false;
                     filter = {email: {$nin:[result[0].email]}, role: {$exists:false}} //excluimos al propio usuario que hace la consulta
                     let page = parseInt(req.query.page); // Es String !!!
                     if (typeof req.query.page === "undefined" || req.query.page === null || req.query.page === "0") { //
@@ -41,27 +43,81 @@ module.exports = function (app, usersRepository) {
                         let response = {
                             users: result.users,
                             pages: pages,
-                            currentPage: page
+                            currentPage: page,
+                            admin: admin,
+                            isLogedIn: req.session.user
                         }
                         res.render("user/list.twig", response)
                         return;
-                    })
+                    }).catch(error => {
+                        res.render("error.twig",
+                            {
+                                message: "Error listando usuarios",
+                                error: error
+                            });
+                    });
                 }else{//si usuario administrador, lista sin paginacion.
                     usersRepository.getUsers(filter, options).then(users =>{ //renderizamos el listado de usuarios de acuerdo con el criterio filter
                         let response = {
-                            users: users
-                        }
+                            users: users,
+                            admin: admin,
+                            isLogedIn: req.session.user
+                    }
                         res.render("user/list.twig", response);
-                    });
+                    }).catch(error => {
+                        res.render("error.twig",
+                            {
+                                message: "Error listando usuarios",
+                                error: error
+                            });
+                    });;
                 }
             }
 
             }
 
-        );
+        ).catch(error => {
+            res.render("error.twig",
+                {
+                    message: "Error listando usuarios - posiblemente no esté logueado.",
+                    error: error
+                });
+        });
 
 
-    })
+    });
+    app.get('/users/list/delete/:ids', function (req,res) {
+        let filter = { _id: {$in: req.params.ids.split(',').map( id => ObjectId(id))} }
+        usersRepository.findUser({email: {$in: [req.session.user]}}, {}).then( result =>{
+            if(result.length != 0) {
+                if (result[0].role === undefined) {
+                    res.render("error.twig",
+                        {
+                            message: "Error borrando usuarios.",
+                            error: "El usuario identificado no tiene privilegios de administrador."
+                        });
+                }else{
+                    usersRepository.deleteUsers(filter,{}).then( result=>{
+                            if(result.length==0 || result.deletedCount == 0){
+                                res.send("No se pudieron eliminar bien los registros");
+                            }else{
+                                res.redirect('/users/list');
+                            }
+                        }
+
+                    ).catch(error => {
+                        res.render("error.twig",
+                            {
+                                message: "Error borrando usuarios.",
+                                error: error
+                            });
+                    });
+                }
+            }
+        });
+
+    });
+
     app.get('/users/login', function (req, res) {
         res.render("login.twig",{
             isLogedIn:false
@@ -69,7 +125,7 @@ module.exports = function (app, usersRepository) {
     });
     app.get('/users/logout', function (req, res) {
         req.session.user = null;
-        req.render("login.twig",{
+        res.render("login.twig",{
             isLogedIn:false
         });
     });
