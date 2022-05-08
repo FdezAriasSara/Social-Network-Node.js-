@@ -188,23 +188,7 @@ class SdiPractica234ApplicationTests {
         Assertions.assertEquals(alert,found);//to make the test fail in case the verbose alert is not displayed
         Assertions.assertTrue(usersCollection.countDocuments() ==usersBefore);
     }
-    //[Prueba EXTRA] Registro de Usuario con datos inválidos (el nombre y apellidos contienen números o caracteres no admitidos)
-    @Test
-    @Order(6)
-    public void PR01_Extra2() {
 
-        PO_SignUpView.goToSignUpPage(driver);
-        long usersBefore=usersCollection.countDocuments(); //Number of users prior to sign up process.
-        PO_SignUpView.goToSignUpPage(driver);
-        PO_SignUpView.fillForm(driver,"emailNuevo@email.com","Sara121","Fernánd_#ez",
-                "pass","pass");
-        //check that the alert message is displayed.
-        String alert="Ya existe un usuario con ese correo electrónico.";
-        String found=driver.findElement(By.className("alert")).getText();
-        Assertions.assertTrue(found!=null);
-        Assertions.assertEquals(alert,found);//to make the test fail in case the verbose alert is not displayed
-        Assertions.assertTrue(usersCollection.countDocuments() ==usersBefore);
-    }
 /*
     //[Prueba2-1] Inicio de sesión con datos válidos (administrador).
     @Test
