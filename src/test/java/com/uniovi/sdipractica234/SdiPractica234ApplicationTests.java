@@ -6,14 +6,18 @@ import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
+import com.uniovi.sdipractica234.pageobjects.PO_LoginView;
 import com.uniovi.sdipractica234.pageobjects.PO_SignUpView;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.junit.jupiter.api.*;
 import org.openqa.selenium.By;
+import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.firefox.FirefoxDriver;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
 
 
 import static com.mongodb.client.model.Filters.eq;
@@ -189,7 +193,7 @@ class SdiPractica234ApplicationTests {
         Assertions.assertTrue(usersCollection.countDocuments() ==usersBefore);
     }
 
-/*
+
     //[Prueba2-1] Inicio de sesión con datos válidos (administrador).
     @Test
     @Order(5)
@@ -198,19 +202,18 @@ class SdiPractica234ApplicationTests {
         PO_LoginView.goToLoginPage(driver);
         PO_LoginView.fillForm(driver,"admin@email.com","admin");
 
-
-        //Si se ha logeado bien, podrá encontrar el boton de logout
-        WebElement myDynamicElement = (new WebDriverWait(driver,
-                10))
-                .until(ExpectedConditions.presenceOfElementLocated(By.id("logout")));
-
-
+         //check that the logout option is displayed.
         WebElement logoutButton = driver.findElement(By.id("logout"));
         Assertions.assertTrue(logoutButton != null);
+        //check that publication options are not displayed.(looking for them should throw an exception)
+        Assertions.assertThrows(NoSuchElementException.class,()->driver.findElement(By.id("listOwnPosts")));
+        Assertions.assertThrows(NoSuchElementException.class,()->driver.findElement(By.id("addPost")));
+        //check that the welcome message of the listing page is displayed.
+        String alert="Bienvenido, admin@email.com";
+        String alertFound = driver.findElement(By.tagName("h1")).getText();
+        Assertions.assertTrue(alertFound!=null);
+        Assertions.assertEquals(alert,alertFound);
 
-        //Para comprobar, checkeamos que el menú de listar logs sea visible (solo admins)
-        WebElement logsButton = driver.findElement(By.id("listLogs"));
-        Assertions.assertTrue(logsButton != null);
     }
 
 
@@ -225,19 +228,17 @@ class SdiPractica234ApplicationTests {
 
 
         //Si se ha logeado bien, podrá encontrar el boton de logout
-        WebElement myDynamicElement = (new WebDriverWait(driver,
-                10))
-                .until(ExpectedConditions.presenceOfElementLocated(By.id("logout")));
         WebElement logoutButton = driver.findElement(By.id("logout"));
         Assertions.assertTrue(logoutButton != null);
 
-        //Si se ha logeado bien, podra ver el menu de usuario "Mi Cuenta"
+        //Si se ha logeado bien, podrá ver el mensaje de bienvenida
         WebElement myAccountDropdown = driver.findElement(By.id("accountDropdown"));
         Assertions.assertTrue(logoutButton != null);
 
 
 
     }
+/*
 
     //[Prueba2-3] Inicio de sesión con datos inválidos (usuario estándar, campo email y contraseña vacíos).
     @Test
@@ -248,6 +249,10 @@ class SdiPractica234ApplicationTests {
         //Te logueas con credenciales vacias
         PO_LoginView.goToLoginPage(driver);
         PO_LoginView.fillForm(driver,"","");
+        //comprobar que se muestra el mensaje de alerta
+        //comprobar que no se ha iniciado sesión
+        //no aparece la opción de LogOut.
+
 
         //Sigues en la página de login
         List<WebElement> welcomeMessageElement = PO_LoginView.getLoginText(driver,PO_Properties.getSPANISH());
@@ -259,7 +264,7 @@ class SdiPractica234ApplicationTests {
 
 
     }
-
+/*
     //[Prueba2-4] Inicio de sesión con datos válidos (usuario estándar, email existente, pero contraseña incorrecta).
     @Test
     @Order(8)

@@ -10,25 +10,16 @@ import java.util.List;
 public class PO_LoginView extends PO_NavView{
 
 
-    static public List<WebElement> getLoginText(WebDriver driver, int language) {
-        //Esperamos a que se cargue el saludo de bienvenida en Español
-        return SeleniumUtils.waitLoadElementsBy(driver,
-                "text",
-                p.getString("login.title", language),
-                getTimeout());
-    }
-
-
-    public static void goToLoginPage(WebDriver driver){
+     public static void goToLoginPage(WebDriver driver){
         driver.get("localhost:8090/users/login");
     }
 
     static public void fillForm(WebDriver driver, String usernamep,  String passwordp) {
-        WebElement dni = driver.findElement(By.name("username"));
+        WebElement dni = driver.findElement(By.name("email"));
         dni.click();
         dni.clear();
         dni.sendKeys(usernamep);
-        WebElement password = driver.findElement(By.name("password"));
+        WebElement password = driver.findElement(By.name("contraseña"));
         password.click();
         password.clear();
         password.sendKeys(passwordp);
