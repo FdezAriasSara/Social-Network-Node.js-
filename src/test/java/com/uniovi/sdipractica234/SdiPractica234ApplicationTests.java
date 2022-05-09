@@ -175,7 +175,7 @@ class SdiPractica234ApplicationTests {
         Assertions.assertEquals(alert,found);//to make the test fail in case the verbose alert is not displayed
         Assertions.assertTrue(usersCollection.countDocuments() ==usersBefore);
     }
-    //[Prueba EXTRA] Registro de Usuario con datos inválidos (el email tiene formato invalido)
+    //[Prueba EXTRA] Registro de Usuario con datos inválidos (el email tiene formato inválido)
     @Test
     @Order(5)
     public void PR01_Extra1() {
@@ -248,55 +248,64 @@ class SdiPractica234ApplicationTests {
 
 
     }
-/*
 
     //[Prueba2-3] Inicio de sesión con datos inválidos (usuario estándar, campo email y contraseña vacíos).
+    //Al ser campos marcados como required, no se puede avanzar
     @Test
     @Order(7)
     public void PR02_3() {
 
-
-        //Te logueas con credenciales vacias
         PO_LoginView.goToLoginPage(driver);
         PO_LoginView.fillForm(driver,"","");
-        //comprobar que se muestra el mensaje de alerta
-        //comprobar que no se ha iniciado sesión
-        //no aparece la opción de LogOut.
-
-
-        //Sigues en la página de login
-        List<WebElement> welcomeMessageElement = PO_LoginView.getLoginText(driver,PO_Properties.getSPANISH());
-
-        Assertions.assertEquals(welcomeMessageElement.get(0).getText(),
-                PO_View.getP().getString("login.title",
-                        PO_Properties.getSPANISH()));
-
-
-
+        //logout buton not available.
+        Exception thrown=Assertions.assertThrows(NoSuchElementException.class,()->driver.findElement(By.id("logout")));
+        Assertions.assertEquals("Unable to locate element: #logout",thrown.getMessage().split("\n")[0]);
+        //sign up & login are available still
+        WebElement signupButton = driver.findElement(By.id("signup"));
+        Assertions.assertTrue(signupButton != null);
+        WebElement loginButton = driver.findElement(By.id("login"));
+        Assertions.assertTrue(loginButton != null);
+        //The register message is displayed still because user hasnt moved from that page.
+        String welcomeExpected="Inicia sesión en Facecook";
+        String welcomeFound = driver.findElement(By.tagName("h2")).getText();
+        Assertions.assertTrue(welcomeFound!=null);
+        Assertions.assertEquals(welcomeExpected,welcomeFound);
     }
-/*
+
+
+
     //[Prueba2-4] Inicio de sesión con datos válidos (usuario estándar, email existente, pero contraseña incorrecta).
     @Test
     @Order(8)
     public void PR02_4() {
 
-
-        //Te logueas con email existente pero contraseña invalida
         PO_LoginView.goToLoginPage(driver);
         PO_LoginView.fillForm(driver,"user01@email.com","nopassword");
-
-        //Sigues en la página de login
-        List<WebElement> welcomeMessageElement = PO_LoginView.getLoginText(driver,PO_Properties.getSPANISH());
-
-        Assertions.assertEquals(welcomeMessageElement.get(0).getText(),
-                PO_View.getP().getString("login.title",
-                        PO_Properties.getSPANISH()));
-
-
+        String alertExp="Email o password incorrecto";
+        String alertFound = driver.findElement(By.className("alert")).getText();
+        Assertions.assertTrue(alertFound!=null);
+        Assertions.assertEquals(alertExp,alertFound);
+        //The register message is displayed still because user hasnt moved from that page.
+        String welcomeExpected="Inicia sesión en Facecook";
+        String welcomeFound = driver.findElement(By.tagName("h2")).getText();
+        Assertions.assertTrue(welcomeFound!=null);
+        Assertions.assertEquals(welcomeExpected,welcomeFound);
+        //sign up & login are available still
+        WebElement signupButton = driver.findElement(By.id("signup"));
+        Assertions.assertTrue(signupButton != null);
+        WebElement loginButton = driver.findElement(By.id("login"));
+        Assertions.assertTrue(loginButton != null);
+        //check that publication options are not displayed.(looking for them should throw an exception)
+        Exception thrown=Assertions.assertThrows(NoSuchElementException.class,()->driver.findElement(By.id("listOwnPosts")));
+        Assertions.assertEquals("Unable to locate element: #listOwnPosts",thrown.getMessage().split("\n")[0]);
+        thrown=Assertions.assertThrows(NoSuchElementException.class,()->driver.findElement(By.id("addPost")));
+        Assertions.assertEquals("Unable to locate element: #addPost",thrown.getMessage().split("\n")[0]);
+        thrown=Assertions.assertThrows(NoSuchElementException.class,()->driver.findElement(By.id("listUsers")));
+        Assertions.assertEquals("Unable to locate element: #listUsers",thrown.getMessage().split("\n")[0]);
 
     }
 
-
+/*
     //[Prueba3-1] Hacer clic en la opción de salir de sesión
     // y comprobar que se redirige a la página de inicio de sesión (Login).
     @Test
