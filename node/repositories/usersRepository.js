@@ -81,10 +81,9 @@ module.exports = {
         }
 
     },
-    findInvitesReceivedByUser: async function ( receiver, page ){
+    findInvitesReceivedByUser: async function ( receiver, page, limit ){
 
         try {
-            const limit = 5;
             const client = await this.mongoClient.connect(this.app.get('connectionStrings'));
             const database = client.db("redsocial");
             const collectionName = 'users';
@@ -97,14 +96,42 @@ module.exports = {
             let startOfPage = (page-1)*limit;
 
             let invitesArray; //Array de invitaciones a devolver
-            let totalInvitesFromUser = 0; //Numero total de invitaciones
+            let totalInvitesToUser = 0; //Numero total de invitaciones
             //Si hay invitaciones a ese usuario
             if(invitesReceived.length > 0){
                 invitesArray = invitesReceived.slice(startOfPage, startOfPage+limit )
-                totalInvitesFromUser = invitesReceived.length;
+                totalInvitesToUser = invitesReceived.length;
             }
 
-            return {invitesReceived: invitesReceived, total: totalInvitesFromUser};
+            return {invitesReceived: invitesArray, total: totalInvitesToUser};
+        } catch (error) {
+            throw (error);
+        }
+
+    },
+    findFriendsOfUser: async function ( user, page, limit ){
+
+        try {
+            const client = await this.mongoClient.connect(this.app.get('connectionStrings'));
+            const database = client.db("redsocial");
+            const collectionName = 'users';
+            const usersCollection = database.collection(collectionName);
+
+            //Encontramos a todos los usuarios que son amigos ese usuario
+            let friendships = await usersCollection.find({'_id': {'$in' : user.friendships}}).toArray();
+
+            //En qué amistad empieza la página
+            let startOfPage = (page-1)*limit;
+
+            let friendsArray; //Array de amistades a devolver
+            let totalFriendsOfUser = 0; //Numero total de amistades
+            //Si tiene amistades ese usuario
+            if(friendships.length > 0){
+                friendsArray = friendships.slice(startOfPage, startOfPage+limit )
+                totalFriendsOfUser = friendships.length;
+            }
+
+            return {friendships: friendsArray, total: totalFriendsOfUser};
         } catch (error) {
             throw (error);
         }
