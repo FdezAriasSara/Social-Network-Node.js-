@@ -350,9 +350,10 @@ module.exports = function (app, usersRepository, publicationsRepository, message
                         logger.error("Se ha producido un error inesperado en el registro");
                         res.redirect("/users/signup" + '?message=Se ha producido un error al registrar tu usuario. Inténtalo de nuevo' + "&messageType=alert-danger");
                     });
-                } else
+                } else{
                     logger.error("Error en registro: El correo electrónico ya existe.");
                 res.redirect("/users/signup" + '?message=Ya existe un usuario con ese correo electrónico.' + "&messageType=alert-danger");
+                }
             }).catch(error => {
                 logger.error("Se ha producido un error inesperado en el registro");
                 res.redirect("/users/signup" + '?message=Se ha producido un error al registrar tu usuario, inténtalo de nuevo.' + "&messageType=alert-danger");

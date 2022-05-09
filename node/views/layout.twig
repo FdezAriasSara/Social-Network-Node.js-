@@ -24,12 +24,13 @@
             <img src="/images/logo.png"  alt="logo"/>
         </div>
         <div class="collapse navbar-collapse" id="myNavbar">
-            {% if isLogedIn %}
+            {% if isLogedIn%}
                 <ul class="nav navbar-nav">
-
-                    <li id="listOwmPosts"><a href="/publications/list">Mis Publicaciones</a></li>
+                    {% if not admin%}
+                    <li id="listOwnPosts"><a href="/publications/list">Mis Publicaciones</a></li>
                     <li id="addPost"><a href="/publications/add">Añadir Publicación</a></li>
                     <li id="listUsers"><a href="/users/list">Listar usuarios</a></li>
+                    {% endif %}
                 </ul>
             {% endif %}
             <ul class="nav navbar-nav navbar-right">
