@@ -63,7 +63,7 @@ module.exports = function (app, usersRepository, publicationsRepository, message
                                 pages: pages,
                                 currentPage: page,
                                 admin: admin,
-                                isLogedIn: req.session.user,
+                                isLoggedIn: req.session.user,
                                 searchCriteria: searchCriteria
                             }
                             logger.info(req.session.user+" ha accedido con éxito a la lista de usuarios");
@@ -82,7 +82,7 @@ module.exports = function (app, usersRepository, publicationsRepository, message
                             let response = {
                                 users: users,
                                 admin: admin,
-                                isLogedIn: req.session.user
+                                isLoggedIn: req.session.user
                             }
                             logger.warn("El administrador ha accedido a la lista de usuarios");
                             res.render("user/list.twig", response);
@@ -224,7 +224,7 @@ module.exports = function (app, usersRepository, publicationsRepository, message
     app.get('/users/login', function (req, res) {
         logger.info("[GET] - [/users/login]")
         res.render("login.twig", {
-            isLogedIn: false
+            isLoggedIn: false
         });
     });
     app.get('/users/logout', function (req, res) {
@@ -232,13 +232,13 @@ module.exports = function (app, usersRepository, publicationsRepository, message
         logger.info("[GET] - [/users/logout]")
         req.session.user = null;
         res.render("login.twig", {
-            isLogedIn: false
+            isLoggedIn: false
         });
     });
     app.get('/users/signup', function (req, res) {
         logger.info("[GET] - [/users/signup]")
         res.render("signup.twig", {
-            isLogedIn: false
+            isLoggedIn: false
         });
     });
     /**

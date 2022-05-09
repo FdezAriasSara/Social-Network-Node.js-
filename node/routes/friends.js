@@ -52,7 +52,7 @@ module.exports = function (app, usersRepository) {
                 } else
                     page = 1;
                 res.render("friends/invites.twig",
-                    {isLogedIn:( req.session.user!=null && req.session.user!= 'undefined'),
+                    {isLoggedIn:( req.session.user!=null && req.session.user!= 'undefined'),
                         invites: invitesToShow,
                         pages: pages,
                         currentPage: page});
@@ -120,7 +120,7 @@ module.exports = function (app, usersRepository) {
                 } else
                     page = 1;
                 res.render("friends/list.twig",
-                    {isLogedIn:( req.session.user!=null && req.session.user!= 'undefined'),
+                    {isLoggedIn:( req.session.user!=null && req.session.user!= 'undefined'),
                         friends: friendsToShow,
                         pages: pages,
                         currentPage: page});

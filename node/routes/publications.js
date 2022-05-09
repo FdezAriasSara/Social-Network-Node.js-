@@ -78,7 +78,7 @@ module.exports = function (app, usersRepository, publicationsRepository) {
 
 
         logger.info("[GET] - [/publications/add]")
-        res.render("publications/add.twig",{isLogedIn: ( req.session.user )});
+        res.render("publications/add.twig",{isLoggedIn: ( req.session.user )});
     });
 
 
@@ -323,7 +323,7 @@ module.exports = function (app, usersRepository, publicationsRepository) {
                     res.render("publications/publications.twig",
                         {
                             publications: realPublications,
-                            isLogedIn:( req.session.user!=null && req.session.user!= 'undefined'),
+                            isLoggedIn:( req.session.user!=null && req.session.user!= 'undefined'),
                             pages: pages,
                             currentPage: page,
                             author: publications.author
@@ -334,7 +334,7 @@ module.exports = function (app, usersRepository, publicationsRepository) {
                     res.render("publications/publications.twig",
                         {
                             publications: [],
-                            isLogedIn:( req.session.user!=null && req.session.user!= 'undefined'),
+                            isLoggedIn:( req.session.user!=null && req.session.user!= 'undefined'),
                             pages: 1,
                             currentPage: 1,
                             author: publications.author
