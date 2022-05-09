@@ -206,13 +206,15 @@ class SdiPractica234ApplicationTests {
         WebElement logoutButton = driver.findElement(By.id("logout"));
         Assertions.assertTrue(logoutButton != null);
         //check that publication options are not displayed.(looking for them should throw an exception)
-        Assertions.assertThrows(NoSuchElementException.class,()->driver.findElement(By.id("listOwnPosts")));
-        Assertions.assertThrows(NoSuchElementException.class,()->driver.findElement(By.id("addPost")));
+        Exception thrown=Assertions.assertThrows(NoSuchElementException.class,()->driver.findElement(By.id("listOwnPosts")));
+        Assertions.assertEquals("Unable to locate element: #listOwnPosts",thrown.getMessage().split("\n")[0]);
+        thrown=Assertions.assertThrows(NoSuchElementException.class,()->driver.findElement(By.id("addPost")));
+        Assertions.assertEquals("Unable to locate element: #addPost",thrown.getMessage().split("\n")[0]);
         //check that the welcome message of the listing page is displayed.
-        String alert="Bienvenido, admin@email.com";
-        String alertFound = driver.findElement(By.tagName("h1")).getText();
-        Assertions.assertTrue(alertFound!=null);
-        Assertions.assertEquals(alert,alertFound);
+        String welcomeExpected="Bienvenido, admin@email.com";
+        String welcomeFound = driver.findElement(By.tagName("h1")).getText();
+        Assertions.assertTrue(welcomeFound!=null);
+        Assertions.assertEquals(welcomeExpected,welcomeFound);
 
     }
 
