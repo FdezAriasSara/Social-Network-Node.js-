@@ -60,7 +60,7 @@ module.exports = {
         }
     },
 
-    findInvitesReceivedBy: async function ( receiver ){
+    findInvitesReceivedBy: async function ( receiverObjectID ){
 
         try {
             const client = await this.mongoClient.connect(this.app.get('connectionStrings'));
@@ -68,16 +68,48 @@ module.exports = {
             const collectionName = 'users';
             const usersCollection = database.collection(collectionName);
 
-            //Encontramos a todos los usuarios que le han mandado invitación a ese usuario
-            let invitesReceived = await usersCollection.find({'_id': {'$in' : receiver.invitesReceived}});
+            //Encuentra el usuario con ObjectID
+            let filterUsers = {_id: receiverObjectID};
+            //Las opciones: solo seleccionamos el ID del receptor y la lista de ID's de usuarios
+            // de los qie tenemos invitaciones recibidas
+            let options = {  invitesReceived: 1, _id:0}
 
-            return invitesReceived.toArray();
+            const invitesReceived = await usersCollection.find(filterUsers, options).toArray();
+            return invitesReceived;
         } catch (error) {
             throw (error);
         }
 
     },
+    findInvitesReceivedByUser: async function ( receiver, page ){
 
+        try {
+            const limit = 5;
+            const client = await this.mongoClient.connect(this.app.get('connectionStrings'));
+            const database = client.db("redsocial");
+            const collectionName = 'users';
+            const usersCollection = database.collection(collectionName);
+
+            //Encontramos a todos los usuarios que le han mandado invitación a ese usuario
+            let invitesReceived = await usersCollection.find({'_id': {'$in' : receiver.invitesReceived}}).toArray();
+
+            //En qué invitación empieza la página
+            let startOfPage = (page-1)*limit;
+
+            let invitesArray; //Array de invitaciones a devolver
+            let totalInvitesFromUser = 0; //Numero total de invitaciones
+            //Si hay invitaciones a ese usuario
+            if(invitesReceived.length > 0){
+                invitesArray = invitesReceived.slice(startOfPage, startOfPage+limit )
+                totalInvitesFromUser = invitesReceived.length;
+            }
+
+            return {invitesReceived: invitesReceived, total: totalInvitesFromUser};
+        } catch (error) {
+            throw (error);
+        }
+
+    },
     findInvitesSentBy: async function ( senderObjectID ){
 
         try {

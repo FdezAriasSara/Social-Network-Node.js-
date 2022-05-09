@@ -30,8 +30,29 @@ module.exports = function (app, usersRepository) {
                 return;
             }
             let user = users[0];
-            usersRepository.findInvitesReceivedBy(user).then(invites => {
-                res.render("friends/invites.twig", {invites: invites});
+            usersRepository.findInvitesReceivedByUser(user, page).then(invites => {
+
+                let invitesToShow = [];
+                let pages = []; // paginas mostrar
+
+                if (invites.total > 0) {
+
+                    let lastPage = invites.total / TOTAL_INVITES_PER_PAGE;
+                    if (invites.total % TOTAL_INVITES_PER_PAGE > 0) { // Sobran decimales
+                        lastPage = lastPage + 1;
+                    }
+
+                    for (let i = page - 2; i <= page + 2; i++) {
+                        if (i > 0 && i <= lastPage) {
+                            pages.push(i);
+                        }
+                    }
+
+                    invitesToShow = invites.invitesReceived;
+                } else
+                    page = 1;
+                res.render("friends/invites.twig",
+                    {invites: invitesToShow, pages: pages, currentPage: page});
             }).catch(error => {
                 res.render("error.twig",
                     {
