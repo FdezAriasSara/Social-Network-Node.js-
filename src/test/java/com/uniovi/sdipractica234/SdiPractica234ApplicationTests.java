@@ -7,6 +7,7 @@ import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.uniovi.sdipractica234.pageobjects.PO_LoginView;
+import com.uniovi.sdipractica234.pageobjects.PO_NavView;
 import com.uniovi.sdipractica234.pageobjects.PO_SignUpView;
 import org.bson.Document;
 import org.bson.conversions.Bson;
@@ -126,15 +127,19 @@ class SdiPractica234ApplicationTests {
     void PR01_2() {
         PO_SignUpView.goToSignUpPage(driver);
         long usersBefore=usersCollection.countDocuments(); //Number of users prior to sign up process.
-        String failureMessage="Debes rellenar todos los campos para registrarte como usuario.";
+
         PO_SignUpView.goToSignUpPage(driver);
         PO_SignUpView.fillForm(driver,"","","",
                 "password","password");
-        String found=driver.findElement(By.className("alert")).getText();
-        Assertions.assertTrue(found!=null);
-        Assertions.assertEquals(failureMessage,found);//to make the test fail in case the verbose alert is not displayed
+
         //The register will not take place since all fields are required.
        Assertions.assertTrue(usersBefore == usersCollection.countDocuments());//Check that the number of documents REMAINS EQUAL
+        //Se that we are still in sign up view.
+
+        String welcomeExpected="¡Regístrate como usuario!";
+        String welcomeFound = driver.findElement(By.tagName("h2")).getText();
+        Assertions.assertTrue(welcomeFound!=null);
+        Assertions.assertEquals(welcomeExpected,welcomeFound);
 
     }
 
@@ -305,28 +310,37 @@ class SdiPractica234ApplicationTests {
 
     }
 
-/*
+
     //[Prueba3-1] Hacer clic en la opción de salir de sesión
     // y comprobar que se redirige a la página de inicio de sesión (Login).
     @Test
     @Order(9)
     public void PR03_1() {
 
-
-        //Te logueas con email existente
         PO_LoginView.goToLoginPage(driver);
         PO_LoginView.fillForm(driver,"user01@email.com","user01");
-
-        //Puedes hacer logout
         PO_NavView.clickLogout(driver);
 
-        //Te vas a la página de login
-        List<WebElement> welcomeMessageElement = PO_LoginView.getLoginText(driver,PO_Properties.getSPANISH());
-
-        Assertions.assertEquals(welcomeMessageElement.get(0).getText(),
-                PO_View.getP().getString("login.title",
-                        PO_Properties.getSPANISH()));
-
+        //The login message is displayed due to redirection
+        String welcomeExpected="Inicia sesión en Facecook";
+        String welcomeFound = driver.findElement(By.tagName("h2")).getText();
+        Assertions.assertTrue(welcomeFound!=null);
+        Assertions.assertEquals(welcomeExpected,welcomeFound);
+        //check that publication options are not displayed.(looking for them should throw an exception)
+        Exception thrown=Assertions.assertThrows(NoSuchElementException.class,()->driver.findElement(By.id("listOwnPosts")));
+        Assertions.assertEquals("Unable to locate element: #listOwnPosts",thrown.getMessage().split("\n")[0]);
+        thrown=Assertions.assertThrows(NoSuchElementException.class,()->driver.findElement(By.id("addPost")));
+        Assertions.assertEquals("Unable to locate element: #addPost",thrown.getMessage().split("\n")[0]);
+        thrown=Assertions.assertThrows(NoSuchElementException.class,()->driver.findElement(By.id("listUsers")));
+        Assertions.assertEquals("Unable to locate element: #listUsers",thrown.getMessage().split("\n")[0]);
+        //logout option should not be displayed either
+        thrown=Assertions.assertThrows(NoSuchElementException.class,()->driver.findElement(By.id("logout")));
+        Assertions.assertEquals("Unable to locate element: #logout",thrown.getMessage().split("\n")[0]);
+        //sign up & login are available
+        WebElement signupButton = driver.findElement(By.id("signup"));
+        Assertions.assertTrue(signupButton != null);
+        WebElement loginButton = driver.findElement(By.id("login"));
+        Assertions.assertTrue(loginButton != null);
     }
 
 
@@ -335,24 +349,18 @@ class SdiPractica234ApplicationTests {
     @Order(10)
     public void PR03_2() {
 
+        Exception thrown=Assertions.assertThrows(NoSuchElementException.class,()->driver.findElement(By.id("logout")));
+        Assertions.assertEquals("Unable to locate element: #logout",thrown.getMessage().split("\n")[0]);
 
-        //Si el usuario no esta autenticado y tratamos de buscar el boton,
-        //se lanzará una NoSuchElementException
-        try{
-
-            driver.findElement(By.id("logout"));
-            //El test fallará si encuentra el botón sin logearse
-            Assertions.assertTrue(false);
-        }catch(NoSuchElementException e){
-            //El test pasa si no encuentra el botón sin logearse
-            Assertions.assertTrue(true);
-        }
-
-
+        //sign up & login are available
+        WebElement signupButton = driver.findElement(By.id("signup"));
+        Assertions.assertTrue(signupButton != null);
+        WebElement loginButton = driver.findElement(By.id("login"));
+        Assertions.assertTrue(loginButton != null);
 
     }
 
-
+/*
     //Prueba[4-1] Mostrar el listado de usuarios y comprobar que se muestran todos los que existen en el sistema.
     @Test
     @Order(32)
