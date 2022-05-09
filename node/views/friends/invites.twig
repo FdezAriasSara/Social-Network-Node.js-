@@ -1,10 +1,20 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>$Title$</title>
-</head>
-<body>
-$END$
-</body>
-</html>
+{% extends "../layout.twig" %}
+{% block title %} Mis invitaciones de amistad {% endblock %}
+
+{% block main_container %}
+    <h1>Invitaciones de amistad recibidas</h1>
+    <div class="row">
+        {% if invites.length > 0 %}
+            {% for invite in invites %}
+            <div class="col-xs-6 col-sm-6 col-md-4 col-lg-3">
+                <div style="width:200px">
+                    <h5>{{ invite.name }}</h5>
+                    <h5>{{ invite.surname }}</h5>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <h4>No tienes invitaciones pendientes</h4>
+        {% endif %}
+    </div>
+{% endblock %}

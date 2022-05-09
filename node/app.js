@@ -114,10 +114,12 @@ app.use("/api/message/add", userTokenRouter);
 app.use("/api/conversation", userTokenRouter);
 app.use("/publications/**", userSessionRouter);
 app.use("/users/list", userSessionRouter);
+app.use("/friends/*", userSessionRouter);
 
 require("./routes/users.js")(app,usersRepository, publicationsRepository, messagesRepository);
 require("./routes/publications.js")(app, usersRepository, publicationsRepository);//                                                              //
-require("./routes/api/chatAPI")(app, publicationsRepository, usersRepository,messagesRepository);//
+require("./routes/api/chatAPI")(app, publicationsRepository, usersRepository,messagesRepository);
+require("./routes/friends.js")(app,usersRepository);
                                    ////
 //                                                                                //
 ////////////////////////////////////////////////////////////////////////////////////
