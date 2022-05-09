@@ -254,16 +254,10 @@ module.exports = function (app, usersRepository, publicationsRepository, message
 
                 } else {
                     req.session.user = user[0].email;
-                    //TODO : CAMBIAR CUANDO LA FUNCIONALIDAD DEL REQUISITO 2 ESTÉ HECHA
-                    res.redirect("/publications/add" );
-                    /*
-                    res.render("/nombreVistauserList.twig")
-                    {
 
-                            isLogedIn:( req.session.user!=null && req.session.user!= 'undefined')
+                    res.redirect("/users/list");
 
-                    };
-                    */
+
 
                 }
             }).catch(error => {
