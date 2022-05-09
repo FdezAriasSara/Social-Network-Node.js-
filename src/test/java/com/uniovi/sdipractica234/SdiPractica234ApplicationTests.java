@@ -229,14 +229,22 @@ class SdiPractica234ApplicationTests {
         PO_LoginView.fillForm(driver,"user01@email.com","user01");
 
 
-        //Si se ha logeado bien, podrá encontrar el boton de logout
+        //When login is successfull , standard users can list post, add post , list friends or logout.
         WebElement logoutButton = driver.findElement(By.id("logout"));
         Assertions.assertTrue(logoutButton != null);
+        WebElement listPostsBtn= driver.findElement(By.id("listOwnPosts"));
+        Assertions.assertTrue( listPostsBtn != null);
+        WebElement addPostBtn = driver.findElement(By.id("addPost"));
+        Assertions.assertTrue(addPostBtn != null);
+        WebElement listUsersBtn = driver.findElement(By.id("listUsers"));
+        Assertions.assertTrue(listUsersBtn != null);
 
-        //Si se ha logeado bien, podrá ver el mensaje de bienvenida
-        WebElement myAccountDropdown = driver.findElement(By.id("accountDropdown"));
-        Assertions.assertTrue(logoutButton != null);
+       //The user is redirected to the list view, so he /She should witness the welcome message:
 
+        String welcomeExpected="Bienvenido, user01@email.com";
+        String welcomeFound = driver.findElement(By.tagName("h1")).getText();
+        Assertions.assertTrue(welcomeFound!=null);
+        Assertions.assertEquals(welcomeExpected,welcomeFound);
 
 
     }
