@@ -3,18 +3,31 @@
 
 {% block main_container %}
     <h1>Invitaciones de amistad recibidas</h1>
-    <div class="row">
+    <h4>Aquí encontrarás a los usuarios que quieren ser tus nuevos amigos.</h4>
         {% if invites.length > 0 %}
-            {% for invite in invites %}
-            <div class="col-xs-6 col-sm-6 col-md-4 col-lg-3">
-                <div style="width:200px">
-                    <h5>{{ invite.name }}</h5>
-                    <h5>{{ invite.surname }}</h5>
-                </div>
-            </div>
-            {% endfor %}
+            <table class="table table-hover" id="tableInvites">
+                <thead>
+                <tr>
+                    <th scope="col">Nombre</th>
+                    <th scope="col">Apellidos</th>
+                    <th scope="col">Invitación</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for invite in invites %}
+                    <tr>
+                        <td>{{ invite.name }}</td>
+                        <td>{{ invite.surname }}</td>
+                        <td>
+                            <button>
+                                Aceptar
+                            </button>
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
         {% else %}
             <h4>No tienes invitaciones pendientes</h4>
         {% endif %}
-    </div>
 {% endblock %}

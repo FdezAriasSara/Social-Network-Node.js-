@@ -30,7 +30,7 @@ module.exports = function (app, usersRepository) {
                 return;
             }
             let user = users[0];
-            usersRepository.findInvitesReceivedBy(user._id).then(invites => {
+            usersRepository.findInvitesReceivedBy(user).then(invites => {
                 res.render("friends/invites.twig", {invites: invites});
             }).catch(error => {
                 res.render("error.twig",

@@ -60,7 +60,7 @@ module.exports = {
         }
     },
 
-    findInvitesReceivedBy: async function ( receiverObjectID ){
+    findInvitesReceivedBy: async function ( receiver ){
 
         try {
             const client = await this.mongoClient.connect(this.app.get('connectionStrings'));
@@ -68,14 +68,10 @@ module.exports = {
             const collectionName = 'users';
             const usersCollection = database.collection(collectionName);
 
-            //Encuentra el usuario con ObjectID
-            let filterUsers = {_id: receiverObjectID};
-            //Las opciones: solo seleccionamos el ID del receptor y la lista de ID's de usuarios
-            // de los qie tenemos invitaciones recibidas
-            let options = {  invitesReceived: 1, _id:0}
+            //Encontramos a todos los usuarios que le han mandado invitación a ese usuario
+            let invitesReceived = await usersCollection.find({'_id': {'$in' : receiver.invitesReceived}});
 
-            const invitesReceived = await usersCollection.find(filterUsers, options).toArray();
-            return invitesReceived;
+            return invitesReceived.toArray();
         } catch (error) {
             throw (error);
         }
