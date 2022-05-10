@@ -36,7 +36,7 @@ module.exports = {
 
 
 
-
+            client.close();
             return publicationsOfUser._id;
         } catch (error) {
             throw (error);
@@ -72,7 +72,7 @@ module.exports = {
 
 
 
-
+        client.close();
         return {publicationsArray: publicationsArray, total: totalPublicationsFromUser, author: authorEmail};
 
     },
@@ -85,7 +85,7 @@ module.exports = {
 
         let publicationsDocument = await publicationsCollection.find({userID: authorObjectID}, {publications: 1, _id:0}).toArray();
 
-
+        client.close();
         return publicationsDocument;
 
     },
@@ -97,6 +97,7 @@ module.exports = {
             const collectionName = 'publications';
             const publicationsCollection = database.collection(collectionName);
             const result = await publicationsCollection.deleteMany(filter);
+            client.close();
             return result;
         } catch (error) {
             throw (error);
