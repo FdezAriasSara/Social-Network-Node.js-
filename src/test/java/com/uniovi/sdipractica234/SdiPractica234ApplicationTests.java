@@ -11,6 +11,7 @@ import com.uniovi.sdipractica234.pageobjects.PO_LoginView;
 import com.uniovi.sdipractica234.pageobjects.PO_NavView;
 import com.uniovi.sdipractica234.pageobjects.PO_SignUpView;
 import com.uniovi.sdipractica234.pageobjects.PO_UsersView;
+import com.uniovi.sdipractica234.util.SeleniumUtils;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.bson.types.ObjectId;
@@ -417,7 +418,7 @@ class SdiPractica234ApplicationTests {
         deleteUserInPath("//*[@id=\"tableUsers\"]/tbody/tr[last()]/td[4]/input");
 
     }
-    /*
+
     //Prueba[5-3] Ir a la lista de usuarios, borrar 3 usuarios, comprobar que la lista se actualiza y dichos usuarios
     //desaparecen.
     @Test
@@ -425,34 +426,90 @@ class SdiPractica234ApplicationTests {
     public void PR05_3(){
         loginAs("admin@email.com", "admin");
         PO_UsersView.goToUsersList(driver);
-        List<User> totalUsers = usersRepository.getUsersAdminView(Pageable.unpaged()).getContent(); //usersBefore
+        List<Document> totalUsers = getUsersAdminView();//usersBefore
+        //Cogemos los elementos a borrar. En este test van a ser 3, el primero,segundo y penúltimo de la lista:
         WebElement firstUserEl = driver.findElement(By.xpath("//*[@id=\"tableUsers\"]/tbody/tr[1]/td[4]/input"));
         WebElement secondUserEl =driver.findElement(By.xpath("//*[@id=\"tableUsers\"]/tbody/tr[2]/td[4]/input"));
         WebElement thirdUserEl = driver.findElement(By.xpath("//*[@id=\"tableUsers\"]/tbody/tr[last()-1]/td[4]/input"));
-        String idFirstUser = firstUserEl.getAttribute("id");
-        String idSecondUser = secondUserEl.getAttribute("id");
-        String idThirdUser = thirdUserEl.getAttribute("id");
-        User firstDeleted = getUser(Long.valueOf(idFirstUser));
-        User secondDeleted = getUser(Long.valueOf(idSecondUser));
-        User thirdDeleted = getUser(Long.valueOf(idThirdUser));
+        //Generamos los IDs en formato ObjectId
+        ObjectId idFirstUser = new ObjectId(firstUserEl.getAttribute("id"));
+        ObjectId idSecondUser = new ObjectId( secondUserEl.getAttribute("id"));
+        ObjectId idThirdUser = new ObjectId(thirdUserEl.getAttribute("id"));
+        //Obtenemos los documentos que serán borrados para restaurarlos al final del test
+        Document firstDeleted = getUser(idFirstUser);
+        Document secondDeleted = getUser(idSecondUser);
+        Document thirdDeleted = getUser(idThirdUser);
+        //Obtenemos datos relacionados con los documentos anteriores, que por el hecho de estar asociados
+        // van a ser borrados. Como van a ser eliminados, habrá que restaurarlos al final del test.
+        //Primer usuario
+        List<Document> messagesInvolvingFirst = getMessagesInvolvingUser(firstDeleted);
+        List<Document> friendsInvitesInvolvingFirst = getUsersFriendsInvitesRelated2DeletedUser(idFirstUser);
+        List<Document> publicationsInvolvingFirst = getPublicationsOf(idFirstUser);
+        //Segundo usuario
+        List<Document> messagesInvolvingSecond = getMessagesInvolvingUser(secondDeleted);
+        List<Document> friendsInvitesInvolvingSecond = getUsersFriendsInvitesRelated2DeletedUser(idSecondUser);
+        List<Document> publicationsInvolvingSecond = getPublicationsOf(idSecondUser);
+        //Tercer usuario
+        List<Document> messagesInvolvingThird = getMessagesInvolvingUser(thirdDeleted);
+        List<Document> friendsInvitesInvolvingThird = getUsersFriendsInvitesRelated2DeletedUser(idThirdUser);
+        List<Document> publicationsInvolvingThird = getPublicationsOf(idThirdUser);
         //Select the checkboxes of three users
         firstUserEl.click();
         secondUserEl.click();
         thirdUserEl.click();
         driver.findElement(By.id("deleteButton")).click(); //Press delete button and delete users.
         SeleniumUtils.waitSeconds(driver, 1); //wait a second in order for the database to update
-        List<User> usersAfterDeleting = usersRepository.getUsersAdminView(Pageable.unpaged()).getContent();
+        List<Document> usersAfterDeleting = getUsersAdminView();
         Assertions.assertTrue(totalUsers.size() == usersAfterDeleting.size()+3);
         Assertions.assertTrue(!usersAfterDeleting.contains(firstDeleted), "User with id: "+ idFirstUser+" was not deleted");
         Assertions.assertTrue(!usersAfterDeleting.contains(secondDeleted), "User with id: "+ idFirstUser+" was not deleted");
         Assertions.assertTrue(!usersAfterDeleting.contains(thirdDeleted), "User with id: "+ idFirstUser+" was not deleted");
-        //volvemos a añadir los usuarios eliminados
+        //volvemos a añadir los usuarios eliminados así como los datos relacionados con los mismos
+        //(amigos, publicaciones, mensajes.....)
+        restoreUser(firstDeleted);
+        restoreFriendsAndInvites(friendsInvitesInvolvingFirst);
+        restorePublications(publicationsInvolvingFirst);
+        restoreMessages(messagesInvolvingFirst);
 
-        usersRepository.save(firstDeleted);
-        usersRepository.save(secondDeleted);
-        usersRepository.save(thirdDeleted);
+        restoreUser(secondDeleted);
+        restoreFriendsAndInvites(friendsInvitesInvolvingSecond);
+        restorePublications(publicationsInvolvingSecond);
+        restoreMessages(messagesInvolvingSecond);
 
-    }*/
+        restoreUser(thirdDeleted);
+        restoreFriendsAndInvites(friendsInvitesInvolvingThird);
+        restorePublications(publicationsInvolvingThird);
+        restoreMessages(messagesInvolvingThird);
+    }
+
+    private void restoreMessages(List<Document> messages) {
+        for (Document message:
+                messages) {
+            msgsCollection.insertOne(message);
+        }
+    }
+
+    private void restorePublications(List<Document> publications) {
+        for (Document publication:
+                publications) {
+            publiCollection.insertOne(publication);
+        }
+    }
+
+    private void restoreFriendsAndInvites(List<Document> friendsInvitesInvolvingUser) {
+        for (Document user :
+                friendsInvitesInvolvingUser) {
+            String _userId = user.get("_id").toString();
+            usersCollection.replaceOne(eq("_id", new ObjectId(_userId)),
+                    user);
+        }
+    }
+
+
+    private void restoreUser(Document userDeleted) {
+        usersCollection.insertOne(userDeleted);
+    }
+
     private Document getUser(ObjectId id){
        Document user = usersCollection.find(eq("_id", id)).first();
        return user;
@@ -472,19 +529,9 @@ class SdiPractica234ApplicationTests {
         String userId = element.getAttribute("id");
         ObjectId _userDeletedId= new ObjectId(userId);
         Document userDeleted = usersCollection.find(eq("_id", _userDeletedId)).first();
-        List<Document> publicationsDeleted = new LinkedList<>();
-        publiCollection.find(eq("userID", _userDeletedId)).into(publicationsDeleted);
-        List<Document> messagesInvolvingDeletedUser = new LinkedList<>();
-        msgsCollection.find(Filters.or(
-                eq("senderEmail", userDeleted.get("email")),
-                eq("receiverEmail", userDeleted.get("email"))
-                )).into(messagesInvolvingDeletedUser);
-        List<Document> usersWithFriendsAndInvitesRelated2DeletedUser = new LinkedList<>();
-        usersCollection.find(Filters.or(
-                eq("friendships", _userDeletedId),
-                eq("invitesSent", _userDeletedId),
-                eq("invitesReceived", _userDeletedId)
-        )).into(usersWithFriendsAndInvitesRelated2DeletedUser); //Guardamos esto porque tendremos que restaurarlo después
+        List<Document> publicationsDeleted = getPublicationsOf(_userDeletedId);
+        List<Document> messagesInvolvingDeletedUser = getMessagesInvolvingUser(userDeleted);
+        List<Document> usersWithFriendsAndInvitesRelated2DeletedUser = getUsersFriendsInvitesRelated2DeletedUser(_userDeletedId);
         Assertions.assertTrue(totalUsers.contains(userDeleted)); //Chequeo user is present
         element.click();
         driver.findElement(By.id("deleteButton")).click(); //we delete the user
@@ -494,24 +541,39 @@ class SdiPractica234ApplicationTests {
         Assertions.assertTrue( totalUsers.size() == remainingUsers.size()+1,
                 "Sizes differ: seems like user was not deleted");
 
-        usersCollection.insertOne(userDeleted);
+
         //Volvemos a añadir la información eliminada!!!!!!
-        for (Document user :
-             usersWithFriendsAndInvitesRelated2DeletedUser) {
-            String _userId = user.get("_id").toString();
-            usersCollection.replaceOne(eq("_id", new ObjectId(_userId)),
-                    user);
-        }
+        restoreUser(userDeleted);
+        restoreFriendsAndInvites(usersWithFriendsAndInvitesRelated2DeletedUser);
+        restoreMessages(messagesInvolvingDeletedUser);
+        restorePublications(publicationsDeleted);
 
-        for (Document message:
-             messagesInvolvingDeletedUser) {
-            msgsCollection.insertOne(message);
-        }
-        for (Document publication:
-             publicationsDeleted) {
-            publiCollection.insertOne(publication);
-        }
 
+    }
+
+    private List<Document> getUsersFriendsInvitesRelated2DeletedUser(ObjectId _userDeletedId) {
+        List<Document> usersWithFriendsAndInvitesRelated2DeletedUser = new LinkedList<>();
+        usersCollection.find(Filters.or(
+                eq("friendships", _userDeletedId),
+                eq("invitesSent", _userDeletedId),
+                eq("invitesReceived", _userDeletedId)
+        )).into(usersWithFriendsAndInvitesRelated2DeletedUser); //Guardamos esto porque tendremos que restaurarlo después
+        return usersWithFriendsAndInvitesRelated2DeletedUser;
+    }
+
+    private List<Document> getMessagesInvolvingUser(Document userDeleted) {
+        List<Document> messagesInvolvingDeletedUser = new LinkedList<>();
+        msgsCollection.find(Filters.or(
+                eq("senderEmail", userDeleted.get("email")),
+                eq("receiverEmail", userDeleted.get("email"))
+                )).into(messagesInvolvingDeletedUser);
+        return messagesInvolvingDeletedUser;
+    }
+
+    private List<Document> getPublicationsOf(ObjectId _userDeletedId) {
+        List<Document> publicationsDeleted = new LinkedList<>();
+        publiCollection.find(eq("userID", _userDeletedId)).into(publicationsDeleted);
+        return publicationsDeleted;
     }
 /*
     //Prueba[5-2] Mostrar el listado de usuarios y comprobar que se muestran todos los que existen en el sistema,
