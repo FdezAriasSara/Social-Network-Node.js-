@@ -11,83 +11,89 @@ module.exports = function (app, usersRepository, publicationsRepository, message
      * En esta app, solo los administradores tienen definido el campo 'rol'.
      */
     app.get('/users/list', function (req, res) {
-        let filter ={ role: {$exists:false} }; //Nunca listaremos al admin ya que el admin no se puede eliminar a sí mismo.
+        logger.info("[GET] - [/users/list]")
+        let filter = {role: {$exists: false}}; //Nunca listaremos al admin ya que el admin no se puede eliminar a sí mismo.
         let options = {};
         let admin = true;
         let searchCriteria = "";
         //Buscamos el usuario autenticado para saber si es admin o no y cambiar el filtrado de búsqueda
         //según el resultado.
-        usersRepository.findUser({email: {$in: [req.session.user]}}, {}).then( result =>{
-            if(result.length != 0){
-                if(result[0].role === undefined){ // Si no tiene definido el campo rol significa que no es un administrador.
-                    //Los usuarios sin rol administrador tienen la lista con paginación.
-                    admin = false;
-                    //Crearemos el criterio de listado de usuarios en función de si se ha insertado un parámetro de
-                    //búsqueda o no.
-                    if(req.query.search != null && typeof(req.query.search) != "undefined" && req.query.search != ""){
-                        filter = {
-                            email: {$nin:[result[0].email]}, //No incluimos el usuario que pide la lista
-                            $or:[
-                                {email: {$regex: ".*" + req.query.search + ".*", $options: 'i'}}, //Email,nombre,apellidos coincide con parámetro búsqueda
-                                {surname: {$regex: ".*" + req.query.search + ".*", $options: 'i'}},
-                                {name: {$regex: ".*" + req.query.search + ".*", $options: 'i'}}],
-                            role: {$exists:false}//No se incluyen administradores
-                        }
-                        searchCriteria= req.query.search;
-                    }else{
-                        filter = {email: {$nin:[result[0].email]}, role: {$exists:false}} //excluimos al propio usuario que hace la consulta
-                    }
-
-                    let page = parseInt(req.query.page); // Es String !!!
-                    if (typeof req.query.page === "undefined" || req.query.page === null || req.query.page === "0") { //
-                       // Puede no venir el param
-                        page = 1;
-                    }
-                    usersRepository.getUsersPg(filter, options, page).then( result=>{
-                        let lastPage = result.total / 5;
-                        if (result.total % 5 > 0) { // Sobran decimales
-                            lastPage = lastPage + 1;
-                        }
-                        let pages = []; // paginas mostrar
-                        for (let i = page - 2; i <= page + 2; i++) {
-                            if (i > 0 && i <= lastPage) {
-                                pages.push(i);
+        usersRepository.findUser({email: {$in: [req.session.user]}}, {}).then(result => {
+                if (result.length != 0) {
+                    if (result[0].role === undefined) { // Si no tiene definido el campo rol significa que no es un administrador.
+                        //Los usuarios sin rol administrador tienen la lista con paginación.
+                        admin = false;
+                        //Crearemos el criterio de listado de usuarios en función de si se ha insertado un parámetro de
+                        //búsqueda o no.
+                        if (req.query.search != null && typeof (req.query.search) != "undefined" && req.query.search != "") {
+                            filter = {
+                                email: {$nin: [result[0].email]}, //No incluimos el usuario que pide la lista
+                                $or: [
+                                    {email: {$regex: ".*" + req.query.search + ".*", $options: 'i'}}, //Email,nombre,apellidos coincide con parámetro búsqueda
+                                    {surname: {$regex: ".*" + req.query.search + ".*", $options: 'i'}},
+                                    {name: {$regex: ".*" + req.query.search + ".*", $options: 'i'}}],
+                                role: {$exists: false}//No se incluyen administradores
                             }
+                            searchCriteria = req.query.search;
+                        } else {
+                            filter = {email: {$nin: [result[0].email]}, role: {$exists: false}} //excluimos al propio usuario que hace la consulta
                         }
-                        let response = {
-                            users: result.users,
-                            pages: pages,
-                            currentPage: page,
-                            admin: admin,
-                            isLogedIn: req.session.user,
-                            searchCriteria:searchCriteria
+
+                        let page = parseInt(req.query.page); // Es String !!!
+                        if (typeof req.query.page === "undefined" || req.query.page === null || req.query.page === "0") { //
+                            // Puede no venir el param
+                            page = 1;
                         }
-                        res.render("user/list.twig", response)
-                        return;
-                    }).catch(error => {
-                        res.render("error.twig",
-                            {
-                                message: "Error listando usuarios",
-                                error: error
-                            });
-                    });
-                }else{//si usuario administrador, lista sin paginacion.
-                    usersRepository.getUsers(filter, options).then(users =>{ //renderizamos el listado de usuarios de acuerdo con el criterio filter
-                        let response = {
-                            users: users,
-                            admin: admin,
-                            isLogedIn: req.session.user
+                        usersRepository.getUsersPg(filter, options, page).then(result => {
+                            let lastPage = result.total / 5;
+                            if (result.total % 5 > 0) { // Sobran decimales
+                                lastPage = lastPage + 1;
+                            }
+                            let pages = []; // paginas mostrar
+                            for (let i = page - 2; i <= page + 2; i++) {
+                                if (i > 0 && i <= lastPage) {
+                                    pages.push(i);
+                                }
+                            }
+                            let response = {
+                                users: result.users,
+                                pages: pages,
+                                currentPage: page,
+                                admin: admin,
+                                isLoggedIn: req.session.user,
+                                searchCriteria: searchCriteria
+                            }
+                            logger.info(req.session.user+" ha accedido con éxito a la lista de usuarios");
+                            res.render("user/list.twig", response)
+                            return;
+                        }).catch(error => {
+                            logger.error("Se ha producido un error cuando el usuario  "+req.session.user.id+" ha accedido a la lista de usuarios");
+                            res.render("error.twig",
+                                {
+                                    message: "Error listando usuarios",
+                                    error: error
+                                });
+                        });
+                    } else {//si usuario administrador, lista sin paginacion.
+                        usersRepository.getUsers(filter, options).then(users => { //renderizamos el listado de usuarios de acuerdo con el criterio filter
+                            let response = {
+                                users: users,
+                                admin: admin,
+                                isLoggedIn: req.session.user
+                            }
+                            logger.warn("El administrador ha accedido a la lista de usuarios");
+                            res.render("user/list.twig", response);
+                        }).catch(error => {
+                            logger.error("Se ha producido un error al listar usuarios mediante el usuario administrador");
+                            res.render("error.twig",
+                                {
+                                    message: "Error listando usuarios",
+                                    error: error
+                                });
+                        });
+
                     }
-                        res.render("user/list.twig", response);
-                    }).catch(error => {
-                        res.render("error.twig",
-                            {
-                                message: "Error listando usuarios",
-                                error: error
-                            });
-                    });;
                 }
-            }
 
             }
 
@@ -105,21 +111,23 @@ module.exports = function (app, usersRepository, publicationsRepository, message
      * Elimina usuarios segun una lista de ids embebida en la URL. Los usuarios a eliminar no pueden ser administradores.
      * Al eliminar un usuario se ha de eliminar toda la información relativa a los mismos, los datos, publicaciones, amistades...
      */
-    app.get('/users/list/delete/:ids', function (req,res) {//Los administradores no se pueden eliminar. No tienen atributo 'rol'
-        let idsToDelete = req.params.ids.split(',').map( id => ObjectId(id));
-        let filter = { _id: {$in: idsToDelete} , rol:{$exists:false}  }
-        usersRepository.findUser({email: {$in: [req.session.user]}}, {}).then( result =>{
-            if(result.length != 0) {
+    app.get('/users/list/delete/:ids', function (req, res) {//Los administradores no se pueden eliminar. No tienen atributo 'rol'
+        logger.info("[GET] - [/users/list/delete:ids]")
+        let idsToDelete = req.params.ids.split(',').map(id => ObjectId(id));
+        let filter = {_id: {$in: idsToDelete}, rol: {$exists: false}}
+        usersRepository.findUser({email: {$in: [req.session.user]}}, {}).then(result => {
+            if (result.length != 0) {
                 if (result[0].role === undefined) { //si el usuario identificado no tiene rol es que no es administrador. No puede borrar.
                     res.render("error.twig",
                         {
                             message: "Error borrando usuarios.",
                             error: "El usuario identificado no tiene privilegios de administrador."
                         });
-                }else{//Si es administrador, borramos.
+                } else {//Si es administrador, borramos.
                     //Primero eliminamos las publicaciones de los usuarios que serán borrados..
-                    deletePublications({userID:{$in: idsToDelete}}, function (result){
-                        if(result == null){ //Si hay error, paramos y lo enseñamos al usuario.
+                    deletePublications({userID: {$in: idsToDelete}}, function (result) {
+                        if (result == null) { //Si hay error, paramos y lo enseñamos al usuario.
+                            logger.error("Error inesperado al eliminar  las publicaciones del usuario "+filter._id);
                             res.redirect("/users/list" +
                                 "?message="+ "Error eliminando publicaciones. No se pudo eliminar los registros." +
                                 "&messageType=alert-danger");
@@ -127,6 +135,7 @@ module.exports = function (app, usersRepository, publicationsRepository, message
                             //Ahora eliminamos los mensajes de los usuarios que serán borrados..
                             deleteMessages({_id: {$in: idsToDelete}}, function(result){
                                 if(result == null){ //Si hay error, paramos y lo enseñamos al usuario.
+                                    logger.error("Error inesperado al eliminar  mensajes del usuario "+filter._id);
                                     res.redirect("/users/list" +
                                         "?message="+ "Error eliminando mensajes.. No se pudo eliminar los registros." +
                                         "&messageType=alert-danger");
@@ -134,19 +143,22 @@ module.exports = function (app, usersRepository, publicationsRepository, message
                                     //Ahora eliminamos amistades e invitaciones de los usuarios a eliminar
                                     deleteFriendShipsAndInvites(idsToDelete, function(result){
                                         if(result == null){ //Si hay error, paramos y lo enseñamos al usuario.
+                                            logger.error("Error inesperado al eliminar  amistades/invitaciones del usuario "+filter._id);
                                             res.redirect("/users/list" +
                                                 "?message="+ "Error eliminando las amistades/invitaciones.. No se pudo eliminar los registros." +
                                                 "&messageType=alert-danger");
                                         }else{
-
                                             //El último paso es eliminar a los usuarios en sí
                                             usersRepository.deleteUsers(filter,{}).then( result=>{
-                                                    res.redirect('/users/list' +  "?message=Registros correctamente eliminados" +
+                                                logger.warn("Se han eliminado los siguientes usuarios con éxito:");
+                                                idsToDelete.forEach(id=>logger.info(id));
+                                                res.redirect('/users/list' +  "?message=Registros correctamente eliminados" +
                                                         "&messageType=alert-success");
 
                                                 }
 
                                             ).catch(error => {
+                                                logger.error("Error en el borrado de usuarios.");
                                                 res.render("error.twig",
                                                     {
                                                         message: "Error borrando usuarios aqui.",
@@ -176,24 +188,28 @@ module.exports = function (app, usersRepository, publicationsRepository, message
      * @param idsToDelete
      * @param callback
      */
-    function deleteFriendShipsAndInvites(idsToDelete, callback){
+    function deleteFriendShipsAndInvites(idsToDelete, callback) {
         usersRepository.deleteFriendshipsAndInvites({},
-            { $pull: {
-                        invitesSent: { $in: idsToDelete },
-                        invitesReceived: { $in: idsToDelete } ,
-                        friendships: { $in: idsToDelete }
-                    }}).then(result=>{
-                        callback(true);
-        }).catch(err=> callback(null));
-    }
-    //Elimina publicaciones de acuerdo con un criterio. Retorna null si ha habido error.
-    function deletePublications(filterCriteria, callback){
-        publicationsRepository.deletePublications(filterCriteria, {}).then(result=>{
+            {
+                $pull: {
+                    invitesSent: {$in: idsToDelete},
+                    invitesReceived: {$in: idsToDelete},
+                    friendships: {$in: idsToDelete}
+                }
+            }).then(result => {
             callback(true);
-        }).catch(err=> callback(null));
+        }).catch(err => callback(null));
     }
+
+    //Elimina publicaciones de acuerdo con un criterio. Retorna null si ha habido error.
+    function deletePublications(filterCriteria, callback) {
+        publicationsRepository.deletePublications(filterCriteria, {}).then(result => {
+            callback(true);
+        }).catch(err => callback(null));
+    }
+
     //Elimina mensajes de acuerdo con un criterio. Retorna null si ha habido error.
-    function deleteMessages(filterCriteria, callback){
+    function deleteMessages(filterCriteria, callback) {
         usersRepository.getUsers(filterCriteria,
             {projection: {email: 1, _id: 0}}).then(emailsToDelete => {
             let emailArray = []
@@ -206,20 +222,25 @@ module.exports = function (app, usersRepository, publicationsRepository, message
         }).catch(err => callback(null));
 
     }
+
     app.get('/users/login', function (req, res) {
-        res.render("login.twig",{
-            isLogedIn:false
+        logger.info("[GET] - [/users/login]")
+        res.render("login.twig", {
+            isLoggedIn: false
         });
     });
     app.get('/users/logout', function (req, res) {
+        logger.info(req.session.user+" ha cerrado sesión");
+        logger.info("[GET] - [/users/logout]")
         req.session.user = null;
-        res.render("login.twig",{
-            isLogedIn:false
+        res.render("login.twig", {
+            isLoggedIn: false
         });
     });
     app.get('/users/signup', function (req, res) {
-        res.render("signup.twig",{
-            isLogedIn:false
+        logger.info("[GET] - [/users/signup]")
+        res.render("signup.twig", {
+            isLoggedIn: false
         });
     });
     /**
@@ -231,11 +252,14 @@ module.exports = function (app, usersRepository, publicationsRepository, message
      *     si el usuario NO es administrador->se le redirige a la vista “Ver listado de usuarios de la red social”
      */
     app.post('/users/login', function (req, res) {
-        if (!req.body.email ||! req.body.contraseña ) {
+        logger.info("[POST] - [/users/login]")
+        if (!req.body.email || !req.body.contraseña) {
+            logger.error("Error en el inicio de sesión: se han dejado campos sin rellenar.");
             res.redirect("/users/login" +
                 "?message=Debes rellenar todos los campos para iniciar sesión." +
                 "&messageType=alert-danger ");
         } else if (!req.body.email.match(emailRegexp)) {
+            logger.error("Error en el inicio de sesión: El email tiene un formato incorrecto.")
             res.redirect("/users/login" +
                 "?message=El formato del email es incorrecto." +
                 "&messageType=alert-danger ");
@@ -252,27 +276,26 @@ module.exports = function (app, usersRepository, publicationsRepository, message
             usersRepository.findUser(filter, options).then(user => {
                 if (user == null || user.length <= 0) {
                     req.session.user = null;
-
+                    logger.error("Error en el inicio de sesión: Los datos son válidos, pero no coinciden con la base de datos.")
                     res.redirect("/users/login" +
                         "?message=Email o password incorrecto" +
                         "&messageType=alert-danger ");
 
                 } else {
                     req.session.user = user[0].email;
-                    //TODO : CAMBIAR CUANDO LA FUNCIONALIDAD DEL REQUISITO 2 ESTÉ HECHA
-                    res.redirect("/publications/add" );
-                    /*
-                    res.render("/nombreVistauserList.twig")
-                    {
+                    if(user.role!="undefined"){
+                        logger.warn("El administrador ha iniciado sesión");
+                    }else{
+                        logger.info("El usuario: " + req.session.user + " ha iniciado sesión.");
+                    }
 
-                            isLogedIn:( req.session.user!=null && req.session.user!= 'undefined')
+                    res.redirect("/users/list");
 
-                    };
-                    */
 
                 }
             }).catch(error => {
                 req.session.user = null;
+                logger.error("Error inesperado en el inicio de sesión.")
                 res.redirect("/users/login" +
                     "?message=Se ha producido un error al buscar el usuario" +
                     "&messageType=alert-danger ");
@@ -291,43 +314,55 @@ module.exports = function (app, usersRepository, publicationsRepository, message
      * (Los mensajes de error se envían por medio de la URL)
      */
     app.post('/users/signup', function (req, res) {
+        logger.info("[POST] - [/users/signup]")
 
-        if (!req.body.email|| !req.body.contraseña || !req.body.repContra || !req.body.nombre || !req.body.apellidos) {
+        if (!req.body.email || !req.body.contraseña || !req.body.repContra || !req.body.nombre || !req.body.apellidos) {
+            logger.error("Error en registro: No se han rellenado todos los campos.")
             res.redirect("/users/signup" +
                 "?message=Debes rellenar todos los campos para registrarte como usuario." +
                 "&messageType=alert-danger ");
         } else if (!emailRegexp.test(req.body.email)) {
+            logger.error("Error en registro:El formato del email no es correcto.")
             res.redirect("/users/signup" +
                 "?message=El formato del email es incorrecto. Debe ser parecido al siguiente: nombre@dominio.dominio" +
                 "&messageType=alert-danger ");
-        }else if (req.body.contraseña != req.body.repContra) {
-
+        } else if (req.body.contraseña != req.body.repContra) {
+            logger.error("Error en registro: La contraseñas no coinciden.")
             res.redirect("/users/signup" +
                 "?message=Las contraseñas no coinciden." +
                 "&messageType=alert-danger ");
 
         } else {
 
-            usersRepository.findUser({email: req.body.email},{}).then(user=>{//buscando el amail
-                if(user.length==0){
+            usersRepository.findUser({email: req.body.email}, {}).then(user => {//buscando el amail
+                if (user.length == 0) {
                     let securePassword = app.get("crypto").createHmac('sha256', app.get('clave'))
                         .update(req.body.contraseña).digest('hex');
                     let user = {
-                        email: req.body.email,
-                        name: req.body.nombre,
-                        surname: req.body.apellidos,
+                        email: req.body.email.trim(),
+                        name: req.body.nombre.trim(),
+                        surname: req.body.apellidos.trim(),
                         password: securePassword
 
                     }
                     usersRepository.createUser(user).then(userId => {
+                        logger.info("Usuario registrado con éxito: " + userId);
                         res.redirect("/users/login" + '?message= ¡Te has registrado con éxito! Inicia sesión:' + "&messageType=alert-info");
                     }).catch(error => {
+                        logger.error("Se ha producido un error inesperado en el registro");
                         res.redirect("/users/signup" + '?message=Se ha producido un error al registrar tu usuario. Inténtalo de nuevo' + "&messageType=alert-danger");
                     });
-                }else
-                    res.redirect("/users/signup" + '?message=Ya existe un usuario con ese correo electrónico.' + "&messageType=alert-danger");
-            }).catch(error=>res.redirect("/users/signup" + '?message=Se ha producido un error al registrar tu usuario, inténtalo de nuevo.' + "&messageType=alert-danger"));
-
+                } else{
+                    logger.error("Error en registro: El correo electrónico ya existe.");
+                res.redirect("/users/signup" + '?message=Ya existe un usuario con ese correo electrónico.' + "&messageType=alert-danger");
+                }
+            }).catch(error => {
+                logger.error("Se ha producido un error inesperado en el registro");
+                res.redirect("/users/signup" + '?message=Se ha producido un error al registrar tu usuario, inténtalo de nuevo.' + "&messageType=alert-danger");
+            });
         }
+
     });
 }
+
+

@@ -21,12 +21,12 @@ module.exports = function (app, usersRepository, publicationsRepository) {
             page = 1;
         }
 
-        //busco el usuario logeado para obtener sus publicaciones
+        //busco el usuario logueado para obtener sus publicaciones
 
 
 
 
-        //Si no estoy logeado, me manda a la pagina de inicio de sesion
+        //Si no estoy logueado, me manda a la pagina de inicio de sesion
         if(!req.session.user){
             res.render("/login")
             ;        }
@@ -78,7 +78,7 @@ module.exports = function (app, usersRepository, publicationsRepository) {
 
 
         logger.info("[GET] - [/publications/add]")
-        res.render("publications/add.twig",{isLogedIn: ( req.session.user )});
+        res.render("publications/add.twig",{isLoggedIn: ( req.session.user )});
     });
 
 
@@ -88,15 +88,15 @@ module.exports = function (app, usersRepository, publicationsRepository) {
 
         logger.info("[POST] - [/publications/add]")
 
-        //Si no estoy logeado, me manda a la pagina de inicio de sesion
+        //Si no estoy logueado, me manda a la pagina de inicio de sesión
         if(!req.session.user){
-            logger.error("Usuario no leggeado")
+            logger.error("Usuario no logueado")
             res.redirect("/login")
             ;        }
 
 
         if(req.session.user == null || req.session.user == undefined){
-            logger.error("Usuario no leggeado")
+            logger.error("Usuario no logueado")
             res.redirect("/login")
         }else{
 
@@ -161,7 +161,7 @@ module.exports = function (app, usersRepository, publicationsRepository) {
                         imagen.mv(app.get("uploadPath") + '\\public\\images\\' + randomUUIDForImage + '.png',
                             function (err) {
                                 if(err){
-                                    logger.error("Error al subir la imagen, pero publicacion añadida")
+                                    logger.error("Error al subir la imagen, pero publicación añadida")
                                     res.send("Error al subir la imagen, pero publicación añadida");
                                 }else{
                                     res.redirect("/publications/list");
@@ -177,7 +177,7 @@ module.exports = function (app, usersRepository, publicationsRepository) {
                 })
                 .catch(error => {
                     res.redirect("/publications/add" +
-                        "?message=Error al registrar la publicacion, intentelo de nuevo:"+error +
+                        "?message=Error al registrar la publicación, inténtelo de nuevo:"+error +
                         "&messageType=alert-danger");
                 })
 
@@ -203,12 +203,12 @@ module.exports = function (app, usersRepository, publicationsRepository) {
             page = 1;
         }
 
-        //busco el usuario logeado para obtener sus publicaciones
+        //busco el usuario logueado para obtener sus publicaciones
 
 
 
 
-        //Si no estoy logeado, me manda a la pagina de inicio de sesion
+        //Si no estoy logueado, me manda a la pagina de inicio de sesion
         if(!req.session.user){
             res.redirect("/login")
 ;        }
@@ -323,7 +323,7 @@ module.exports = function (app, usersRepository, publicationsRepository) {
                     res.render("publications/publications.twig",
                         {
                             publications: realPublications,
-                            isLogedIn:( req.session.user!=null && req.session.user!= 'undefined'),
+                            isLoggedIn:( req.session.user!=null && req.session.user!= 'undefined'),
                             pages: pages,
                             currentPage: page,
                             author: publications.author
@@ -334,7 +334,7 @@ module.exports = function (app, usersRepository, publicationsRepository) {
                     res.render("publications/publications.twig",
                         {
                             publications: [],
-                            isLogedIn:( req.session.user!=null && req.session.user!= 'undefined'),
+                            isLoggedIn:( req.session.user!=null && req.session.user!= 'undefined'),
                             pages: 1,
                             currentPage: 1,
                             author: publications.author

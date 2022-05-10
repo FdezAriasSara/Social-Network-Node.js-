@@ -1,0 +1,54 @@
+{% extends "../layout.twig" %}
+{% block title %} Mis invitaciones de amistad {% endblock %}
+
+{% block main_container %}
+    <h1>Invitaciones de amistad recibidas</h1>
+    <h4>Aquí encontrarás a los usuarios que quieren ser tus nuevos amigos.</h4>
+        {% if invites.length > 0 %}
+            <table class="table table-hover" id="tableInvites">
+                <thead>
+                <tr>
+                    <th scope="col">Nombre</th>
+                    <th scope="col">Apellidos</th>
+                    <th scope="col">Invitación</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for invite in invites %}
+                    <tr>
+                        <td>{{ invite.name }}</td>
+                        <td>{{ invite.surname }}</td>
+                        <td>
+                            <button>
+                                Aceptar
+                            </button>
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <h4>No tienes invitaciones pendientes</h4>
+        {% endif %}
+    <!-- Paginación mostrar la actual y 2 anteriores y dos siguientes -->
+    <div class="row text-center">
+        <ul class="pagination">
+
+            {% for page in pages %}
+
+                <li class="page-item" id="pi-{{ page }}">
+                    <a class="page-link" href="/friends/invites?page={{ page }}">{{ page }}</a>
+                </li>
+
+            {% endfor %}
+
+            <script>
+
+                $("#pi-"+"{{ currentPage }}").addClass("active");
+
+            </script>
+
+
+        </ul>
+    </div>
+{% endblock %}

@@ -1,0 +1,50 @@
+{% extends "../layout.twig" %}
+{% block title %} Mis amigos {% endblock %}
+
+{% block main_container %}
+    <h1>Mis amigos</h1>
+    <h4>Aquí encontrarás tu lista de amigos.</h4>
+    {% if friends.length > 0 %}
+        <table class="table table-hover" id="tableInvites">
+            <thead>
+            <tr>
+                <th scope="col">Nombre</th>
+                <th scope="col">Apellidos</th>
+                <th scope="col">Correo</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for friend in friends %}
+                <tr>
+                    <td>{{ friend.name }}</td>
+                    <td>{{ friend.surname }}</td>
+                    <td>{{ friend.email }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <h4>No hay usuarios en tu lista de amigos</h4>
+    {% endif %}
+    <!-- Paginación mostrar la actual y 2 anteriores y dos siguientes -->
+    <div class="row text-center">
+        <ul class="pagination">
+
+            {% for page in pages %}
+
+                <li class="page-item" id="pi-{{ page }}">
+                    <a class="page-link" href="/friends/list?page={{ page }}">{{ page }}</a>
+                </li>
+
+            {% endfor %}
+
+            <script>
+
+                $("#pi-"+"{{ currentPage }}").addClass("active");
+
+            </script>
+
+
+        </ul>
+    </div>
+{% endblock %}
