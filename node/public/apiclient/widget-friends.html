@@ -4,7 +4,6 @@
     <table class="table table-hover">
         <thead>
         <tr>
-            <th>Email</th>
             <th>Nombre</th>
             <th>Apellidos</th>
             <th class="col-md-1"></th>
@@ -83,8 +82,6 @@
         $("#friendsTableBody").empty(); // Vaciar la tabla
         for (i = 0; i < friends.length; i++) {
             $("#friendsTableBody").append("<tr>"+
-
-                "<td>" + friends[i].email + "</td>" +
                 "<td>" + friends[i].name + "</td>" +
                 "<td>" + friends[i].surname+ "</td>" +
 
