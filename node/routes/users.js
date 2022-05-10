@@ -1,4 +1,7 @@
 const {ObjectId} = require("mongodb");
+var log4js = require("log4js");
+var logger = log4js.getLogger();
+logger.level = "debug"
 module.exports = function (app, usersRepository, publicationsRepository, messagesRepository) {
     const emailRegexp = new RegExp("\\w*\\@\\w*\\.\\w*");
 
