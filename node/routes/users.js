@@ -99,6 +99,7 @@ module.exports = function (app, usersRepository, publicationsRepository, message
                 }
 
             }
+
         ).catch(error => {
             res.render("error.twig",
                 {
@@ -131,48 +132,50 @@ module.exports = function (app, usersRepository, publicationsRepository, message
                         if (result == null) { //Si hay error, paramos y lo enseñamos al usuario.
                             logger.error("Error inesperado al eliminar  las publicaciones del usuario "+filter._id);
                             res.redirect("/users/list" +
-                                "?message=" + "Error eliminando publicaciones. No se pudo eliminar los registros." +
+                                "?message="+ "Error eliminando publicaciones. No se pudo eliminar los registros." +
                                 "&messageType=alert-danger");
-                        }
-                        return;
-                    });
-                    //Ahora eliminamos los mensajes de los usuarios que serán borrados..
-                    deleteMessages({_id: {$in: idsToDelete}}, function (result) {
-                        if (result == null) { //Si hay error, paramos y lo enseñamos al usuario.
-                            logger.error("Error inesperado al eliminar  mensajes del usuario "+filter._id);
-                            res.redirect("/users/list" +
-                                "?message=" + "Error eliminando mensajes.. No se pudo eliminar los registros." +
-                                "&messageType=alert-danger");
-                        }
-                        return;
-                    })
-                    //Ahora eliminamos amistades e invitaciones de los usuarios a eliminar
-                    deleteFriendShipsAndInvites(idsToDelete, function (result) {
-                        if (result == null) { //Si hay error, paramos y lo enseñamos al usuario.
-                            logger.error("Error inesperado al eliminar  amistades/invitaciones del usuario "+filter._id);
-                            res.redirect("/users/list" +
-                                "?message=" + "Error eliminando las amistades/invitaciones.. No se pudo eliminar los registros." +
-                                "&messageType=alert-danger");
-                        }
-                        return;
-                    });
-                    //El último paso es eliminar a los usuarios en sí
-                    usersRepository.deleteUsers(filter, {}).then(result => {
+                        }else{
+                            //Ahora eliminamos los mensajes de los usuarios que serán borrados..
+                            deleteMessages({_id: {$in: idsToDelete}}, function(result){
+                                if(result == null){ //Si hay error, paramos y lo enseñamos al usuario.
+                                    logger.error("Error inesperado al eliminar  mensajes del usuario "+filter._id);
+                                    res.redirect("/users/list" +
+                                        "?message="+ "Error eliminando mensajes.. No se pudo eliminar los registros." +
+                                        "&messageType=alert-danger");
+                                }else{
+                                    //Ahora eliminamos amistades e invitaciones de los usuarios a eliminar
+                                    deleteFriendShipsAndInvites(idsToDelete, function(result){
+                                        if(result == null){ //Si hay error, paramos y lo enseñamos al usuario.
+                                            logger.error("Error inesperado al eliminar  amistades/invitaciones del usuario "+filter._id);
+                                            res.redirect("/users/list" +
+                                                "?message="+ "Error eliminando las amistades/invitaciones.. No se pudo eliminar los registros." +
+                                                "&messageType=alert-danger");
+                                        }else{
+                                            //El último paso es eliminar a los usuarios en sí
+                                            usersRepository.deleteUsers(filter,{}).then( result=>{
+                                                logger.warn("Se han eliminado los siguientes usuarios con éxito:");
+                                                idsToDelete.forEach(id=>logger.info(id));
+                                                res.redirect('/users/list' +  "?message=Registros correctamente eliminados" +
+                                                        "&messageType=alert-success");
 
-                        logger.warn("Se han eliminado los siguientes usuarios con éxito:");
-                           idsToDelete.forEach(id=>logger.info(id));
-                            res.redirect('/users/list' + "?message=Registros correctamente eliminados" +
-                                "&messageType=alert-success");
+                                                }
 
+                                            ).catch(error => {
+                                                logger.error("Error en el borrado de usuarios.");
+                                                res.render("error.twig",
+                                                    {
+                                                        message: "Error borrando usuarios aqui.",
+                                                        error: error
+                                                    });
+                                            });
+                                        }
+                                    });
+                                }
+                            })
                         }
-                    ).catch(error => {
-                        logger.error("Error en el borrado de usuarios.");
-                        res.render("error.twig",
-                            {
-                                message: "Error borrando usuarios aqui.",
-                                error: error
-                            });
                     });
+
+
                 }
             }
         });
@@ -211,9 +214,11 @@ module.exports = function (app, usersRepository, publicationsRepository, message
     //Elimina mensajes de acuerdo con un criterio. Retorna null si ha habido error.
     function deleteMessages(filterCriteria, callback) {
         usersRepository.getUsers(filterCriteria,
-            {email: 1, _id: 0}).then(emailsToDelete => {
+            {projection: {email: 1, _id: 0}}).then(emailsToDelete => {
+            let emailArray = []
+            Object.keys(emailsToDelete).map(function (email) { emailArray.push(emailsToDelete[email].email)});
             messagesRepository.deleteMessages(
-                {$or: [{senderEmail: {$in: emailsToDelete}}, {receiverEmail: {$in: emailsToDelete}}]}
+                {$or: [{senderEmail: {$in: emailArray}}, {receiverEmail: {$in: emailArray}}]}
                 , {}).then(result => {
                 callback(true);
             }).catch(err => callback(null));
