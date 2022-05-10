@@ -32,13 +32,37 @@
 
 
     }
+
     var messages;
+    var currentFriend = null;
+    function showConversationWith(){
+        console.log("AAAAAA")
+        $.ajax({
+            url: URLbase + "/conversation",
+            type: "POST",
+            data: {idOtherUser:currentFriend._id},
+            dataType: 'json',
+            headers: {"token": token},
+            success: function (response) {
+                console.log("AAAAAA")
+                messages = response.messages;
+                $("#main-container").load("widget-conversation.html");
+            },
+            error: function (error) {
+                $("#widget-friends").append("<div class='alert alert-danger' > Se ha producido un error al acceder a la conversación</div>");
+            }
+        });
+    }
+
+
     function obtainLastMessage(friend) {
         console.log(token)
+        currentFriend = friend
+        console.log(friend)
         $.ajax({
             url: URLbase + "/conversation?token=" + token,
             type: "POST",
-            data: {idOtherUser:friend.id},
+            data: {idOtherUser:friend._id},
             dataType: 'json',
             headers: {},
             success: function (response) {
@@ -46,10 +70,13 @@
                 messages = response.messages;
                 console.log("llega 2")
                 var last=messages[messages.length-1];
+
                 if(messages.length>1){//A link to the conversation is only available if there is more than one message.
-                    $("#friendsTableBody").append("<tr>"+"<a onclick=showConversationWith("+friend+")>["+last.date+"] "+last.senderEmail+" dijo :"+last.text+" </a></tr>");
+                    $("#friendsTableBody").append("<tr><td"+" onclick=showConversationWith()>["+last.date+"] "+last.senderEmail+" dijo :"+last.text+"</td></tr>");
+
                 }else{
-                    $("#friendsTableBody").append("<tr>"+"["+last.date+"] "+last.senderEmail+" dijo :"+last.text+"</tr>");
+
+                    $("#friendsTableBody").append("<tr><td>"+"["+last.date+"] "+last.senderEmail+" dijo :"+last.text+"</td></tr>");
                 }
 
             },
@@ -61,23 +88,6 @@
 
     }
 
-    function showConversationWith(friend){
-
-        $.ajax({
-            url: URLbase + "/conversation",
-            type: "POST",
-            data: {idOtherUser:friend.id},
-            dataType: 'json',
-            headers: {"token": token},
-            success: function (response) {
-                messages = response.messages;
-                $("#main-container").load("widget-conversation.html");
-            },
-            error: function (error) {
-                $("#widget-friends").append("<div class='alert alert-danger' > Se ha producido un error al acceder a la conversación</div>");
-            }
-        });
-    }
     function updateFriendTable(friends) {
         $("#friendsTableBody").empty(); // Vaciar la tabla
         for (i = 0; i < friends.length; i++) {
