@@ -233,9 +233,9 @@ module.exports = {
             const client = await this.mongoClient.connect(this.app.get('connectionStrings'));
             const database = client.db("redsocial");
             const collectionName = 'users';
-            const songsCollection = database.collection(collectionName);
-            const songs = await songsCollection.find(filter, options).toArray();
-            return songs;
+            const usersCollection = database.collection(collectionName);
+            const usersDoc = await usersCollection.find(filter, options).toArray();
+            return usersDoc;
         } catch (error) {
             throw (error);
         }
