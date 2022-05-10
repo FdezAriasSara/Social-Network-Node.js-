@@ -150,7 +150,7 @@ module.exports = function (app, usersRepository) {
     app.post('/friends/invite/:id', function (req, res){
         let filter = { email: req.session.user};
         usersRepository.findUser( filter, {} ).then(async users => {
-            //Obtenemos el usuario en sesión para usarlo para encontrar las invitaciones recibidas
+            //Obtenemos el usuario en sesión para usarlo como sender
             if (users.length < 1) {
                 //Si no encontramos el usuario, error
                 res.status(500);
@@ -164,7 +164,7 @@ module.exports = function (app, usersRepository) {
             let sender = users[0];
             filter = {_id: ObjectId(req.params.id)};
             usersRepository.findUser( filter, {} ).then(async usersParam => {
-                //Obtenemos el usuario en sesión para usarlo para encontrar las invitaciones recibidas
+                //Usando el id de parametro en la request, obtenemos el usuario que recibe la invitación
                 if (usersParam.length < 1) {
                     //Si no encontramos el usuario, error
                     res.status(500);
@@ -201,6 +201,81 @@ module.exports = function (app, usersRepository) {
                         res.redirect("/users/list" +
                             "?message=Invitación enviada con éxito" +
                             "&messageType=alert-info");
+                    }
+                }).catch(error => {
+                    res.render("error.twig",
+                        {
+                            message: "Error encontrando al usuario",
+                            error: error
+                        });
+                })
+            }).catch(error => {
+                res.render("error.twig",
+                    {
+                        message: "Error encontrando al usuario",
+                        error: error
+                    });
+            })
+        }).catch(error => {
+            res.render("error.twig",
+                {
+                    message: "Error encontrando al usuario",
+                    error: error
+                });
+        })
+    });
+
+    /**
+     * Aceptar una invitación de amistad
+     */
+    app.post('/friends/accept/:id', function (req, res){
+        let filter = { email: req.session.user};
+        usersRepository.findUser( filter, {} ).then(async users => {
+            //Obtenemos el usuario en sesión para usarlo como receiver
+            if (users.length < 1) {
+                //Si no encontramos el usuario, error
+                res.status(500);
+                res.render("error.twig",
+                    {
+                        message: "Error reconociendo usuario: no existe",
+                        error: new Error()
+                    });
+                return;
+            }
+            let receiver = users[0];
+            filter = {_id: ObjectId(req.params.id)};
+            usersRepository.findUser( filter, {} ).then(async usersParam => {
+                //Usando el id de parametro en la request, obtenemos el usuario que recibe la invitación
+                if (usersParam.length < 1) {
+                    //Si no encontramos el usuario, error
+                    res.status(500);
+                    res.render("error.twig",
+                        {
+                            message: "Error reconociendo usuario: no existe",
+                            error: new Error()
+                        });
+                    return;
+                }
+                let sender = usersParam[0];
+                //No podemos aceptar una invitación que no esté en la lista de invitaciones recibidas
+                filter = {
+                    '_id': {'$in' : receiver.invitesReceived}
+                };
+                usersRepository.findUser( filter, {} ).then( async canAcceptUsers => {
+                    const canAccept = canAcceptUsers.some(u => {
+                        if (u.email === sender.email)
+                            return true;
+                        return false;
+                    })
+                    if (canAccept){
+                        await usersRepository.acceptInvite(sender._id, receiver._id);
+                        res.redirect("/friends/invites" +
+                            "?message=Invitación aceptada con éxito" +
+                            "&messageType=alert-info");
+                    } else {
+                        res.redirect("/friends/invites" +
+                            "?message=No puedes aceptar una invitación de ese usuario" +
+                            "&messageType=alert-danger");
                     }
                 }).catch(error => {
                     res.render("error.twig",

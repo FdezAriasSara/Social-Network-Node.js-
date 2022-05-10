@@ -19,9 +19,11 @@
                         <td>{{ invite.name }}</td>
                         <td>{{ invite.surname }}</td>
                         <td>
-                            <button>
-                                Aceptar
-                            </button>
+                            <form method="post" action="/friends/accept/{{ invite._id }}">
+                                <button>
+                                    Aceptar
+                                </button>
+                            </form>
                         </td>
                     </tr>
                 {% endfor %}

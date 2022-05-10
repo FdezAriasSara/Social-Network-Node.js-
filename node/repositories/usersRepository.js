@@ -191,7 +191,7 @@ module.exports = {
     }
     ,
 
-    makeFriends: async function ( senderObjectID, receiverObjectID ){
+    acceptInvite: async function ( senderObjectID, receiverObjectID ){
 
         try {
             const client = await this.mongoClient.connect(this.app.get('connectionStrings'));
