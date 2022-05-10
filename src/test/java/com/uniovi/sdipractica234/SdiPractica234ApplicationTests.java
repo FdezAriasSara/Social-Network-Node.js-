@@ -6,9 +6,11 @@ import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.model.Filters;
 import com.uniovi.sdipractica234.pageobjects.PO_LoginView;
 import com.uniovi.sdipractica234.pageobjects.PO_NavView;
 import com.uniovi.sdipractica234.pageobjects.PO_SignUpView;
+import com.uniovi.sdipractica234.pageobjects.PO_UsersView;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.junit.jupiter.api.*;
@@ -21,6 +23,9 @@ import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
 
+import java.util.LinkedList;
+import java.util.List;
+
 import static com.mongodb.client.model.Filters.eq;
 
 
@@ -31,7 +36,7 @@ class SdiPractica234ApplicationTests {
     //static String Geckodriver = "C:\\Path\\geckodriver-v0.30.0-win64.exe";
   //  static String Geckodriver = "C:\\Users\\usuario\\Desktop\\Eii\\AÑO 3 GRADO INGENIERIA INFORMATICA\\Sistemas Distribuidos e Internet\\Lab\\sesion05\\PL-SDI-Sesión5-material\\geckodriver-v0.30.0-win64.exe";
     //sebas
-    //static String Geckodriver ="C:\\Users\\sebas\\Downloads\\TERCERO\\SEGUNDO CUATRIMESTRE\\SDI\\PL-SDI-Sesión5-material\\PL-SDI-Sesión5-material\\geckodriver-v0.30.0-win64.exe";
+    static String Geckodriver ="C:\\Users\\sebas\\Downloads\\TERCERO\\SEGUNDO CUATRIMESTRE\\SDI\\PL-SDI-Sesión5-material\\PL-SDI-Sesión5-material\\geckodriver-v0.30.0-win64.exe";
 
     //ce
     //static String PathFirefox = "C:\\Program Files\\Mozilla Firefox\\firefox.exe";
@@ -41,7 +46,7 @@ class SdiPractica234ApplicationTests {
     /* SARA */
     static String PathFirefox = "C:\\Program Files\\Mozilla Firefox\\firefox.exe";
     //static String Geckodriver = "C:\\Path\\geckodriver-v0.30.0-win64.exe";
-    static String Geckodriver = "C:\\Users\\Sara\\Desktop\\Universidad\\3-tercer curso\\segundo cuatri\\(SDI)-Sistemas Distribuidos e Internet\\Sesión5-material\\geckodriver-v0.30.0-win64.exe";
+    //static String Geckodriver = "C:\\Users\\Sara\\Desktop\\Universidad\\3-tercer curso\\segundo cuatri\\(SDI)-Sistemas Distribuidos e Internet\\Sesión5-material\\geckodriver-v0.30.0-win64.exe";
 
     //static String PathFirefox = "/Applications/Firefox.app/Contents/MacOS/firefox-bin";
     // static String Geckodriver = "/Users/USUARIO/selenium/geckodriver-v0.30.0-macos";
@@ -360,15 +365,15 @@ class SdiPractica234ApplicationTests {
 
     }
 
-/*
+
     //Prueba[4-1] Mostrar el listado de usuarios y comprobar que se muestran todos los que existen en el sistema.
     @Test
     @Order(32)
     public void PR04_1(){
         loginAs("admin@email.com", "admin");
         PO_UsersView.goToUsersList(driver);
-
-        List<User> totalUsers = usersRepository.getUsersAdminView(Pageable.unpaged()).getContent();
+        List<Document> totalUsers = new LinkedList<>();
+        usersCollection.find(Filters.not(Filters.exists("role"))).into(totalUsers);
 
         List<WebElement> usersInListView = driver.findElements(By.className("username"));
 
@@ -379,13 +384,13 @@ class SdiPractica234ApplicationTests {
                 usersInListView) {
             userNames.add(element.getText());
         }
-        for (User user:
+        for (Document userDoc:
                 totalUsers) {
-            Assertions.assertTrue(userNames.contains(user.getUsername()), "Username:"+user.getUsername()+" not present in the view ");
+            Assertions.assertTrue(userNames.contains(userDoc.getString("name")), "Username:"+userDoc.getString("name")+" not present in the view ");
         }
 
 
-    }
+    }/*
     //Prueba[5-1] Ir a la lista de usuarios, borrar el primer usuario de la lista, comprobar que la lista se actualiza
     //y dicho usuario desaparece.
     @Test
@@ -451,11 +456,11 @@ class SdiPractica234ApplicationTests {
             return null;
 
         }
-    }
+    }*/
     private void loginAs(String username, String password){
         PO_LoginView.goToLoginPage(driver);
         PO_LoginView.fillForm(driver,username,password);
-    }
+    }/*
     private void deleteUserInPath(String xPath){
 
 
