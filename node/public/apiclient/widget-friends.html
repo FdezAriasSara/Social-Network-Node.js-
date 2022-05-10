@@ -36,43 +36,27 @@
     var messages;
     var currentFriend = null;
     function showConversationWith(){
-        console.log("AAAAAA")
-        $.ajax({
-            url: URLbase + "/conversation",
-            type: "POST",
-            data: {idOtherUser:currentFriend._id},
-            dataType: 'json',
-            headers: {"token": token},
-            success: function (response) {
-                console.log("AAAAAA")
-                messages = response.messages;
                 $("#main-container").load("widget-conversation.html");
-            },
-            error: function (error) {
-                $("#widget-friends").append("<div class='alert alert-danger' > Se ha producido un error al acceder a la conversación</div>");
-            }
-        });
+
     }
 
 
     function obtainLastMessage(friend) {
-        console.log(token)
-        currentFriend = friend
-        console.log(friend)
-        $.ajax({
+           currentFriend = friend
+           $.ajax({
             url: URLbase + "/conversation?token=" + token,
             type: "POST",
             data: {idOtherUser:friend._id},
             dataType: 'json',
             headers: {},
             success: function (response) {
-                console.log("llega 1")
+
                 messages = response.messages;
-                console.log("llega 2")
+
                 var last=messages[messages.length-1];
 
                 if(messages.length>1){//A link to the conversation is only available if there is more than one message.
-                    $("#friendsTableBody").append("<tr><td"+" onclick=showConversationWith()>["+last.date+"] "+last.senderEmail+" dijo :"+last.text+"</td></tr>");
+                    $("#friendsTableBody").append("<tr><td"+" onclick=showConversationWith()><a>["+last.date+"] "+last.senderEmail+" dijo :"+last.text+"</td></a></tr>");
 
                 }else{
 
@@ -96,7 +80,7 @@
                 "<td>" + friends[i].surname+ "</td>" +
 
                 "<td>" );
-            console.log(friends[i]._id);
+
             obtainLastMessage(friends[i]);
 
             $("#friendsTableBody").append("</tr>");

@@ -1,10 +1,102 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
-        <h1>AQUI VA LA CONVER</h1>
-</body>
-</html>
+<style>
+    .converBlock {
+
+        height: 500px;
+        width: 70%;
+        border: 5px outset #020a0c;
+        background-color: #363a42;
+        font-family: Consolas;
+        color: #ace7d5;
+        text-align: left;
+
+    }
+    .msgs{
+
+        height: 300px;
+        width: 100%;
+
+        background-color: #3a3e48;
+        font-family: Consolas;
+        color: #d8b8f6;
+        text-align: left;
+        font-style: italic;
+    }
+    .btn{
+        background: aliceblue;
+        color:#363a42;
+    }
+
+</style>
+<div id="widget-conversation" >
+    <div id="conversation" class=class="converBlock">
+    <div id="chatbox" class="msgs">
+        
+    </div>
+    <input type="text" class="form-control" placeholder="Escribe aquí tu mensaje" id="newMessage"/>
+    <button class="btn" onclick="sendMessage()" for="newMessage" >Enviar</button>
+    <button class="btn"> Volver </button>
+</div>
+</div>
+<script>
+    function loadMessages() {
+
+        $.ajax({
+            url: URLbase + "/conversation",
+            type: "POST",
+            data: {idOtherUser:currentFriend._id},
+            dataType: 'json',
+            headers: {"token": token},
+            success: function (response) {
+
+                messages = response.messages;
+            },
+            error: function (error) {
+                $("#widget-conversation").append("<div class='alert alert-danger' > Se ha producido un error al acceder a la conversación</div>");
+            }
+        });
+
+
+    }
+    function displayConversation(messages) {
+        $('.waitMessage').remove();
+        for ( i = 0; i <messages.length; i++) {
+
+            $("#chatbox").append("<p class='chatMessage'>"+messages[i].date+"<strong>["+messages[i].senderEmail+"]</strong>:"+messages[i].text+"</p><br class='messageBr>'")
+        }
+
+    }
+    function sendMessage() {
+        let messageText = $("#newMessage").val();
+        let receiverEmail=messages[0].receiverEmail;
+            $.ajax({
+                url: URLbase + "/message/add?token=" + token,
+                type: "POST",
+                data: {receiverEmail:receiverEmail, text:messageText},
+                dataType: 'json',
+                headers: {},
+                success: function (response) {
+                    $("#chatbox").append("<p class='waitMessage'>enviando mensaje...<em>'"+messageText+"'</em></p>");
+
+                },
+                error: function (error) {
+                    $("#widget-conversation").append("<div class='alert alert-danger' >Se ha producido un error al enviar tu mensaje</div>");
+                }
+            });
+
+
+
+    }
+    setInterval(function() {
+        let oldMessages=messages;
+        let toWrite={};
+         loadMessages();
+         messages.map(msg=>{if(oldMessages.contains(msg)){toWrite[toWrite.length]=msg;}})
+       displayConversation(toWrite);
+    }, 5000);
+    displayConversation(messages);//will be executed when this view is accesed for the first time
+    function volver() {
+        $("#main-container").load("widget-friends.html");
+    }
+
+
+</script>
