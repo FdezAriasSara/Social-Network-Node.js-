@@ -39,7 +39,7 @@
         {% for user in users %}
             <tr>
                 <td>{{ user.email }}</td>
-                <td>{{ user.name }}</td>
+                <td class="username" >{{ user.name }}</td>
                 <td>{{ user.surname }}</td>
                 {% if admin %}
                     <td><input type="checkbox" id="{{ user._id }}"></td>
@@ -83,7 +83,7 @@
             {% for page in pages %}
             <li class="page-item" id="pi-{{ page }}">
                 {% if (searchCriteria!="") %}
-                    <a class="page-link" href="/users/list/?page={{ page }} &?search={{ searchCriteria }}">{{ page }}</a>
+                    <a class="page-link" href="/users/list/?page={{ page }}&search={{ searchCriteria }}">{{ page }}</a>
                 {% else %}
                     <a class="page-link" href="/users/list/?page={{ page }}">{{ page }}</a>
                 {% endif %}

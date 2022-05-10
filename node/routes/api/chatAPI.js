@@ -13,7 +13,7 @@ module.exports = function (app, publicationsRepository, usersRepository, message
                 let user = result[0];
                 let friendships = user.friendships;
                 let arrayOfFriends = []
-
+                let error=false;
                 for(let i = 0; i < friendships.length; i++){
 
                     await usersRepository.findUser({_id: friendships[i]},{_id:1,name:1,surname:1})
@@ -24,7 +24,7 @@ module.exports = function (app, publicationsRepository, usersRepository, message
 
                         })
                         .catch(error => {
-
+                            error=true;
                             res.status(500);
                             res.json({
                                 message: "Se ha producido un error al encontrar al amigo con id: " + friendships[i],
@@ -33,16 +33,19 @@ module.exports = function (app, publicationsRepository, usersRepository, message
                             })
 
                         })
-
+                    if(error){
+                        return;}
                 }
+                if(!error) {
 
-                //Ordena los nombre por orden alfabetico
-                arrayOfFriends.sort( (a,b) => a.name - b.name);
+                    //Ordena los nombre por orden alfabetico
+                    arrayOfFriends.sort((a, b) => a.name - b.name);
 
 
-                res.status(200);
-                res.json({friends: arrayOfFriends})
-
+                    res.status(200);
+                    res.json({friends: arrayOfFriends})
+                    return;
+                }
             })
             .catch(error => {
 
@@ -199,8 +202,14 @@ module.exports = function (app, publicationsRepository, usersRepository, message
 
             let otherUser = null;
 
+            let thereIsError = false;
+            let message = ""
            await usersRepository.findUser({_id: ObjectId(req.body.idOtherUser)}, {})
                 .then( otherUsers => {
+                    if(otherUsers.length <= 0){
+                        thereIsError=true;
+                        message = "No existe usuario con id: " + req.body.idOtherUser
+                    }
                     otherUser = otherUsers[0];
                 })
                 .catch(error => {
@@ -210,6 +219,15 @@ module.exports = function (app, publicationsRepository, usersRepository, message
                         error: error
                     })
                 })
+
+            if(thereIsError){
+                res.status(500);
+                res.json({
+                    message: message,
+                    error: new Error()
+                })
+                return;
+            }
 
 
             //primero pillamos los mensajes que le envié yo y luego los que me envió él.
@@ -228,7 +246,7 @@ module.exports = function (app, publicationsRepository, usersRepository, message
             res.status(500);
             res.json({
                 message: "Se ha producido un error al leer conversación",
-                error: e
+                error: e.message
             })
         }
 

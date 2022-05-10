@@ -31,12 +31,18 @@ module.exports = function (app, usersRepository, publicationsRepository) {
             res.render("/login")
             ;        }
 
+
+
+
         usersRepository.findUser({email: req.session.user}, {})
             .then(async users => {
 
                 //Cuando recibo el user, obtengo el _id y busco las publicaciones
 
+
+
                 if(users.length < 0 ){
+
                     //Como lo que se devuelve al buscar un usuario es una array,
                     // si no contiene nada significa que no encontró el usuario
                     res.status(500);
@@ -48,6 +54,9 @@ module.exports = function (app, usersRepository, publicationsRepository) {
                         });
                     return;
                 }
+
+
+
                 //Si se devuelve algo en la array, debería ser un solo usuario, se selecciona el primer elemento
                 let user = users[0];
 
@@ -75,6 +84,7 @@ module.exports = function (app, usersRepository, publicationsRepository) {
 
     //GET FORMULARIO DE CREACION DE PUBLICACION
     app.get("/publications/add", function (req, res) {
+
 
 
         logger.info("[GET] - [/publications/add]")

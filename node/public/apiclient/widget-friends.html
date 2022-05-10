@@ -1,0 +1,64 @@
+<div id="widget-friends" >
+    <input type="text" class="form-control" placeholder="Filtrar por nombre de amigo" id="filter-by-name"/>
+    <button class="btn" onclick="loadUsers()" >Actualizar</button>
+    <table class="table table-hover">
+        <thead>
+        <tr>
+            <th>Email</th>
+            <th>Nombre</th>
+            <th>Apellidos</th>
+            <th class="col-md-1"></th>
+        </tr>
+        </thead>
+        <tbody id="friendsTableBody"></tbody>
+    </table>
+</div>
+<script>
+    var friends;
+    function loadUsers() {
+        $.ajax({
+            url: URLbase + "/friends/list",
+            type: "GET",
+            data: {},
+            dataType: 'json',
+            headers: {"token": token},
+            success: function (response) {
+                friends = response.friends;
+                updateFriendTable(friends);
+            },
+            error: function (error) {
+                $("#main-container").load("widget-login.html");
+            }
+        });
+
+
+    }
+
+
+    function updateFriendTable(friends) {
+        $("#friendsTableBody").empty(); // Vaciar la tabla
+        for (i = 0; i < friends.length; i++) {
+            $("#friendsTableBody").append("<tr>"+
+
+                "<td>" + friends[i].email + "</td>" +
+                "<td>" + friends[i].name + "</td>" +
+                "<td>" + friends[i].surname+ "</td>" + "</tr>");
+/*
+                "<td>" +
+                "<a onclick=lastMessage('" + friends[i].m + "')>último mensaje: </a><br>" +
+                "<a onclick=songDelete('" + songs[i]._id + "')>Eliminar</a>" +
+                "</td>" +
+
+ */
+
+
+        }
+    } loadUsers();
+    /*
+    $('#filter-by-name').on('input',function(e){
+        let filteredFriends = [];
+        let filterValue = $("#filter-by-name").val();
+        filteredFriends = friends.filter(friend => friend.name.includes(filterValue));
+        updateFriendTable(filteredFriends);
+    });*/
+</script>
