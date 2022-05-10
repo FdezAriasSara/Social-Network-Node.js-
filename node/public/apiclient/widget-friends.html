@@ -27,14 +27,58 @@
                 updateFriendTable(friends);
             },
             error: function (error) {
-                $("#main-container").load("widget-login.html");
+                $("#widget-friends").append("<div class='alert alert-danger' > Se ha producido un error al mostrar tus amigos</div>");
+            }
+        });
+
+
+    }
+    var messages;
+    function obtainLastMessage(friend) {
+        console.log(token)
+        $.ajax({
+            url: URLbase + "/conversation?token=" + token,
+            type: "POST",
+            data: {idOtherUser:friend.id},
+            dataType: 'json',
+            headers: {},
+            success: function (response) {
+                console.log("llega 1")
+                messages = response.messages;
+                console.log("llega 2")
+                var last=messages[messages.length-1];
+                if(messages.length>1){//A link to the conversation is only available if there is more than one message.
+                    $("#friendsTableBody").append("<tr>"+"<a onclick=showConversationWith("+friend+")>["+last.date+"] "+last.senderEmail+" dijo :"+last.text+" </a></tr>");
+                }else{
+                    $("#friendsTableBody").append("<tr>"+"["+last.date+"] "+last.senderEmail+" dijo :"+last.text+"</tr>");
+                }
+
+            },
+            error: function (error) {
+                $("#widget-friends").append("<div class='alert alert-danger' >Se ha producido un error al mostrar los ultimos mensajes</div>");
             }
         });
 
 
     }
 
+    function showConversationWith(friend){
 
+        $.ajax({
+            url: URLbase + "/conversation",
+            type: "POST",
+            data: {idOtherUser:friend.id},
+            dataType: 'json',
+            headers: {"token": token},
+            success: function (response) {
+                messages = response.messages;
+                $("#main-container").load("widget-conversation.html");
+            },
+            error: function (error) {
+                $("#widget-friends").append("<div class='alert alert-danger' > Se ha producido un error al acceder a la conversación</div>");
+            }
+        });
+    }
     function updateFriendTable(friends) {
         $("#friendsTableBody").empty(); // Vaciar la tabla
         for (i = 0; i < friends.length; i++) {
@@ -42,23 +86,22 @@
 
                 "<td>" + friends[i].email + "</td>" +
                 "<td>" + friends[i].name + "</td>" +
-                "<td>" + friends[i].surname+ "</td>" + "</tr>");
-/*
-                "<td>" +
-                "<a onclick=lastMessage('" + friends[i].m + "')>último mensaje: </a><br>" +
-                "<a onclick=songDelete('" + songs[i]._id + "')>Eliminar</a>" +
-                "</td>" +
+                "<td>" + friends[i].surname+ "</td>" +
 
- */
+                "<td>" );
+            obtainLastMessage(friends[i]);
+
+            $("#friendsTableBody").append("</tr>");
+
 
 
         }
     } loadUsers();
-    /*
+
     $('#filter-by-name').on('input',function(e){
         let filteredFriends = [];
         let filterValue = $("#filter-by-name").val();
         filteredFriends = friends.filter(friend => friend.name.includes(filterValue));
         updateFriendTable(filteredFriends);
-    });*/
+    });
 </script>
