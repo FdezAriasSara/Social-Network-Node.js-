@@ -337,9 +337,9 @@ module.exports = function (app, usersRepository, publicationsRepository, message
                     let securePassword = app.get("crypto").createHmac('sha256', app.get('clave'))
                         .update(req.body.contraseña).digest('hex');
                     let user = {
-                        email: req.body.email,
-                        name: req.body.nombre,
-                        surname: req.body.apellidos,
+                        email: req.body.email.trim(),
+                        name: req.body.nombre.trim(),
+                        surname: req.body.apellidos.trim(),
                         password: securePassword
 
                     }
