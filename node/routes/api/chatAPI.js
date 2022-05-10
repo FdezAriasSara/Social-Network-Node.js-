@@ -33,7 +33,8 @@ module.exports = function (app, publicationsRepository, usersRepository, message
                             })
 
                         })
-
+                    if(error){
+                        return;}
                 }
                 if(!error) {
 
@@ -43,6 +44,7 @@ module.exports = function (app, publicationsRepository, usersRepository, message
 
                     res.status(200);
                     res.json({friends: arrayOfFriends})
+                    return;
                 }
             })
             .catch(error => {
