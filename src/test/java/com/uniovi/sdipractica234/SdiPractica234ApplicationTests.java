@@ -6,32 +6,39 @@ import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.model.Filters;
 import com.uniovi.sdipractica234.pageobjects.PO_LoginView;
 import com.uniovi.sdipractica234.pageobjects.PO_NavView;
 import com.uniovi.sdipractica234.pageobjects.PO_SignUpView;
+import com.uniovi.sdipractica234.pageobjects.PO_UsersView;
+import com.uniovi.sdipractica234.util.SeleniumUtils;
 import org.bson.Document;
 import org.bson.conversions.Bson;
+import org.bson.types.ObjectId;
 import org.junit.jupiter.api.*;
 import org.openqa.selenium.By;
 import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.firefox.FirefoxDriver;
-import org.openqa.selenium.support.ui.ExpectedConditions;
-import org.openqa.selenium.support.ui.WebDriverWait;
 
 
-import static com.mongodb.client.model.Filters.eq;
+import java.util.LinkedList;
+import java.util.List;
+
+import static com.mongodb.client.model.Filters.*;
+import static com.mongodb.client.model.Sorts.ascending;
 
 
 class SdiPractica234ApplicationTests {
 
 
+    public static final int USERS_PER_PAGE = 5;
     //static String PathFirefox = "C:\\Program Files\\Mozilla Firefox\\firefox.exe";
     //static String Geckodriver = "C:\\Path\\geckodriver-v0.30.0-win64.exe";
   //  static String Geckodriver = "C:\\Users\\usuario\\Desktop\\Eii\\AÑO 3 GRADO INGENIERIA INFORMATICA\\Sistemas Distribuidos e Internet\\Lab\\sesion05\\PL-SDI-Sesión5-material\\geckodriver-v0.30.0-win64.exe";
     //sebas
-    //static String Geckodriver ="C:\\Users\\sebas\\Downloads\\TERCERO\\SEGUNDO CUATRIMESTRE\\SDI\\PL-SDI-Sesión5-material\\PL-SDI-Sesión5-material\\geckodriver-v0.30.0-win64.exe";
+    static String Geckodriver ="C:\\Users\\sebas\\Downloads\\TERCERO\\SEGUNDO CUATRIMESTRE\\SDI\\PL-SDI-Sesión5-material\\PL-SDI-Sesión5-material\\geckodriver-v0.30.0-win64.exe";
 
     //ce
     //static String PathFirefox = "C:\\Program Files\\Mozilla Firefox\\firefox.exe";
@@ -41,7 +48,7 @@ class SdiPractica234ApplicationTests {
     /* SARA */
     static String PathFirefox = "C:\\Program Files\\Mozilla Firefox\\firefox.exe";
     //static String Geckodriver = "C:\\Path\\geckodriver-v0.30.0-win64.exe";
-    static String Geckodriver = "C:\\Users\\Sara\\Desktop\\Universidad\\3-tercer curso\\segundo cuatri\\(SDI)-Sistemas Distribuidos e Internet\\Sesión5-material\\geckodriver-v0.30.0-win64.exe";
+    //static String Geckodriver = "C:\\Users\\Sara\\Desktop\\Universidad\\3-tercer curso\\segundo cuatri\\(SDI)-Sistemas Distribuidos e Internet\\Sesión5-material\\geckodriver-v0.30.0-win64.exe";
 
     //static String PathFirefox = "/Applications/Firefox.app/Contents/MacOS/firefox-bin";
     // static String Geckodriver = "/Users/USUARIO/selenium/geckodriver-v0.30.0-macos";
@@ -360,15 +367,14 @@ class SdiPractica234ApplicationTests {
 
     }
 
-/*
+
     //Prueba[4-1] Mostrar el listado de usuarios y comprobar que se muestran todos los que existen en el sistema.
     @Test
     @Order(32)
     public void PR04_1(){
         loginAs("admin@email.com", "admin");
         PO_UsersView.goToUsersList(driver);
-
-        List<User> totalUsers = usersRepository.getUsersAdminView(Pageable.unpaged()).getContent();
+        List<Document> totalUsers = getUsersAdminView();
 
         List<WebElement> usersInListView = driver.findElements(By.className("username"));
 
@@ -379,13 +385,20 @@ class SdiPractica234ApplicationTests {
                 usersInListView) {
             userNames.add(element.getText());
         }
-        for (User user:
+        for (Document userDoc:
                 totalUsers) {
-            Assertions.assertTrue(userNames.contains(user.getUsername()), "Username:"+user.getUsername()+" not present in the view ");
+            Assertions.assertTrue(userNames.contains(userDoc.getString("name")), "Username:"+userDoc.getString("name")+" not present in the view ");
         }
 
 
     }
+
+    private List<Document> getUsersAdminView() {
+        List<Document> totalUsers = new LinkedList<>();
+        usersCollection.find(Filters.not(Filters.exists("role"))).into(totalUsers);
+        return totalUsers;
+    }
+
     //Prueba[5-1] Ir a la lista de usuarios, borrar el primer usuario de la lista, comprobar que la lista se actualiza
     //y dicho usuario desaparece.
     @Test
@@ -404,9 +417,10 @@ class SdiPractica234ApplicationTests {
     public void PR05_2(){
         loginAs("admin@email.com", "admin");
         PO_UsersView.goToUsersList(driver);
-        deleteUserInPath("//*[@id=\"tableUsers\"]/tbody/tr[last()]/td[4]/input");
+        deleteUserInPath("//*[@id=\"tableUsers\"]/tbody/tr[last()-1]/td[4]/input");
 
     }
+
     //Prueba[5-3] Ir a la lista de usuarios, borrar 3 usuarios, comprobar que la lista se actualiza y dichos usuarios
     //desaparecen.
     @Test
@@ -414,67 +428,154 @@ class SdiPractica234ApplicationTests {
     public void PR05_3(){
         loginAs("admin@email.com", "admin");
         PO_UsersView.goToUsersList(driver);
-        List<User> totalUsers = usersRepository.getUsersAdminView(Pageable.unpaged()).getContent(); //usersBefore
+        List<Document> totalUsers = getUsersAdminView();//usersBefore
+        //Cogemos los elementos a borrar. En este test van a ser 3, el primero,segundo y penúltimo de la lista:
         WebElement firstUserEl = driver.findElement(By.xpath("//*[@id=\"tableUsers\"]/tbody/tr[1]/td[4]/input"));
         WebElement secondUserEl =driver.findElement(By.xpath("//*[@id=\"tableUsers\"]/tbody/tr[2]/td[4]/input"));
         WebElement thirdUserEl = driver.findElement(By.xpath("//*[@id=\"tableUsers\"]/tbody/tr[last()-1]/td[4]/input"));
-        String idFirstUser = firstUserEl.getAttribute("id");
-        String idSecondUser = secondUserEl.getAttribute("id");
-        String idThirdUser = thirdUserEl.getAttribute("id");
-        User firstDeleted = getUser(Long.valueOf(idFirstUser));
-        User secondDeleted = getUser(Long.valueOf(idSecondUser));
-        User thirdDeleted = getUser(Long.valueOf(idThirdUser));
+        //Generamos los IDs en formato ObjectId
+        ObjectId idFirstUser = new ObjectId(firstUserEl.getAttribute("id"));
+        ObjectId idSecondUser = new ObjectId( secondUserEl.getAttribute("id"));
+        ObjectId idThirdUser = new ObjectId(thirdUserEl.getAttribute("id"));
+        //Obtenemos los documentos que serán borrados para restaurarlos al final del test
+        Document firstDeleted = getUser(idFirstUser);
+        Document secondDeleted = getUser(idSecondUser);
+        Document thirdDeleted = getUser(idThirdUser);
+        //Obtenemos datos relacionados con los documentos anteriores, que por el hecho de estar asociados
+        // van a ser borrados. Como van a ser eliminados, habrá que restaurarlos al final del test.
+        //Primer usuario
+        List<Document> messagesInvolvingFirst = getMessagesInvolvingUser(firstDeleted);
+        List<Document> friendsInvitesInvolvingFirst = getUsersFriendsInvitesRelated2DeletedUser(idFirstUser);
+        List<Document> publicationsInvolvingFirst = getPublicationsOf(idFirstUser);
+        //Segundo usuario
+        List<Document> messagesInvolvingSecond = getMessagesInvolvingUser(secondDeleted);
+        List<Document> friendsInvitesInvolvingSecond = getUsersFriendsInvitesRelated2DeletedUser(idSecondUser);
+        List<Document> publicationsInvolvingSecond = getPublicationsOf(idSecondUser);
+        //Tercer usuario
+        List<Document> messagesInvolvingThird = getMessagesInvolvingUser(thirdDeleted);
+        List<Document> friendsInvitesInvolvingThird = getUsersFriendsInvitesRelated2DeletedUser(idThirdUser);
+        List<Document> publicationsInvolvingThird = getPublicationsOf(idThirdUser);
         //Select the checkboxes of three users
         firstUserEl.click();
         secondUserEl.click();
         thirdUserEl.click();
         driver.findElement(By.id("deleteButton")).click(); //Press delete button and delete users.
         SeleniumUtils.waitSeconds(driver, 1); //wait a second in order for the database to update
-        List<User> usersAfterDeleting = usersRepository.getUsersAdminView(Pageable.unpaged()).getContent();
+        List<Document> usersAfterDeleting = getUsersAdminView();
         Assertions.assertTrue(totalUsers.size() == usersAfterDeleting.size()+3);
         Assertions.assertTrue(!usersAfterDeleting.contains(firstDeleted), "User with id: "+ idFirstUser+" was not deleted");
         Assertions.assertTrue(!usersAfterDeleting.contains(secondDeleted), "User with id: "+ idFirstUser+" was not deleted");
         Assertions.assertTrue(!usersAfterDeleting.contains(thirdDeleted), "User with id: "+ idFirstUser+" was not deleted");
-        //volvemos a añadir los usuarios eliminados
+        //volvemos a añadir los usuarios eliminados así como los datos relacionados con los mismos
+        //(amigos, publicaciones, mensajes.....)
+        restoreUser(firstDeleted);
+        restoreFriendsAndInvites(friendsInvitesInvolvingFirst);
+        restorePublications(publicationsInvolvingFirst);
+        restoreMessages(messagesInvolvingFirst);
 
-        usersRepository.save(firstDeleted);
-        usersRepository.save(secondDeleted);
-        usersRepository.save(thirdDeleted);
+        restoreUser(secondDeleted);
+        restoreFriendsAndInvites(friendsInvitesInvolvingSecond);
+        restorePublications(publicationsInvolvingSecond);
+        restoreMessages(messagesInvolvingSecond);
 
+        restoreUser(thirdDeleted);
+        restoreFriendsAndInvites(friendsInvitesInvolvingThird);
+        restorePublications(publicationsInvolvingThird);
+        restoreMessages(messagesInvolvingThird);
     }
-    private User getUser(Long id){
-        Optional<User> user = usersRepository.findById(Long.valueOf(id));
-        if(user.isPresent()){
-            return user.get();
-        }else {
-            Assertions.fail("Failed when trying to retrieve user : " +id);
-            return null;
 
+    private void restoreMessages(List<Document> messages) {
+        for (Document message:
+                messages) {
+            msgsCollection.insertOne(message);
         }
+    }
+
+    private void restorePublications(List<Document> publications) {
+        for (Document publication:
+                publications) {
+            publiCollection.insertOne(publication);
+        }
+    }
+
+    private void restoreFriendsAndInvites(List<Document> friendsInvitesInvolvingUser) {
+        for (Document user :
+                friendsInvitesInvolvingUser) {
+            String _userId = user.get("_id").toString();
+            usersCollection.replaceOne(eq("_id", new ObjectId(_userId)),
+                    user);
+        }
+    }
+
+
+    private void restoreUser(Document userDeleted) {
+        usersCollection.insertOne(userDeleted);
+    }
+
+    private Document getUser(ObjectId id){
+       Document user = usersCollection.find(eq("_id", id)).first();
+       return user;
     }
     private void loginAs(String username, String password){
         PO_LoginView.goToLoginPage(driver);
         PO_LoginView.fillForm(driver,username,password);
     }
+
+
     private void deleteUserInPath(String xPath){
 
 
-        List<User> totalUsers = usersRepository.getUsersAdminView(Pageable.unpaged()).getContent();
+        List<Document> totalUsers = getUsersAdminView();
 
         WebElement element = driver.findElement(By.xpath(xPath)); //Eliminaremos el usuario del path
         String userId = element.getAttribute("id");
-        User userDeleted = getUser(Long.valueOf(userId));
+        ObjectId _userDeletedId= new ObjectId(userId);
+        Document userDeleted = usersCollection.find(eq("_id", _userDeletedId)).first();
+        List<Document> publicationsDeleted = getPublicationsOf(_userDeletedId);
+        List<Document> messagesInvolvingDeletedUser = getMessagesInvolvingUser(userDeleted);
+        List<Document> usersWithFriendsAndInvitesRelated2DeletedUser = getUsersFriendsInvitesRelated2DeletedUser(_userDeletedId);
         Assertions.assertTrue(totalUsers.contains(userDeleted)); //Chequeo user is present
         element.click();
         driver.findElement(By.id("deleteButton")).click(); //we delete the user
 
-        List<User> remainingUsers =  usersRepository.getUsersAdminView(Pageable.unpaged()).getContent();
+        List<Document> remainingUsers = getUsersAdminView();
         Assertions.assertTrue(!remainingUsers.contains(userDeleted), "User was not deleted");
         Assertions.assertTrue( totalUsers.size() == remainingUsers.size()+1,
                 "Sizes differ: seems like user was not deleted");
 
 
-        usersRepository.save(userDeleted); //Volvemos a añadir el usuario eliminado
+        //Volvemos a añadir la información eliminada!!!!!!
+        restoreUser(userDeleted);
+        restoreFriendsAndInvites(usersWithFriendsAndInvitesRelated2DeletedUser);
+        restoreMessages(messagesInvolvingDeletedUser);
+        restorePublications(publicationsDeleted);
+
+
+    }
+
+    private List<Document> getUsersFriendsInvitesRelated2DeletedUser(ObjectId _userDeletedId) {
+        List<Document> usersWithFriendsAndInvitesRelated2DeletedUser = new LinkedList<>();
+        usersCollection.find(Filters.or(
+                eq("friendships", _userDeletedId),
+                eq("invitesSent", _userDeletedId),
+                eq("invitesReceived", _userDeletedId)
+        )).into(usersWithFriendsAndInvitesRelated2DeletedUser); //Guardamos esto porque tendremos que restaurarlo después
+        return usersWithFriendsAndInvitesRelated2DeletedUser;
+    }
+
+    private List<Document> getMessagesInvolvingUser(Document userDeleted) {
+        List<Document> messagesInvolvingDeletedUser = new LinkedList<>();
+        msgsCollection.find(Filters.or(
+                eq("senderEmail", userDeleted.get("email")),
+                eq("receiverEmail", userDeleted.get("email"))
+                )).into(messagesInvolvingDeletedUser);
+        return messagesInvolvingDeletedUser;
+    }
+
+    private List<Document> getPublicationsOf(ObjectId _userDeletedId) {
+        List<Document> publicationsDeleted = new LinkedList<>();
+        publiCollection.find(eq("userID", _userDeletedId)).into(publicationsDeleted);
+        return publicationsDeleted;
     }
 
     //Prueba[5-2] Mostrar el listado de usuarios y comprobar que se muestran todos los que existen en el sistema,
@@ -487,46 +588,54 @@ class SdiPractica234ApplicationTests {
         PO_UsersView.goToUsersList(driver);
 
 
-        compareUserListViewWithUserListInSystem();
+        compareUserListViewWithUserListInSystem("user01@email.com");
 
     }
 
-    private void compareUserListViewWithUserListInSystem() {
+    private void compareUserListViewWithUserListInSystem(String userEmailThatAsksForList) {
         //Preparar variables para testear: usuario que pedirá la peticion, listado de usernames que se mostrará en la vista
         // además de listado de posibles usernames de administradores.
-        User userThatAskedForList = usersRepository.findByUsername("user01@email.com");
+        Document userThatAskedForList = usersCollection.find(eq("email", userEmailThatAsksForList)).first();
         List<String> adminUsernames = new LinkedList<>();
-        for (User admin:
-                usersRepository.finAdminUsers()) {
-            adminUsernames.add(admin.getUsername());
+        for (Document admin:
+                usersCollection.find(Filters.exists("role"))) {
+            adminUsernames.add(admin.getString("email"));
         }
         List<String> usernamesThatShouldBeInView = new LinkedList<>();
-        for (User u:
-                usersRepository.getUsersNormalUserView(Pageable.unpaged(), 1L).getContent()) {
-            usernamesThatShouldBeInView.add(u.getUsername());
+        List<Document> usersInNormalView = new LinkedList<>();
+        usersCollection.find(and(
+                Filters.not(Filters.exists("role")),
+                Filters.ne("email", userEmailThatAsksForList))
+                ).sort(ascending("email"))
+                .into(usersInNormalView);
+        long totalUsers = usersInNormalView.size();
+        long totalPages = totalUsers % USERS_PER_PAGE == 0 ? totalUsers/USERS_PER_PAGE : totalUsers/USERS_PER_PAGE +1;
+        for (Document u:
+               usersInNormalView) {
+            usernamesThatShouldBeInView.add(u.getString("email"));
         }
 
 
         //Obtenemos todas las páginas que hay
-        List<WebElement> nextPage= driver.findElements(By.id("pagsiguiente"));
+        List<WebElement> pagesInView= driver.findElements(By.className("page-link"));
         List<WebElement> usernamesDisplayed;
-
-        while( !nextPage.isEmpty()){
-
-            nextPage = driver.findElements(By.id("pagsiguiente"));
-            usernamesDisplayed = driver.findElements(By.className("username")); //cogemos los usernames que aparecen en la vista
-            //Por cada username en vista, chequeamos los asertos:
+        int currentPage = 0;
+        while(!pagesInView.isEmpty() && currentPage<totalPages-1){
+            usernamesDisplayed = driver.findElements(By.className("user-email"));
             for (WebElement usernameDisplayed:
                     usernamesDisplayed) {
                 Assertions.assertTrue( !adminUsernames.contains(usernameDisplayed.getText()));
-                Assertions.assertTrue( !userThatAskedForList.getUsername().equals(usernameDisplayed.getText()), "The user that asks for the list is displayed");
-                Assertions.assertTrue(usernamesThatShouldBeInView.contains(usernameDisplayed.getText()), "Username: "+ usernameDisplayed + " should not be displayed.");
+                Assertions.assertTrue( !userThatAskedForList.getString("email").equals(usernameDisplayed.getText()),
+                        "The user that asks for the list is displayed");
+                Assertions.assertTrue(usernamesThatShouldBeInView.contains(usernameDisplayed.getText()),
+                        "Username: "+ usernameDisplayed + " should not be displayed.");
             }
-            if(!nextPage.isEmpty()){//Cuando llega al último número d página, no hay más elementos con id 'pagsiguiente'.
-                nextPage.get(0).click();
-            }
+            currentPage++;
+            pagesInView.get(currentPage).click(); //Indexes in Java always start at 0
 
+            pagesInView = driver.findElements(By.className("page-link"));
         }
+
     }
 
     //Prueba[7_1]Hacer una búsqueda con el campo vacío y comprobar que se muestra la página que
@@ -537,9 +646,9 @@ class SdiPractica234ApplicationTests {
         //Login como user01 y nos vamos a la vista de listar usuarios
         loginAs("user01@email.com", "user01");
         PO_UsersView.goToUsersList(driver);
-        driver.findElement(By.name("searchText")).sendKeys("");
+        driver.findElement(By.id("search")).sendKeys("");
         driver.findElement(By.id("searchButton")).click();
-        compareUserListViewWithUserListInSystem();
+        compareUserListViewWithUserListInSystem("user01@email.com");
     }
     //Prueba[7_2]Hacer una búsqueda escribiendo en el campo un texto que no exista y comprobar que se
     //muestra la página que corresponde, con la lista de usuarios vacía.
@@ -549,7 +658,7 @@ class SdiPractica234ApplicationTests {
         //Login como user01 y nos vamos a la vista de listar usuarios
         loginAs("user01@email.com", "user01");
         PO_UsersView.goToUsersList(driver);
-        driver.findElement(By.name("searchText")).sendKeys("¡¡NoExistente!!");
+        driver.findElement(By.id("search")).sendKeys("¡¡NoExistente!!");
         driver.findElement(By.id("searchButton")).click();
         Assertions.assertTrue(driver.findElements(By.className("username")).isEmpty());
     }
@@ -563,20 +672,19 @@ class SdiPractica234ApplicationTests {
         //Login como user01 y nos vamos a la vista de listar usuarios
         loginAs("user01@email.com", "user01");
         PO_UsersView.goToUsersList(driver);
-        driver.findElement(By.name("searchText")).sendKeys("2");
+        driver.findElement(By.id("search")).sendKeys("2");
         driver.findElement(By.id("searchButton")).click();
         List<WebElement> usernamesDisplayed = driver.findElements(By.className("username")); //cogemos los usernames que aparecen en la vista
         List<String> userNamesObtainedWithSearchBy_2_ = new LinkedList<>();
-        userNamesObtainedWithSearchBy_2_.add("user02@email.com");
-        userNamesObtainedWithSearchBy_2_.add("user12@email.com");
-        userNamesObtainedWithSearchBy_2_.add("martin2@email.com");
+        userNamesObtainedWithSearchBy_2_.add("Ellie");
+        userNamesObtainedWithSearchBy_2_.add("Gala");
         //Por cada username en vista, chequeamos los asertos:
         for (WebElement usernameDisplayed:
                 usernamesDisplayed) {
             Assertions.assertTrue(userNamesObtainedWithSearchBy_2_.contains(usernameDisplayed.getText()), "Username: "+ usernameDisplayed.getText() + " should not be displayed!");
         }
     }
-
+/*
     //[Prueba 8-1] Iniciamos sesión, mandamos una invitación de amistad a otro usuario, cerramos sesión y entramos como
     // el otro usuario para comprobar que la nueva invitación aparece en la lista.
     @Test
