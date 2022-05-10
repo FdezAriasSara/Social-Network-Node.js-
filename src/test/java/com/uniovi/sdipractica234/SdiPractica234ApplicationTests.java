@@ -26,12 +26,14 @@ import org.openqa.selenium.firefox.FirefoxDriver;
 import java.util.LinkedList;
 import java.util.List;
 
-import static com.mongodb.client.model.Filters.eq;
+import static com.mongodb.client.model.Filters.*;
+import static com.mongodb.client.model.Sorts.ascending;
 
 
 class SdiPractica234ApplicationTests {
 
 
+    public static final int USERS_PER_PAGE = 5;
     //static String PathFirefox = "C:\\Program Files\\Mozilla Firefox\\firefox.exe";
     //static String Geckodriver = "C:\\Path\\geckodriver-v0.30.0-win64.exe";
   //  static String Geckodriver = "C:\\Users\\usuario\\Desktop\\Eii\\AÑO 3 GRADO INGENIERIA INFORMATICA\\Sistemas Distribuidos e Internet\\Lab\\sesion05\\PL-SDI-Sesión5-material\\geckodriver-v0.30.0-win64.exe";
@@ -415,7 +417,7 @@ class SdiPractica234ApplicationTests {
     public void PR05_2(){
         loginAs("admin@email.com", "admin");
         PO_UsersView.goToUsersList(driver);
-        deleteUserInPath("//*[@id=\"tableUsers\"]/tbody/tr[last()]/td[4]/input");
+        deleteUserInPath("//*[@id=\"tableUsers\"]/tbody/tr[last()-1]/td[4]/input");
 
     }
 
@@ -575,7 +577,7 @@ class SdiPractica234ApplicationTests {
         publiCollection.find(eq("userID", _userDeletedId)).into(publicationsDeleted);
         return publicationsDeleted;
     }
-/*
+
     //Prueba[5-2] Mostrar el listado de usuarios y comprobar que se muestran todos los que existen en el sistema,
     //excepto el propio usuario y aquellos que sean Administradores
     @Test
@@ -586,46 +588,54 @@ class SdiPractica234ApplicationTests {
         PO_UsersView.goToUsersList(driver);
 
 
-        compareUserListViewWithUserListInSystem();
+        compareUserListViewWithUserListInSystem("user01@email.com");
 
     }
 
-    private void compareUserListViewWithUserListInSystem() {
+    private void compareUserListViewWithUserListInSystem(String userEmailThatAsksForList) {
         //Preparar variables para testear: usuario que pedirá la peticion, listado de usernames que se mostrará en la vista
         // además de listado de posibles usernames de administradores.
-        User userThatAskedForList = usersRepository.findByUsername("user01@email.com");
+        Document userThatAskedForList = usersCollection.find(eq("email", userEmailThatAsksForList)).first();
         List<String> adminUsernames = new LinkedList<>();
-        for (User admin:
-                usersRepository.finAdminUsers()) {
-            adminUsernames.add(admin.getUsername());
+        for (Document admin:
+                usersCollection.find(Filters.exists("role"))) {
+            adminUsernames.add(admin.getString("email"));
         }
         List<String> usernamesThatShouldBeInView = new LinkedList<>();
-        for (User u:
-                usersRepository.getUsersNormalUserView(Pageable.unpaged(), 1L).getContent()) {
-            usernamesThatShouldBeInView.add(u.getUsername());
+        List<Document> usersInNormalView = new LinkedList<>();
+        usersCollection.find(and(
+                Filters.not(Filters.exists("role")),
+                Filters.ne("email", userEmailThatAsksForList))
+                ).sort(ascending("email"))
+                .into(usersInNormalView);
+        long totalUsers = usersInNormalView.size();
+        long totalPages = totalUsers % USERS_PER_PAGE == 0 ? totalUsers/USERS_PER_PAGE : totalUsers/USERS_PER_PAGE +1;
+        for (Document u:
+               usersInNormalView) {
+            usernamesThatShouldBeInView.add(u.getString("email"));
         }
 
 
         //Obtenemos todas las páginas que hay
-        List<WebElement> nextPage= driver.findElements(By.id("pagsiguiente"));
+        List<WebElement> pagesInView= driver.findElements(By.className("page-link"));
         List<WebElement> usernamesDisplayed;
-
-        while( !nextPage.isEmpty()){
-
-            nextPage = driver.findElements(By.id("pagsiguiente"));
-            usernamesDisplayed = driver.findElements(By.className("username")); //cogemos los usernames que aparecen en la vista
-            //Por cada username en vista, chequeamos los asertos:
+        int currentPage = 0;
+        while(!pagesInView.isEmpty() && currentPage<totalPages-1){
+            usernamesDisplayed = driver.findElements(By.className("user-email"));
             for (WebElement usernameDisplayed:
                     usernamesDisplayed) {
                 Assertions.assertTrue( !adminUsernames.contains(usernameDisplayed.getText()));
-                Assertions.assertTrue( !userThatAskedForList.getUsername().equals(usernameDisplayed.getText()), "The user that asks for the list is displayed");
-                Assertions.assertTrue(usernamesThatShouldBeInView.contains(usernameDisplayed.getText()), "Username: "+ usernameDisplayed + " should not be displayed.");
+                Assertions.assertTrue( !userThatAskedForList.getString("email").equals(usernameDisplayed.getText()),
+                        "The user that asks for the list is displayed");
+                Assertions.assertTrue(usernamesThatShouldBeInView.contains(usernameDisplayed.getText()),
+                        "Username: "+ usernameDisplayed + " should not be displayed.");
             }
-            if(!nextPage.isEmpty()){//Cuando llega al último número d página, no hay más elementos con id 'pagsiguiente'.
-                nextPage.get(0).click();
-            }
+            currentPage++;
+            pagesInView.get(currentPage).click(); //Indexes in Java always start at 0
 
+            pagesInView = driver.findElements(By.className("page-link"));
         }
+
     }
 
     //Prueba[7_1]Hacer una búsqueda con el campo vacío y comprobar que se muestra la página que
@@ -636,9 +646,9 @@ class SdiPractica234ApplicationTests {
         //Login como user01 y nos vamos a la vista de listar usuarios
         loginAs("user01@email.com", "user01");
         PO_UsersView.goToUsersList(driver);
-        driver.findElement(By.name("searchText")).sendKeys("");
+        driver.findElement(By.id("search")).sendKeys("");
         driver.findElement(By.id("searchButton")).click();
-        compareUserListViewWithUserListInSystem();
+        compareUserListViewWithUserListInSystem("user01@email.com");
     }
     //Prueba[7_2]Hacer una búsqueda escribiendo en el campo un texto que no exista y comprobar que se
     //muestra la página que corresponde, con la lista de usuarios vacía.
@@ -648,7 +658,7 @@ class SdiPractica234ApplicationTests {
         //Login como user01 y nos vamos a la vista de listar usuarios
         loginAs("user01@email.com", "user01");
         PO_UsersView.goToUsersList(driver);
-        driver.findElement(By.name("searchText")).sendKeys("¡¡NoExistente!!");
+        driver.findElement(By.id("search")).sendKeys("¡¡NoExistente!!");
         driver.findElement(By.id("searchButton")).click();
         Assertions.assertTrue(driver.findElements(By.className("username")).isEmpty());
     }
@@ -662,20 +672,19 @@ class SdiPractica234ApplicationTests {
         //Login como user01 y nos vamos a la vista de listar usuarios
         loginAs("user01@email.com", "user01");
         PO_UsersView.goToUsersList(driver);
-        driver.findElement(By.name("searchText")).sendKeys("2");
+        driver.findElement(By.id("search")).sendKeys("2");
         driver.findElement(By.id("searchButton")).click();
         List<WebElement> usernamesDisplayed = driver.findElements(By.className("username")); //cogemos los usernames que aparecen en la vista
         List<String> userNamesObtainedWithSearchBy_2_ = new LinkedList<>();
-        userNamesObtainedWithSearchBy_2_.add("user02@email.com");
-        userNamesObtainedWithSearchBy_2_.add("user12@email.com");
-        userNamesObtainedWithSearchBy_2_.add("martin2@email.com");
+        userNamesObtainedWithSearchBy_2_.add("Ellie");
+        userNamesObtainedWithSearchBy_2_.add("Gala");
         //Por cada username en vista, chequeamos los asertos:
         for (WebElement usernameDisplayed:
                 usernamesDisplayed) {
             Assertions.assertTrue(userNamesObtainedWithSearchBy_2_.contains(usernameDisplayed.getText()), "Username: "+ usernameDisplayed.getText() + " should not be displayed!");
         }
     }
-
+/*
     //[Prueba 8-1] Iniciamos sesión, mandamos una invitación de amistad a otro usuario, cerramos sesión y entramos como
     // el otro usuario para comprobar que la nueva invitación aparece en la lista.
     @Test
