@@ -47,6 +47,7 @@ module.exports = function (app, usersRepository, publicationsRepository, message
                             // Puede no venir el param
                             page = 1;
                         }
+                        let user = result[0];
                         usersRepository.getUsersPg(filter, options, page).then(result => {
                             let lastPage = result.total / 5;
                             if (result.total % 5 > 0) { // Sobran decimales
@@ -58,17 +59,37 @@ module.exports = function (app, usersRepository, publicationsRepository, message
                                     pages.push(i);
                                 }
                             }
-                            let response = {
-                                users: result.users,
-                                pages: pages,
-                                currentPage: page,
-                                admin: admin,
-                                isLoggedIn: req.session.user,
-                                searchCriteria: searchCriteria
-                            }
-                            logger.info(req.session.user+" ha accedido con éxito a la lista de usuarios");
-                            res.render("user/list.twig", response)
-                            return;
+
+                            let filterCanNotSend = {
+                                $or:[
+                                    {_id: user._id},
+                                    {'_id': {'$in' : user.friendships}},
+                                    {'_id': {'$in' : user.invitesReceived}},
+                                    {'_id': {'$in' : user.invitesSent}}
+                                ]
+                            };
+                            usersRepository.findUser( filterCanNotSend, {} ).then( async canNotSendUsers => {
+                                let canNotSendUsersMails = canNotSendUsers.map(element => element.email);
+                                let response = {
+                                    users: result.users,
+                                    pages: pages,
+                                    currentPage: page,
+                                    admin: admin,
+                                    isLoggedIn: req.session.user,
+                                    searchCriteria: searchCriteria,
+                                    canNotSendUsers: canNotSendUsersMails
+                                }
+                                logger.info(req.session.user+" ha accedido con éxito a la lista de usuarios");
+                                res.render("user/list.twig", response)
+                                return;
+                            }).catch(error => {
+                                logger.error("Se ha producido un error cuando el usuario  " + req.session.user.id + " ha accedido a la lista de usuarios");
+                                res.render("error.twig",
+                                    {
+                                        message: "Error listando usuarios",
+                                        error: error
+                                    });
+                            });
                         }).catch(error => {
                             logger.error("Se ha producido un error cuando el usuario  "+req.session.user.id+" ha accedido a la lista de usuarios");
                             res.render("error.twig",

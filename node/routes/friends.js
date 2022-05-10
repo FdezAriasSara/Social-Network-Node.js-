@@ -1,3 +1,5 @@
+const {ObjectId} = require('mongodb');
+const {sendInvite} = require("../repositories/usersRepository");
 module.exports = function (app, usersRepository) {
 
     const TOTAL_INVITES_PER_PAGE = 5;
@@ -128,6 +130,89 @@ module.exports = function (app, usersRepository) {
                 res.render("error.twig",
                     {
                         message: "Error listando las amistades del usuario " + user,
+                        error: error
+                    });
+            })
+        }).catch(error => {
+            res.render("error.twig",
+                {
+                    message: "Error encontrando al usuario",
+                    error: error
+                });
+        })
+    });
+
+    /**
+     * Mandar invitación de amistad a un usuario
+     * No podemos enviar una invitación a uno mismo, a amigos, ni a gente con invitaciones
+     * pendientes nuestras, tanto recibidas como mandadas
+     */
+    app.post('/friends/invite/:id', function (req, res){
+        let filter = { email: req.session.user};
+        usersRepository.findUser( filter, {} ).then(async users => {
+            //Obtenemos el usuario en sesión para usarlo para encontrar las invitaciones recibidas
+            if (users.length < 1) {
+                //Si no encontramos el usuario, error
+                res.status(500);
+                res.render("error.twig",
+                    {
+                        message: "Error reconociendo usuario: no existe",
+                        error: new Error()
+                    });
+                return;
+            }
+            let sender = users[0];
+            filter = {_id: ObjectId(req.params.id)};
+            usersRepository.findUser( filter, {} ).then(async usersParam => {
+                //Obtenemos el usuario en sesión para usarlo para encontrar las invitaciones recibidas
+                if (usersParam.length < 1) {
+                    //Si no encontramos el usuario, error
+                    res.status(500);
+                    res.render("error.twig",
+                        {
+                            message: "Error reconociendo usuario: no existe",
+                            error: new Error()
+                        });
+                    return;
+                }
+                let receiver = usersParam[0];
+                //No podemos enviar una invitación a uno mismo, a amigos, ni a invitaciones
+                //pendientes tanto recibidas como mandadas
+                filter = {
+                    $or:[
+                        {_id: sender._id},
+                        {'_id': {'$in' : sender.friendships}},
+                        {'_id': {'$in' : sender.invitesReceived}},
+                        {'_id': {'$in' : sender.invitesSent}}
+                    ]
+                };
+                usersRepository.findUser( filter, {} ).then( async canNotSendUsers => {
+                    const canNotSend = canNotSendUsers.some(u => {
+                        if (u.email === receiver.email)
+                            return true;
+                        return false;
+                    })
+                    if (canNotSend){
+                        res.redirect("/users/list" +
+                            "?message=No puedes mandar una invitación a ese usuario" +
+                            "&messageType=alert-danger");
+                    } else {
+                        await usersRepository.sendInvite(sender._id, receiver._id);
+                        res.redirect("/users/list" +
+                            "?message=Invitación enviada con éxito" +
+                            "&messageType=alert-info");
+                    }
+                }).catch(error => {
+                    res.render("error.twig",
+                        {
+                            message: "Error encontrando al usuario",
+                            error: error
+                        });
+                })
+            }).catch(error => {
+                res.render("error.twig",
+                    {
+                        message: "Error encontrando al usuario",
                         error: error
                     });
             })
