@@ -39,7 +39,7 @@
         {% for user in users %}
             <tr>
                 <td>{{ user.email }}</td>
-                <td>{{ user.name }}</td>
+                <td class="username" >{{ user.name }}</td>
                 <td>{{ user.surname }}</td>
                 {% if admin %}
                     <td><input type="checkbox" id="{{ user._id }}"></td>
