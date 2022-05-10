@@ -89,13 +89,14 @@ module.exports = {
         return publicationsDocument;
 
     },
-    deletePublications:async function (filter, options) {
+    deletePublications:async function (filter) {
         try {
-            const client = await this.mongoClient.connect(this.app.get('connectionStrings'));
+            const client = await this.mongoClient
+                .connect(this.app.get('connectionStrings'));
             const database = client.db("redsocial");
-            const collectionName = 'publications ';
+            const collectionName = 'publications';
             const publicationsCollection = database.collection(collectionName);
-            const result = await publicationsCollection.deleteMany(filter, options);
+            const result = await publicationsCollection.deleteMany(filter);
             return result;
         } catch (error) {
             throw (error);

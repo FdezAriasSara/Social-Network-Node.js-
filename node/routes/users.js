@@ -128,7 +128,7 @@ module.exports = function (app, usersRepository, publicationsRepository, message
                         });
                 } else {//Si es administrador, borramos.
                     //Primero eliminamos las publicaciones de los usuarios que serán borrados..
-                    deletePublications({userID: {$in: idsToDelete}}, function (result) {
+                    deletePublications(idsToDelete, function (result) {
                         if (result == null) { //Si hay error, paramos y lo enseñamos al usuario.
                             logger.error("Error inesperado al eliminar  las publicaciones del usuario "+filter._id);
                             res.redirect("/users/list" +
@@ -205,8 +205,8 @@ module.exports = function (app, usersRepository, publicationsRepository, message
     }
 
     //Elimina publicaciones de acuerdo con un criterio. Retorna null si ha habido error.
-    function deletePublications(filterCriteria, callback) {
-        publicationsRepository.deletePublications(filterCriteria, {}).then(result => {
+    function deletePublications(idsToDelete, callback) {
+        publicationsRepository.deletePublications({userID: {$in: idsToDelete}}).then(result => {
             callback(true);
         }).catch(err => callback(null));
     }
