@@ -45,7 +45,7 @@ module.exports = {
     },
     findAllPublicationsByAuthorAndPage: async function (authorStringId, page){
 
-        const limit = 9; //TOTAL_PUBLICATIONS_PER_PAGE
+        const limit = 5; //TOTAL_PUBLICATIONS_PER_PAGE
         const client = await this.mongoClient
             .connect(this.app.get('connectionStrings'));
         const database = client.db("redsocial");
