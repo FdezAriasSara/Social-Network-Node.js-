@@ -234,7 +234,7 @@ module.exports = {
             const database = client.db("redsocial");
             const collectionName = 'users';
             const usersCollection = database.collection(collectionName);
-            const usersDoc = await usersCollection.find(filter, options).toArray();
+            const usersDoc = await usersCollection.find(filter, options).sort({email:1}).toArray();
             return usersDoc;
         } catch (error) {
             throw (error);
@@ -246,9 +246,9 @@ module.exports = {
             const database = client.db("redsocial");
             const collectionName = 'users';
             const usersCollection = database.collection(collectionName);
-            const usersFound = usersCollection.find(filter, options);
+            const usersFound = usersCollection.find(filter, options).sort({email:1});
             const usersCollectionCount = await usersFound.count();
-            const cursor = usersFound.skip((page - 1) * limit).limit(limit)
+            const cursor = usersFound.skip((page - 1) * limit).limit(limit);
             const users = await cursor.toArray();
             const result = {users: users, total: usersCollectionCount};
             return result;
