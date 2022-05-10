@@ -22,6 +22,7 @@ module.exports = {
                 friendships:[]
             }
             const result = await usersCollection.insertOne(userComplete);
+            client.close();
             return result.insertedId;
         } catch (error) {
             throw (error);
@@ -39,6 +40,7 @@ module.exports = {
             const collectionName = 'users';
             const usersCollection = database.collection(collectionName);
             const users = await usersCollection.find(filter, options).toArray();
+            client.close();
             return users;
         } catch (error) {
             throw (error);
@@ -54,6 +56,7 @@ module.exports = {
             const collectionName = 'users';
             const usersCollection = database.collection(collectionName);
             const users = await usersCollection.find({_id:ObjectId(stringId)}, {}).toArray();
+            client.close();
             return users;
         } catch (error) {
             throw (error);
@@ -75,6 +78,7 @@ module.exports = {
             let options = {  invitesReceived: 1, _id:0}
 
             const invitesReceived = await usersCollection.find(filterUsers, options).toArray();
+            client.close();
             return invitesReceived;
         } catch (error) {
             throw (error);
@@ -102,7 +106,7 @@ module.exports = {
                 invitesArray = invitesReceived.slice(startOfPage, startOfPage+limit )
                 totalInvitesToUser = invitesReceived.length;
             }
-
+            client.close();
             return {invitesReceived: invitesArray, total: totalInvitesToUser};
         } catch (error) {
             throw (error);
@@ -130,7 +134,7 @@ module.exports = {
                 friendsArray = friendships.slice(startOfPage, startOfPage+limit )
                 totalFriendsOfUser = friendships.length;
             }
-
+            client.close();
             return {friendships: friendsArray, total: totalFriendsOfUser};
         } catch (error) {
             throw (error);
@@ -152,6 +156,7 @@ module.exports = {
             let options = {  invitesSent: 1, _id:0}
 
             const invitesSent = await usersCollection.find(filterUsers, options).toArray();
+            client.close();
             return invitesSent;
         } catch (error) {
             throw (error);
@@ -195,7 +200,7 @@ module.exports = {
             //Establecemos la amistad entre el receptor y el emisor
 
             await usersCollection.update(filterUsers, {$push: { friendships: senderObjectID } } );
-
+            client.close();
 
 
         } catch (error) {
@@ -221,7 +226,7 @@ module.exports = {
                     break;
                 }
             }
-
+            client.close();
             return friendShipExists;
         } catch (error) {
             throw (error);
@@ -233,9 +238,10 @@ module.exports = {
             const client = await this.mongoClient.connect(this.app.get('connectionStrings'));
             const database = client.db("redsocial");
             const collectionName = 'users';
-            const songsCollection = database.collection(collectionName);
-            const songs = await songsCollection.find(filter, options).toArray();
-            return songs;
+            const usersCollection = database.collection(collectionName);
+            const usersDoc = await usersCollection.find(filter, options).sort({email:1}).toArray();
+            client.close();
+            return usersDoc;
         } catch (error) {
             throw (error);
         }
@@ -246,11 +252,12 @@ module.exports = {
             const database = client.db("redsocial");
             const collectionName = 'users';
             const usersCollection = database.collection(collectionName);
-            const usersFound = usersCollection.find(filter, options);
+            const usersFound = usersCollection.find(filter, options).sort({email:1});
             const usersCollectionCount = await usersFound.count();
-            const cursor = usersFound.skip((page - 1) * limit).limit(limit)
+            const cursor = usersFound.skip((page - 1) * limit).limit(limit);
             const users = await cursor.toArray();
             const result = {users: users, total: usersCollectionCount};
+            client.close();
             return result;
         } catch (error) {
             throw (error);
@@ -263,6 +270,7 @@ module.exports = {
             const collectionName = 'users';
             const usersCollection = database.collection(collectionName);
             const result = await usersCollection.deleteMany(filter, options);
+            client.close();
             return result;
         } catch (error) {
             throw (error);
@@ -275,6 +283,7 @@ module.exports = {
             const collectionName = 'users';
             const usersCollection = database.collection(collectionName);
             const result = await usersCollection.updateMany(filter, options);
+            client.close();
             return result;
         } catch (error) {
             throw (error);
