@@ -107,8 +107,6 @@ messagesRepository.init(app,MongoClient)
 
 
 
-app.use("/publications/**", userSessionRouter);
-
 //No especifico /api/users/login porque para acceder no es necesario token
 app.use("/api/friends/list", userTokenRouter);
 app.use("/api/message/add", userTokenRouter);
