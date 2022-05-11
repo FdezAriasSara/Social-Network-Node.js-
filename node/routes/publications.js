@@ -61,7 +61,7 @@ module.exports = function (app, usersRepository, publicationsRepository) {
                 let user = users[0];
 
                 //Metodo para reutilizar código, renderiza las publicaciones del usuario que se pase como parametro
-                await renderPublicationsOf(user._id,page, req,res);
+                await renderPublicationsOf(user._id,false,page, req,res);
 
 
 
