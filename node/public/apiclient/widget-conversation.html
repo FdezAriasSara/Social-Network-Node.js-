@@ -41,20 +41,20 @@
 </div>
 </div>
 <script>
+    let oldMessages;
     /**
      * Este método obtiene los mensajes que hay en este momento en la base de datos entre el usuario que está actualmente en sesión
      * y aquel cuyo id es indicado en el body.
      */
     function loadMessages() {
-
         $.ajax({
-            url: URLbase + "/conversation",
+            url: URLbase + "/conversation?token=" + token,
             type: "POST",
             data: {idOtherUser:currentFriend._id},
             dataType: 'json',
             headers: {"token": token},
             success: function (response) {
-
+                console.log(currentFriend.name)
                 messages = response.messages;
             },
             error: function (error) {
@@ -84,8 +84,7 @@
     function sendMessage() {
 
         let messageText = $("#newMessage").val();
-        $("#newMessage").val("");//empty the input
-        let receiverEmail=messages[0].receiverEmail;
+        let receiverEmail=currentFriend._id;//antes-> messages[0].recieverEmail -> se necesita que sea un id
         oldMessages=messages.map((x)=>x); //store the messages prior to the new one
             $.ajax({
                 url: URLbase + "/message/add?token=" + token,
@@ -107,7 +106,7 @@
 
 
     }
-    let oldMessages;
+
     /**
      * Este método se ejecuta de forma periódica. Carga los posibles nuevos mensajes, y los muestra en la conversación
      * (añadiéndolos al final)
@@ -119,9 +118,8 @@
     setInterval(function() {
          loadMessages();//refresh conversation
         let toWrite=[];
-        let j=0;//Messages get inverted in the data base since they are ordered by date
         for ( i = oldMessages.length; i < messages.length ; i++) {
-            toWrite.push(messages[j]);
+            toWrite.push(messages[i]);
         }
          displayConversation(toWrite);
         oldMessages=messages;//now messages are up to date.

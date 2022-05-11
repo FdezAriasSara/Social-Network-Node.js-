@@ -38,13 +38,13 @@
     }
 
     var messages;
-    var currentFriend = null;
+    var currentFriend;
 
     /**
      * Nos lleva a otro widget , el de la conversación.
      */
-    function showConversationWith(senderEmail){
-        currentFriend = senderEmail
+    function showConversationWith(friend){
+                currentFriend=friend
                 $("#main-container").load("widget-conversation.html");
 
     }
@@ -56,11 +56,12 @@
      */
 
     function obtainLastMessage(friend) {
+
            currentFriend = friend
            $.ajax({
             url: URLbase + "/conversation?token=" + token,
             type: "POST",
-            data: {idOtherUser:friend._id},
+            data: {idOtherUser:currentFriend._id},
             dataType: 'json',
             headers: {},
             success: function (response) {
@@ -74,7 +75,7 @@
 
                 }else{
 
-                    $("#friendsTableBody").append("<tr><td>"+"["+last.date+"] "+last.senderEmail+" dijo :"+last.text+"</td></tr>");
+                    $("#friendsTableBody").append("<tr class='lastMsg'><td >"+"["+last.date+"] "+last.senderEmail+" dijo :"+last.text+"</td></tr>");
                 }
 
             },
@@ -113,6 +114,7 @@
     $('#filter-by-name').on('input',function(e){
         let filteredFriends = [];
         let filterValue = $("#filter-by-name").val();
+
         filteredFriends = friends.filter(friend => friend.name.includes(filterValue));
         updateFriendTable(filteredFriends);
     });
