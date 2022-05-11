@@ -221,8 +221,7 @@ module.exports = function (app, publicationsRepository, usersRepository, message
 
     });
 
-
-    app.post('/api/conversation', async function (req,res){
+    app.get('/api/conversation/:idOtherUser', async function (req,res){
 
         try{
 
@@ -232,11 +231,11 @@ module.exports = function (app, publicationsRepository, usersRepository, message
 
             let thereIsError = false;
             let message = ""
-           await usersRepository.findUser({_id: ObjectId(req.body.idOtherUser)}, {})
+            await usersRepository.findUser({_id: ObjectId(req.params.idOtherUser)}, {})
                 .then( otherUsers => {
                     if(otherUsers.length <= 0){
                         thereIsError=true;
-                        message = "No existe usuario con id: " + req.body.idOtherUser
+                        message = "No existe usuario con id: " + req.params.idOtherUser
                     }
                     otherUser = otherUsers[0];
                 })
@@ -245,7 +244,7 @@ module.exports = function (app, publicationsRepository, usersRepository, message
                     res.json({
                         message: "Error identificando ID del otro usuario",
                         error: error,
-                        idOtherUser: req.body.idOtherUser
+                        idOtherUser: req.params.idOtherUser
                     })
                 })
 
@@ -253,24 +252,23 @@ module.exports = function (app, publicationsRepository, usersRepository, message
                 res.status(500);
                 res.json({
                     message: message,
-                    idOtherUser: req.body.idOtherUser,
+                    idOtherUser: req.params.idOtherUser,
                     error: new Error()
                 })
                 return;
             }
 
-
             //primero pillamos los mensajes que le envié yo y luego los que me envió él.
             //Unimos las dos arrays
-             let messages = await messagesRepository.getMessagesInConversionOf(myself, otherUser.email)
-           // messages =messages.concat( await messagesRepository.getMessagesFromTo(otherUser.email, myself))
+            let messages = await messagesRepository.getMessagesFromTo(myself, otherUser.email)
+            messages =messages.concat( await messagesRepository.getMessagesFromTo(otherUser.email, myself))
 
-         //   messages.sort( (a,b) => b.date - a.date);
+            messages.sort( (a,b) => b.date - a.date);
 
             res.status(200);
             res.json({
                 messages: messages,
-                idOtherUser: req.body.idOtherUser
+                idOtherUser: req.params.idOtherUser
             })
 
         }catch(e){
@@ -278,10 +276,9 @@ module.exports = function (app, publicationsRepository, usersRepository, message
             res.json({
                 message: "Se ha producido un error al leer conversación",
                 error: e.message,
-                idOtherUser: req.body.idOtherUser
+                idOtherUser: req.params.idOtherUser
             })
         }
 
     });
-
 }

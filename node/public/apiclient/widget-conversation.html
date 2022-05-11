@@ -49,9 +49,9 @@
      */
     function loadMessages(friendid) {
         $.ajax({
-            url: URLbase + "/conversation?token=" + token,
-            type: "POST",
-            data: {idOtherUser:friendid},
+            url: URLbase + "/conversation/"+friendid,
+            type: "GET",
+            data: {},
             dataType: 'json',
             headers: {"token": token},
             success: function (response) {

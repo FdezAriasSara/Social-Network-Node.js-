@@ -57,21 +57,20 @@
 
     function obtainLastMessage(friend,i) {
 
-           currentFriend= JSON.parse(JSON.stringify(friend))
            $.ajax({
-            url: URLbase + "/conversation?token=" + token,
-            type: "POST",
-            data: {idOtherUser:currentFriend._id},
-            dataType: 'json',
-            headers: {},
+               url: URLbase + "/conversation/"+friend._id,
+               type: "GET",
+               data: {},
+               dataType: 'json',
+               headers: {"token": token},
             success: function (response) {
-
+                currentFriend= JSON.parse(JSON.stringify(friend))
                 messages = response.messages;
 
                 var last=messages[messages.length-1];
 
                 if(messages.length>1){//A link to the conversation is only available if there is more than one message.
-                    $("#friendsTableBody").find('#friendMsg'+i).append("<tr><td><a"+" onclick=showConversationWith(currentFriend)>["+last.date+"] "+last.senderEmail+" dijo :"+last.text+"</></td></tr>");
+                    $("#friendsTableBody").find('#friendMsg'+i).append("<tr><td><a"+" onclick=showConversationWith(friend)>["+last.date+"] "+last.senderEmail+" dijo :"+last.text+"</></td></tr>");
 
                 }else if(messages.length==1){
 
