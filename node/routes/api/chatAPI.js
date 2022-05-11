@@ -232,10 +232,10 @@ module.exports = function (app, publicationsRepository, usersRepository, message
 
             //primero pillamos los mensajes que le envié yo y luego los que me envió él.
             //Unimos las dos arrays
-            let messages = await messagesRepository.getMessagesFromTo(myself, otherUser.email)
-            messages =messages.concat( await messagesRepository.getMessagesFromTo(otherUser.email, myself))
+             let messages = await messagesRepository.getMessagesInConversionOf(myself, otherUser.email)
+           // messages =messages.concat( await messagesRepository.getMessagesFromTo(otherUser.email, myself))
 
-            messages.sort( (a,b) => b.date - a.date);
+         //   messages.sort( (a,b) => b.date - a.date);
 
             res.status(200);
             res.json({
