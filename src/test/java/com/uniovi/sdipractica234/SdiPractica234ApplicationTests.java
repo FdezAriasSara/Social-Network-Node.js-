@@ -1127,6 +1127,7 @@ class SdiPractica234ApplicationTests {
 
 
         PO_APIClientView.goToApiView(driver);
+        //Iniciamos sesión con credenciales inválidas
         PO_APIClientView.fillForm(driver,"dummyUserNoExisto@email.com","noExisto123");
 
         PO_View.checkElementBy(driver, "id", "alert");
@@ -1142,6 +1143,55 @@ class SdiPractica234ApplicationTests {
         SeleniumUtils.waitTextIsNotPresentOnPage(driver, msgExpected, 20); //Esperamos no encontrar el mensaje
                                                                         //'listado de usuarios'
 
+    }
+
+    //[Prueba 34] Acceder a la lista de amigos de un usuario, que al menos tenga tres amigos.
+    @Test
+    @Order(38)
+    public void PR034() {
+        PO_APIClientView.goToApiView(driver);
+        //Iniciamos sesión correctamente
+        PO_APIClientView.fillForm(driver,"user14@email.com","user14");
+
+        List<WebElement> alert = driver.findElements(By.id("alert"));
+        //Login con éxito no muestra alerta de error.
+        Assertions.assertTrue(alert.isEmpty(), "Alerta enseñada al iniciar sesión con credenciales correctas");
+
+
+        //The user is redirected to the list view:
+        PO_View.checkElementBy(driver, "id", "widget-friends" ); //Esperamos que cargue el widget
+        String msgExpected="Listado de amigos:";
+        String msgFound = driver.findElement(By.tagName("h1")).getText();
+
+        //Chequeamos que el mensaje se muestra en la vista.
+        Assertions.assertTrue(msgFound!=null);
+        Assertions.assertEquals(msgExpected,msgFound);
+
+        //Buscamos los amigos del usuario en bd
+        Document userThatAsks4List = usersCollection.find(eq("email", "user14@email.com")).first();
+        List<Document> friendsOfUser = new LinkedList<>();
+        usersCollection.find(
+                eq("friendships", new ObjectId(userThatAsks4List.get("_id").toString()))
+        ).into(friendsOfUser);
+
+        //Esperamos que se cargue en el DOM al menos un amigo.
+        SeleniumUtils.waitLoadElementsByXpath(driver,"//*[@id=\"friendsTableBody\"]/tr[4]", 20 );
+        List<WebElement> userFriendNamesInView = driver.findElements(By.name("userName"));
+        //Chequeamos que tamaño de lista amigos en BD y la renderizada sea la misma.
+        Assertions.assertTrue(friendsOfUser.size()==userFriendNamesInView.size(),
+                "Tamaño de lista de amigos difiere entre la real y la mostrada en vista");
+        Assertions.assertTrue(userFriendNamesInView.size() >=3,
+                "Lista de amigos renderizada es menor que 3.");
+
+        List<String> namesOfFriendsRendered = new LinkedList<>();
+        for (int i = 0; i < userFriendNamesInView.size(); i++) {
+            namesOfFriendsRendered.add(userFriendNamesInView.get(i).getText());
+        }
+        for (Document friendOfUser:
+             friendsOfUser) {
+            Assertions.assertTrue(namesOfFriendsRendered.contains(friendOfUser.getString("name")),
+                    "El usuario"+ friendOfUser.getString("name") + " no aparece en vista.");
+        }
 
     }
 }
