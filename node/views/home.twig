@@ -1,0 +1,28 @@
+{% extends './layout.twig' %}
+
+{% block main_container %}
+
+    <div class="wrapper2 panel-header">
+        <div class="col-xs-5">
+            <div class="pull-left"><img class="img-responsive" alt="logo" src="/images/home-img.png" /></div>
+        </div>
+        <div class="col-xs-7">
+            <h1 class="text-center">¡Bienvenido/a a nuestra red social!</h1>
+
+            {% if isLoggedIn %}
+                <p class="text-center">Esta aplicación fue desarrollada por alumnos de Ingeniería Informática del Software
+                    en la Universidad de Oviedo. ¡Esperamos que te guste!
+                </p>
+            {% else %}
+                <p class="text-center">¡¡Entérate de lo que está pasando!!</p>
+                <p class="text-center"><a href="/users/signup" id="signup">Regístrate</a> o
+                    <a href="/users/login" id="signup">inicia sesión</a>
+                </p>
+
+            {% endif %}
+
+        </div>
+
+    </div>
+
+{% endblock %}
