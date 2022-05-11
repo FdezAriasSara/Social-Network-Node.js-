@@ -1204,10 +1204,6 @@ class SdiPractica234ApplicationTests {
         //Iniciamos sesión correctamente
         PO_APIClientView.fillForm(driver,"user14@email.com","user14");
 
-        List<WebElement> alert = driver.findElements(By.id("alert"));
-        //Login con éxito no muestra alerta de error.
-        Assertions.assertTrue(alert.isEmpty(), "Alerta enseñada al iniciar sesión con credenciales correctas");
-
 
         //The user is redirected to the list view:
         PO_View.checkElementBy(driver, "id", "widget-friends" ); //Esperamos que cargue el widget
@@ -1254,11 +1250,6 @@ class SdiPractica234ApplicationTests {
         //Iniciamos sesión correctamente
         PO_APIClientView.fillForm(driver,"user01@email.com","user01");
 
-        List<WebElement> alert = driver.findElements(By.id("alert"));
-        //Login con éxito no muestra alerta de error.
-        Assertions.assertTrue(alert.isEmpty(), "Alerta enseñada al iniciar sesión con credenciales correctas");
-
-
         //The user is redirected to the list view:
         PO_View.checkElementBy(driver, "id", "widget-friends" ); //Esperamos que cargue el widget
 
@@ -1266,7 +1257,8 @@ class SdiPractica234ApplicationTests {
         SeleniumUtils.waitLoadElementsByXpath(driver,"//*[@id=\"friendsTableBody\"]/tr[2]", 20 );
         //Cogemos link a la conversación con el primer usuario, será el user02.
         WebElement linkToConver = driver.findElement(By.xpath("//*[@id=\"friendsTableBody\"]/tr[2]/tr/td/a"));
-        linkToConver.click();//acedemos a lista de
+        linkToConver.click();//acedemos a lista de mensajes
+
 
         //Cogemos los mensajes de la vista
         List<WebElement> messages = driver.findElements(By.className("chatMessage"));
@@ -1286,7 +1278,58 @@ class SdiPractica234ApplicationTests {
 
 
     }
+    //[Prueba 37] Acceder a la lista de mensajes de un amigo y crear un nuevo mensaje. Validar que el mensaje
+    //aparece en la lista de mensajes.
+    @Test
+    @Order(40)
+    public void PR037() {
+        PO_APIClientView.goToApiView(driver);
+        //Iniciamos sesión correctamente
+        PO_APIClientView.fillForm(driver,"user01@email.com","user01");
 
+
+        //The user is redirected to the list view:
+        PO_View.checkElementBy(driver, "id", "widget-friends" ); //Esperamos que cargue el widget
+
+        //Esperamos que cargue lista de normal, con los amigos que tiene en total el usuario logueado, al menos 1
+        SeleniumUtils.waitLoadElementsByXpath(driver,"//*[@id=\"friendsTableBody\"]/tr[2]", 20 );
+        //Cogemos link a la conversación con el primer usuario, será el user02.
+        WebElement linkToConver = driver.findElement(By.xpath("//*[@id=\"friendsTableBody\"]/tr[2]/tr/td/a"));
+        linkToConver.click();//acedemos a lista de
+
+
+        //Cogemos los mensajes de la vista actual
+        List<WebElement> messagesInView = driver.findElements(By.className("chatMessage"));
+
+        String messageToBeSent = "Mensaje de test - ¿que tal?";
+        //Cogemos el input textfield, escribimos en él el mensaje que queremos enviar.
+        driver.findElement(By.id("newMessage")).sendKeys(messageToBeSent);
+        driver.findElement(By.id("sendMessage")).click();//hacemos click en botón de enviar.
+        SeleniumUtils.waitTextIsNotPresentOnPage(driver, "enviando mensaje..."+messageToBeSent, 20);
+        //Cogemos mensajes entre user01 y user02 de la BD para comparar con la vista.
+        List<String> messsagesFromDB = getMessagesFromDB("user01@email.com", "user02@email.com");
+        //Chequeamos que el mensaje se ha guardado y hay un registro más en la BD que no capturamos anteriormente
+        //cuando buscamos por los mensajes que había en la vista (este mensaje es nuevo, se mandó después):
+        Assertions.assertTrue(messagesInView.size()+1==messsagesFromDB.size(),
+                "Size of messages in review differs from the one retrieved from DB");
+
+        //We will assert that the message is in the view:
+        messagesInView = driver.findElements(By.className("chatMessage"));
+        //El número de mensajes en vista coincidirá con el número de mensajes en BD
+        Assertions.assertTrue(messagesInView.size()==messsagesFromDB.size(),
+                "Size of messages in review differs from the one retrieved from DB");
+
+        //El último mensaje de la vista ha de ser el que enviamos, en este caso 'Mensaje de test - ¿que tal?'
+        Assertions.assertTrue(messagesInView.get(messagesInView.size()-1).getText().contains(messageToBeSent),
+                    "Message: " + messageToBeSent +" not present in view");
+
+        //Eliminamos de la DB el mensaje que enviamos en este test.
+        msgsCollection.deleteOne(and(eq("senderEmail", "user01@email.com"),
+                        eq("text", messageToBeSent)));
+
+
+
+    }
     private List<String> getMessagesFromDB(String sender, String receiver) {
         List<Document> messagesInDB = new LinkedList<>();
         msgsCollection.find(or(
