@@ -49,6 +49,28 @@ module.exports = {
         }
 
     },
+    getMessagesInConversionOf: async function (fromEmail, toEmail){
+
+        try {
+            const client = await this.mongoClient
+                .connect(this.app.get('connectionStrings'));
+            const database = client.db("redsocial");
+            const collectionName = 'messages';
+            const messagesCollection = database.collection(collectionName);
+
+
+            const messages = await messagesCollection.find({$or:
+                    [ {$and: [{senderEmail: fromEmail}, {receiverEmail:toEmail}]},
+                        {$and: [{senderEmail: toEmail}, {receiverEmail:fromEmail}]}
+                    ]}, {}).sort({date:1}).toArray();
+            client.close();
+            return messages;
+        } catch (error) {
+            throw (error);
+
+        }
+
+    },
     deleteMessages:async function (filter, options) {
         try {
             const client = await this.mongoClient.connect(this.app.get('connectionStrings'));

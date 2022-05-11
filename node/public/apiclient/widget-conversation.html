@@ -37,24 +37,25 @@
     </div>
     <input type="text" class="form-control" placeholder="Escribe aquí tu mensaje" id="newMessage"/>
     <button class="btn" onclick="sendMessage()" for="newMessage" >Enviar</button>
-    <button class="btn"> Volver </button>
+    <button class="btn" onclick="volver()"> Volver </button>
 </div>
 </div>
 <script>
+    let oldMessages;
+    let conversationFriendId;
     /**
      * Este método obtiene los mensajes que hay en este momento en la base de datos entre el usuario que está actualmente en sesión
      * y aquel cuyo id es indicado en el body.
      */
-    function loadMessages() {
-
+    function loadMessages(friendid) {
         $.ajax({
-            url: URLbase + "/conversation",
+            url: URLbase + "/conversation?token=" + token,
             type: "POST",
-            data: {idOtherUser:currentFriend._id},
+            data: {idOtherUser:friendid},
             dataType: 'json',
             headers: {"token": token},
             success: function (response) {
-
+                conversationFriendId= JSON.parse(JSON.stringify(response.idOtherUser))
                 messages = response.messages;
             },
             error: function (error) {
@@ -84,12 +85,11 @@
     function sendMessage() {
 
         let messageText = $("#newMessage").val();
-        let receiverEmail=messages[0].receiverEmail;
         oldMessages=messages.map((x)=>x); //store the messages prior to the new one
             $.ajax({
                 url: URLbase + "/message/add?token=" + token,
                 type: "POST",
-                data: {receiverEmail:receiverEmail, text:messageText},
+                data: {idReceiver:conversationFriendId, text:messageText},
                 dataType: 'json',
                 headers: {},
                 success: function (response) {
@@ -106,7 +106,7 @@
 
 
     }
-    let oldMessages;
+
     /**
      * Este método se ejecuta de forma periódica. Carga los posibles nuevos mensajes, y los muestra en la conversación
      * (añadiéndolos al final)
@@ -116,15 +116,17 @@
      * como es habitual ( al revés) , invierto el orden de la array que se recibe.
      */
     setInterval(function() {
-         loadMessages();//refresh conversation
+         loadMessages(conversationFriendId);//refresh conversation
         let toWrite=[];
-        let j=0;//Messages get inverted in the data base since they are ordered by date
-        for ( i = oldMessages.length; i < messages.length ; i++) {
-            toWrite.push(messages[j]);
+        if(oldMessages && messages) {
+            for (i = oldMessages.length; i < messages.length; i++) {
+                toWrite.push(messages[i]);
+            }
+            displayConversation(toWrite);
         }
-         displayConversation(toWrite);
         oldMessages=messages;//now messages are up to date.
     }, 5000);
+    loadMessages(currentFriend._id);
     displayConversation(messages);//will be executed when this view is accesed for the first time
 
     /**
@@ -132,9 +134,12 @@
      * Borra los mensajes de chat, alerta y espera para dejar la vista "limpia" .
      */
     function volver() {
+        oldMessages=null;
+        conversationFriendId=null;
         $(".waitMessage").remove();
         $(".chatMessage").remove();
         $(".alert").remove();
+        $("#friendsTableBody").empty(); // Vaciar la tabla
         $("#main-container").load("widget-friends.html");
     }
 
