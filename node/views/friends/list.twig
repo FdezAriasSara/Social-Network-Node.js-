@@ -22,7 +22,7 @@
                     <td>{{ friend.email }}</td>
                     <td>
                         <form method="get" action="/publications/friend/{{ friend._id }}">
-                            <button>
+                            <button id="publicationsButton{{ friend.email }}">
                                 Ver publicaciones
                             </button>
                         </form>
