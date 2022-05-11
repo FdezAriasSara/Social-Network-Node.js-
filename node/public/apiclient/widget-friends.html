@@ -43,7 +43,8 @@
     /**
      * Nos lleva a otro widget , el de la conversación.
      */
-    function showConversationWith(){
+    function showConversationWith(senderEmail){
+        currentFriend = senderEmail
                 $("#main-container").load("widget-conversation.html");
 
     }
@@ -69,7 +70,7 @@
                 var last=messages[messages.length-1];
 
                 if(messages.length>1){//A link to the conversation is only available if there is more than one message.
-                    $("#friendsTableBody").append("<tr><td"+" onclick=showConversationWith()><a>["+last.date+"] "+last.senderEmail+" dijo :"+last.text+"</td></a></tr>");
+                    $("#friendsTableBody").append("<tr><td"+" onclick=showConversationWith(currentFriend)><a>["+last.date+"] "+last.senderEmail+" dijo :"+last.text+"</td></a></tr>");
 
                 }else{
 
