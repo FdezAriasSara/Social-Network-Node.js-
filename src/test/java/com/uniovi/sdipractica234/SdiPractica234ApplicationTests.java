@@ -41,12 +41,12 @@ class SdiPractica234ApplicationTests {
     //static String Geckodriver = "C:\\Path\\geckodriver-v0.30.0-win64.exe";
   //  static String Geckodriver = "C:\\Users\\usuario\\Desktop\\Eii\\AÑO 3 GRADO INGENIERIA INFORMATICA\\Sistemas Distribuidos e Internet\\Lab\\sesion05\\PL-SDI-Sesión5-material\\geckodriver-v0.30.0-win64.exe";
     //sebas
-    static String Geckodriver ="C:\\Users\\sebas\\Downloads\\TERCERO\\SEGUNDO CUATRIMESTRE\\SDI\\PL-SDI-Sesión5-material\\PL-SDI-Sesión5-material\\geckodriver-v0.30.0-win64.exe";
+    //static String Geckodriver ="C:\\Users\\sebas\\Downloads\\TERCERO\\SEGUNDO CUATRIMESTRE\\SDI\\PL-SDI-Sesión5-material\\PL-SDI-Sesión5-material\\geckodriver-v0.30.0-win64.exe";
 
     //ce
     //static String PathFirefox = "C:\\Program Files\\Mozilla Firefox\\firefox.exe";
 
-    //static String Geckodriver = "E:\\UNIOVI\\TERCERO\\Segundo cuatri\\SDI\\PL-SDI-Sesión5-material\\geckodriver-v0.30.0-win64.exe"; //CASA
+    static String Geckodriver = "E:\\UNIOVI\\TERCERO\\Segundo cuatri\\SDI\\PL-SDI-Sesión5-material\\geckodriver-v0.30.0-win64.exe"; //CASA
     //static String Geckodriver = "C:\\Users\\Sara\\Desktop\\Universidad\\3-tercer curso\\segundo cuatri\\(SDI)-Sistemas Distribuidos e Internet\\Sesión5-material\\geckodriver-v0.30.0-win64.exe";
 
     /* SARA */
@@ -750,11 +750,9 @@ class SdiPractica234ApplicationTests {
         driver.findElement(path).click();
 
         //ya no hay botón
-        try {
-            driver.findElement(path);
-        } catch (org.openqa.selenium.NoSuchElementException e) {
-            Assertions.assertTrue(true); //we cannot find the element
-        }
+        Exception thrown = Assertions.assertThrows(NoSuchElementException.class, () -> driver.findElement(path));
+        Assertions.assertEquals("Unable to locate element: //*[@id=\"sendButtontest@email.com\"]", thrown.getMessage().split("\n")[0]);
+
         //intentamos acceder mediante la url y nos lleva a página de error
         driver.get(url);
         Assertions.assertEquals("ERROR:", PO_View.checkElementBy(driver, "text", "ERROR").get(0).getText());
