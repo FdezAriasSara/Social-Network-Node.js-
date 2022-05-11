@@ -45,7 +45,7 @@
      * Nos lleva a otro widget , el de la conversación.
      */
     function showConversationWith(friend){
-
+                currentFriend=friend
                 $("#main-container").load("widget-conversation.html");
 
     }
@@ -71,7 +71,7 @@
                 var last=messages[messages.length-1];
 
                 if(messages.length>1){//A link to the conversation is only available if there is more than one message.
-                    $("#friendsTableBody").find('#friendMsg'+i).append("<tr><td><a"+" onclick=showConversationWith(friend)>["+last.date+"] "+last.senderEmail+" dijo :"+last.text+"</></td></tr>");
+                    $("#friendsTableBody").find('#friendMsg'+i).append("<tr><td><a"+" onclick=showConversationWith(currentFriend)>["+last.date+"] "+last.senderEmail+" dijo :"+last.text+"<a/></td></tr>");
 
                 }else if(messages.length==1){
 
