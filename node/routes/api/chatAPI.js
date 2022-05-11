@@ -119,15 +119,33 @@ module.exports = function (app, publicationsRepository, usersRepository, message
 
     });
 
-
     app.post("/api/message/add", async function (req, res) {
 
+
+        let receiverEmail = null;
+        let noReceiver = false;
+
+        await usersRepository.findUser({_id: ObjectId(req.body.idReceiver)}, {})
+            .then( results => {
+                if(results.length <= 0){
+                    noReceiver = true;
+                }else{
+                    receiverEmail = results[0].email;
+                }
+
+            })
+            .catch(error => {
+                noReceiver = true;
+            })
+
+
+
         //Si en el cuerpo de la peticoon no hay ni receptor ni contenido del mensaje
-        if(!req.body.receiverEmail || !req.body.text){
+        if(!receiverEmail || !req.body.text || noReceiver){
 
             res.status(401);
             res.json({
-                message: "Falta email receptor o contenido del mensaje"
+                message: "Falta email receptor o contenido del mensaje, o el receptor no existe."
             })
             return;
         }
@@ -138,52 +156,61 @@ module.exports = function (app, publicationsRepository, usersRepository, message
 
 
             let sender = await usersRepository.findUser({email: res.user},{})
-            let receiver = await usersRepository.findUser({email: req.body.receiverEmail},{}) ;
+            let receiver = await usersRepository.findUser({email: receiverEmail},{}) ;
 
             sender = sender[0]
             receiver = receiver[0]
 
-           let areFriends =  await usersRepository.isFriendOf( sender._id, receiver._id)
+            usersRepository.isFriendOf( ObjectId(sender._id), ObjectId(receiver._id))
+                .then( areFriends => {
+
+                    if(areFriends){
+
+                        let message = {
+                            senderEmail : res.user,
+                            receiverEmail : receiverEmail,
+                            text : req.body.text,
+                            leido : false
+                        }
+                        messagesRepository.createMessage(message)
+                            .then( (resultId) => {
+
+                                res.status(200);
+                                res.json({
+                                    message: "Mensaje creado con exito."
+                                })
 
 
-            if(areFriends === true){
+                            })
+                            .catch( (error) => {
 
-                let message = {
-                    senderEmail : res.user,
-                    receiverEmail : req.body.receiverEmail,
-                    text : req.body.text,
-                    leido : false
-                }
-                messagesRepository.createMessage(message)
-                    .then( (resultId) => {
+                                res.status(500);
+                                res.json({
+                                    message: "Error al crear mensaje entre" + res.user + " y " + receiverEmail + ".",
+                                    error: error
+                                })
 
-                        res.status(200);
-                        res.json({
-                            message: "Mensaje creado con exito."
-                        })
+                            })
 
-
-                    })
-                    .catch( (error) => {
+                    }else{
 
                         res.status(500);
                         res.json({
-                            message: "Error al crear mensaje entre" + res.user + " y " + req.body.receiverEmail + ".",
-                            error: error
+                            message: "" + res.user + " y " + receiverEmail + " no son amigos"
                         })
 
+                    }
+
+                })
+                .catch(error => {
+
+                    res.status(500);
+                    res.json({
+                        message: "Error comprobando si " + res.user + " y " + receiverEmail + " son amigos",
+                        error: error
                     })
 
-            }else{
-
-                res.status(500);
-                res.json({
-                    message: "" + res.user + " y " + req.body.receiverEmail + " no son amigos"
                 })
-
-            }
-
-
 
         } catch (e) {
             res.status(500);
@@ -193,6 +220,7 @@ module.exports = function (app, publicationsRepository, usersRepository, message
         }
 
     });
+
 
     app.post('/api/conversation', async function (req,res){
 
