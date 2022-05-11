@@ -39,7 +39,7 @@ class SdiPractica234ApplicationTests {
     //static String Geckodriver = "C:\\Path\\geckodriver-v0.30.0-win64.exe";
   //  static String Geckodriver = "C:\\Users\\usuario\\Desktop\\Eii\\AÑO 3 GRADO INGENIERIA INFORMATICA\\Sistemas Distribuidos e Internet\\Lab\\sesion05\\PL-SDI-Sesión5-material\\geckodriver-v0.30.0-win64.exe";
     //sebas
-    //static String Geckodriver ="C:\\Users\\sebas\\Downloads\\TERCERO\\SEGUNDO CUATRIMESTRE\\SDI\\PL-SDI-Sesión5-material\\PL-SDI-Sesión5-material\\geckodriver-v0.30.0-win64.exe";
+    static String Geckodriver ="C:\\Users\\sebas\\Downloads\\TERCERO\\SEGUNDO CUATRIMESTRE\\SDI\\PL-SDI-Sesión5-material\\PL-SDI-Sesión5-material\\geckodriver-v0.30.0-win64.exe";
 
     //ce
     //static String PathFirefox = "C:\\Program Files\\Mozilla Firefox\\firefox.exe";
@@ -49,7 +49,7 @@ class SdiPractica234ApplicationTests {
     /* SARA */
     static String PathFirefox = "C:\\Program Files\\Mozilla Firefox\\firefox.exe";
     //static String Geckodriver = "C:\\Path\\geckodriver-v0.30.0-win64.exe";
-    static String Geckodriver = "C:\\Users\\Sara\\Desktop\\Universidad\\3-tercer curso\\segundo cuatri\\(SDI)-Sistemas Distribuidos e Internet\\Sesión5-material\\geckodriver-v0.30.0-win64.exe";
+    //static String Geckodriver = "C:\\Users\\Sara\\Desktop\\Universidad\\3-tercer curso\\segundo cuatri\\(SDI)-Sistemas Distribuidos e Internet\\Sesión5-material\\geckodriver-v0.30.0-win64.exe";
 
     //static String PathFirefox = "/Applications/Firefox.app/Contents/MacOS/firefox-bin";
     // static String Geckodriver = "/Users/USUARIO/selenium/geckodriver-v0.30.0-macos";
@@ -370,10 +370,10 @@ class SdiPractica234ApplicationTests {
     }
 
 
-    //Prueba[4-1] Mostrar el listado de usuarios y comprobar que se muestran todos los que existen en el sistema.
+    //Prueba[11] Mostrar el listado de usuarios y comprobar que se muestran todos los que existen en el sistema.
     @Test
     @Order(32)
-    public void PR04_1(){
+    public void PR11(){
         loginAs("admin@email.com", "admin");
         PO_UsersView.goToUsersList(driver);
         List<Document> totalUsers = getUsersAdminView();
@@ -401,33 +401,33 @@ class SdiPractica234ApplicationTests {
         return totalUsers;
     }
 
-    //Prueba[5-1] Ir a la lista de usuarios, borrar el primer usuario de la lista, comprobar que la lista se actualiza
+    //Prueba[12] Ir a la lista de usuarios, borrar el primer usuario de la lista, comprobar que la lista se actualiza
     //y dicho usuario desaparece.
     @Test
     @Order(33)
-    public void PR05_1(){
+    public void PR12(){
         loginAs("admin@email.com", "admin");
         PO_UsersView.goToUsersList(driver);
         deleteUserInPath("//*[@id=\"tableUsers\"]/tbody/tr[1]/td[4]/input");
 
 
     }
-    //Prueba[5-2] Ir a la lista de usuarios, borrar el último usuario de la lista, comprobar que la lista se actualiza
+    //Prueba[13] Ir a la lista de usuarios, borrar el último usuario de la lista, comprobar que la lista se actualiza
     //y dicho usuario desaparece.
     @Test
     @Order(34)
-    public void PR05_2(){
+    public void PR13(){
         loginAs("admin@email.com", "admin");
         PO_UsersView.goToUsersList(driver);
         deleteUserInPath("//*[@id=\"tableUsers\"]/tbody/tr[last()-1]/td[4]/input");
 
     }
 
-    //Prueba[5-3] Ir a la lista de usuarios, borrar 3 usuarios, comprobar que la lista se actualiza y dichos usuarios
+    //Prueba[14] Ir a la lista de usuarios, borrar 3 usuarios, comprobar que la lista se actualiza y dichos usuarios
     //desaparecen.
     @Test
     @Order(35)
-    public void PR05_3(){
+    public void PR14(){
         loginAs("admin@email.com", "admin");
         PO_UsersView.goToUsersList(driver);
         List<Document> totalUsers = getUsersAdminView();//usersBefore
@@ -580,11 +580,11 @@ class SdiPractica234ApplicationTests {
         return publicationsDeleted;
     }
 
-    //Prueba[5-2] Mostrar el listado de usuarios y comprobar que se muestran todos los que existen en el sistema,
+    //Prueba[15] Mostrar el listado de usuarios y comprobar que se muestran todos los que existen en el sistema,
     //excepto el propio usuario y aquellos que sean Administradores
     @Test
     @Order(36)
-    public void PR06_1(){
+    public void PR15(){
         //Login como user01 y nos vamos a la vista de listar usuarios
         loginAs("user01@email.com", "user01");
         PO_UsersView.goToUsersList(driver);
@@ -640,11 +640,11 @@ class SdiPractica234ApplicationTests {
 
     }
 
-    //Prueba[7_1]Hacer una búsqueda con el campo vacío y comprobar que se muestra la página que
+    //Prueba[16]Hacer una búsqueda con el campo vacío y comprobar que se muestra la página que
     //corresponde con el listado usuarios existentes en el sistema.
     @Test
     @Order(37)
-    public void PR07_1(){
+    public void PR16(){
         //Login como user01 y nos vamos a la vista de listar usuarios
         loginAs("user01@email.com", "user01");
         PO_UsersView.goToUsersList(driver);
@@ -652,11 +652,11 @@ class SdiPractica234ApplicationTests {
         driver.findElement(By.id("searchButton")).click();
         compareUserListViewWithUserListInSystem("user01@email.com");
     }
-    //Prueba[7_2]Hacer una búsqueda escribiendo en el campo un texto que no exista y comprobar que se
+    //Prueba[17]Hacer una búsqueda escribiendo en el campo un texto que no exista y comprobar que se
     //muestra la página que corresponde, con la lista de usuarios vacía.
     @Test
     @Order(38)
-    public void PR07_2(){
+    public void PR17(){
         //Login como user01 y nos vamos a la vista de listar usuarios
         loginAs("user01@email.com", "user01");
         PO_UsersView.goToUsersList(driver);
@@ -665,12 +665,12 @@ class SdiPractica234ApplicationTests {
         Assertions.assertTrue(driver.findElements(By.className("username")).isEmpty());
     }
 
-    //Prueba[7_3]Hacer una búsqueda con un texto específico y comprobar que se muestra la página que
+    //Prueba[18]Hacer una búsqueda con un texto específico y comprobar que se muestra la página que
     //corresponde, con la lista de usuarios en los que el texto especificado sea parte de su nombre, apellidos o
     //de su email.
     @Test
     @Order(39)
-    public void PR07_3(){
+    public void PR18(){
         //Login como user01 y nos vamos a la vista de listar usuarios
         loginAs("user01@email.com", "user01");
         PO_UsersView.goToUsersList(driver);
