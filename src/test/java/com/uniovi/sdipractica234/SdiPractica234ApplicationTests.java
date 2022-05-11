@@ -1175,7 +1175,7 @@ class SdiPractica234ApplicationTests {
         ).into(friendsOfUser);
 
         //Esperamos que se cargue en el DOM al menos un amigo.
-        SeleniumUtils.waitLoadElementsByXpath(driver,"//*[@id=\"friendsTableBody\"]/tr[4]", 20 );
+        SeleniumUtils.waitLoadElementsByXpath(driver,"//*[@id=\"friendsTableBody\"]/tr[3]", 20 );
         List<WebElement> userFriendNamesInView = driver.findElements(By.name("userName"));
         //Chequeamos que tamaño de lista amigos en BD y la renderizada sea la misma.
         Assertions.assertTrue(friendsOfUser.size()==userFriendNamesInView.size(),
@@ -1191,6 +1191,57 @@ class SdiPractica234ApplicationTests {
              friendsOfUser) {
             Assertions.assertTrue(namesOfFriendsRendered.contains(friendOfUser.getString("name")),
                     "El usuario"+ friendOfUser.getString("name") + " no aparece en vista.");
+        }
+
+    }
+
+    //[Prueba 34] Acceder a la lista de amigos de un usuario, y realizar un filtrado para encontrar a un amigo
+    //concreto, el nombre a buscar debe coincidir con el de un amigo.
+    @Test
+    @Order(39)
+    public void PR035() {
+        PO_APIClientView.goToApiView(driver);
+        //Iniciamos sesión correctamente
+        PO_APIClientView.fillForm(driver,"user14@email.com","user14");
+
+        List<WebElement> alert = driver.findElements(By.id("alert"));
+        //Login con éxito no muestra alerta de error.
+        Assertions.assertTrue(alert.isEmpty(), "Alerta enseñada al iniciar sesión con credenciales correctas");
+
+
+        //The user is redirected to the list view:
+        PO_View.checkElementBy(driver, "id", "widget-friends" ); //Esperamos que cargue el widget
+        String msgExpected="Listado de amigos:";
+        String msgFound = driver.findElement(By.tagName("h1")).getText();
+
+        //Chequeamos que el mensaje se muestra en la vista.
+        Assertions.assertEquals(msgExpected,msgFound);
+        //Esperamos que cargue lista de normal, con los amigos que tiene en total el usuario logueado
+        SeleniumUtils.waitLoadElementsByXpath(driver,"//*[@id=\"friendsTableBody\"]/tr[1]", 20 );
+
+        //Escribimos en el filtro 'Esperanza'
+        WebElement filterForm = driver.findElement(By.id("filter-by-name"));
+        filterForm.sendKeys("Espe");
+        filterForm.sendKeys("ranz");
+        filterForm.sendKeys("a");
+
+        //esperamos que desaparezca el nombre de la amiga que se llama Gala
+        SeleniumUtils.waitTextIsNotPresentOnPage(driver, "Gala", 20);
+        //Esperamos que se cargue en el DOM al menos un amigo que cumpla con el criterio 'Esperanza'.
+        List<WebElement> userFriendNamesInView = driver.findElements(By.name("userName"));
+        //Chequeamos que tamaño de lista amigos en BD y la renderizada sea la misma.
+        Assertions.assertTrue(1<=userFriendNamesInView.size(),
+                "Tamaño de lista de amigos difiere entre la real y la mostrada en vista");
+
+        //Chequeamos que los nombres renderizados en lista corresponden todos con "Esperanza"
+        List<String> namesOfFriendsRendered = new LinkedList<>();
+        for (int i = 0; i < userFriendNamesInView.size(); i++) {
+            namesOfFriendsRendered.add(userFriendNamesInView.get(i).getText());
+        }
+        for (String nameInView:
+                namesOfFriendsRendered) {
+            Assertions.assertTrue(nameInView.equals("Esperanza"),
+                    "El usuario "+ nameInView+" no debería aparecer en vista.");
         }
 
     }
