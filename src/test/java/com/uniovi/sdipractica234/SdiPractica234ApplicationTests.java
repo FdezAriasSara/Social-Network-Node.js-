@@ -7,10 +7,7 @@ import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Filters;
-import com.uniovi.sdipractica234.pageobjects.PO_LoginView;
-import com.uniovi.sdipractica234.pageobjects.PO_NavView;
-import com.uniovi.sdipractica234.pageobjects.PO_SignUpView;
-import com.uniovi.sdipractica234.pageobjects.PO_UsersView;
+import com.uniovi.sdipractica234.pageobjects.*;
 import com.uniovi.sdipractica234.util.SeleniumUtils;
 import org.bson.Document;
 import org.bson.conversions.Bson;
@@ -1100,4 +1097,51 @@ class SdiPractica234ApplicationTests {
 
     }
 */
+    //[Prueba 32] Inicio de sesión con datos válidos
+    @Test
+    @Order(36)
+    public void PR032() {
+
+
+        PO_APIClientView.goToApiView(driver);
+        PO_APIClientView.fillForm(driver,"user01@email.com","user01");
+
+        List<WebElement> alert = driver.findElements(By.className("alert-danger"));
+        //Login con éxito no muestra alerta de error.
+        Assertions.assertTrue(alert.isEmpty(), "Alerta enseñada al iniciar sesión con credenciales correctas");
+
+
+        //The user is redirected to the list view:
+        PO_View.checkElementBy(driver, "id", "widget-friends" ); //Esperamos que cargue el widget
+        String msgExpected="Listado de amigos:";
+        String msgFound = driver.findElement(By.tagName("h1")).getText();
+        Assertions.assertTrue(msgFound!=null);
+        Assertions.assertEquals(msgExpected,msgFound);
+
+    }
+
+    //[Prueba 33] Inicio de sesión con datos inválidos (usuario no existente en la aplicación)
+    @Test
+    @Order(37)
+    public void PR033() {
+
+
+        PO_APIClientView.goToApiView(driver);
+        PO_APIClientView.fillForm(driver,"dummyUserNoExisto@email.com","noExisto123");
+
+        PO_View.checkElementBy(driver, "id", "alert");
+
+        List<WebElement> alert = driver.findElements(By.id("alert"));
+        //Login sin éxito, no muestra alerta de error.
+        Assertions.assertTrue(!alert.isEmpty(), "Alerta enseñada al iniciar sesión con credenciales correctas");
+
+        Assertions.assertTrue(alert.get(0).getText().equals("Usuario no encontrado"),
+                "Mensaje de la alerta, al iniciar sesión con credenciales inválidas, es diferente al esperado");
+        //The user is not redirected to the list view:
+        String msgExpected="Listado de amigos:";
+        SeleniumUtils.waitTextIsNotPresentOnPage(driver, msgExpected, 20); //Esperamos no encontrar el mensaje
+                                                                        //'listado de usuarios'
+
+
+    }
 }
