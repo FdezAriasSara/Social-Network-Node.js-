@@ -13,7 +13,7 @@ module.exports = function (app, publicationsRepository, usersRepository, message
                 let user = result[0];
                 let friendships = user.friendships;
                 let arrayOfFriends = []
-
+                let error=false;
                 for(let i = 0; i < friendships.length; i++){
 
                     await usersRepository.findUser({_id: friendships[i]},{_id:1,name:1,surname:1})
@@ -24,7 +24,7 @@ module.exports = function (app, publicationsRepository, usersRepository, message
 
                         })
                         .catch(error => {
-
+                            error=true;
                             res.status(500);
                             res.json({
                                 message: "Se ha producido un error al encontrar al amigo con id: " + friendships[i],
@@ -33,16 +33,19 @@ module.exports = function (app, publicationsRepository, usersRepository, message
                             })
 
                         })
-
+                    if(error){
+                        return;}
                 }
+                if(!error) {
 
-                //Ordena los nombre por orden alfabetico
-                arrayOfFriends.sort( (a,b) => a.name - b.name);
+                    //Ordena los nombre por orden alfabetico
+                    arrayOfFriends.sort((a, b) => a.name - b.name);
 
 
-                res.status(200);
-                res.json({friends: arrayOfFriends})
-
+                    res.status(200);
+                    res.json({friends: arrayOfFriends})
+                    return;
+                }
             })
             .catch(error => {
 
@@ -119,31 +122,12 @@ module.exports = function (app, publicationsRepository, usersRepository, message
 
     app.post("/api/message/add", async function (req, res) {
 
-
-        let receiverEmail = null;
-        let noReceiver = false;
-
-        await usersRepository.findUser({_id: ObjectId(req.body.idReceiver)}, {})
-            .then( results => {
-                if(results.length <= 0){
-                    noReceiver = true;
-                }else{
-                    receiverEmail = results[0].email;
-                }
-
-            })
-            .catch(error => {
-                noReceiver = true;
-            })
-
-
-
         //Si en el cuerpo de la peticoon no hay ni receptor ni contenido del mensaje
-        if(!receiverEmail || !req.body.text || noReceiver){
+        if(!req.body.receiverEmail || !req.body.text){
 
             res.status(401);
             res.json({
-                message: "Falta email receptor o contenido del mensaje, o el receptor no existe."
+                message: "Falta email receptor o contenido del mensaje"
             })
             return;
         }
@@ -154,61 +138,52 @@ module.exports = function (app, publicationsRepository, usersRepository, message
 
 
             let sender = await usersRepository.findUser({email: res.user},{})
-            let receiver = await usersRepository.findUser({email: receiverEmail},{}) ;
+            let receiver = await usersRepository.findUser({email: req.body.receiverEmail},{}) ;
 
             sender = sender[0]
             receiver = receiver[0]
 
-            usersRepository.isFriendOf( ObjectId(sender._id), ObjectId(receiver._id))
-                .then( areFriends => {
-
-                    if(areFriends){
-
-                        let message = {
-                            senderEmail : res.user,
-                            receiverEmail : receiverEmail,
-                            text : req.body.text,
-                            leido : false
-                        }
-                        messagesRepository.createMessage(message)
-                            .then( (resultId) => {
-
-                                res.status(200);
-                                res.json({
-                                    message: "Mensaje creado con exito."
-                                })
+           let areFriends =  await usersRepository.isFriendOf( sender._id, receiver._id)
 
 
-                            })
-                            .catch( (error) => {
+            if(areFriends === true){
 
-                                res.status(500);
-                                res.json({
-                                    message: "Error al crear mensaje entre" + res.user + " y " + receiverEmail + ".",
-                                    error: error
-                                })
+                let message = {
+                    senderEmail : res.user,
+                    receiverEmail : req.body.receiverEmail,
+                    text : req.body.text,
+                    leido : false
+                }
+                messagesRepository.createMessage(message)
+                    .then( (resultId) => {
 
-                            })
+                        res.status(200);
+                        res.json({
+                            message: "Mensaje creado con exito."
+                        })
 
-                    }else{
+
+                    })
+                    .catch( (error) => {
 
                         res.status(500);
                         res.json({
-                            message: "" + res.user + " y " + receiverEmail + " no son amigos"
+                            message: "Error al crear mensaje entre" + res.user + " y " + req.body.receiverEmail + ".",
+                            error: error
                         })
 
-                    }
-
-                })
-                .catch(error => {
-
-                    res.status(500);
-                    res.json({
-                        message: "Error comprobando si " + res.user + " y " + receiverEmail + " son amigos",
-                        error: error
                     })
 
+            }else{
+
+                res.status(500);
+                res.json({
+                    message: "" + res.user + " y " + req.body.receiverEmail + " no son amigos"
                 })
+
+            }
+
+
 
         } catch (e) {
             res.status(500);
@@ -227,8 +202,14 @@ module.exports = function (app, publicationsRepository, usersRepository, message
 
             let otherUser = null;
 
+            let thereIsError = false;
+            let message = ""
            await usersRepository.findUser({_id: ObjectId(req.body.idOtherUser)}, {})
                 .then( otherUsers => {
+                    if(otherUsers.length <= 0){
+                        thereIsError=true;
+                        message = "No existe usuario con id: " + req.body.idOtherUser
+                    }
                     otherUser = otherUsers[0];
                 })
                 .catch(error => {
@@ -239,13 +220,22 @@ module.exports = function (app, publicationsRepository, usersRepository, message
                     })
                 })
 
+            if(thereIsError){
+                res.status(500);
+                res.json({
+                    message: message,
+                    error: new Error()
+                })
+                return;
+            }
+
 
             //primero pillamos los mensajes que le envié yo y luego los que me envió él.
             //Unimos las dos arrays
             let messages = await messagesRepository.getMessagesFromTo(myself, otherUser.email)
             messages =messages.concat( await messagesRepository.getMessagesFromTo(otherUser.email, myself))
 
-            messages.sort( (a,b) => a.date - b.date);
+            messages.sort( (a,b) => b.date - a.date);
 
             res.status(200);
             res.json({
@@ -256,7 +246,7 @@ module.exports = function (app, publicationsRepository, usersRepository, message
             res.status(500);
             res.json({
                 message: "Se ha producido un error al leer conversación",
-                error: e
+                error: e.message
             })
         }
 

@@ -1,12 +1,17 @@
 const {ObjectId} = require("mongodb");
 const {v4: uuidv4} = require("uuid")
+var log4js = require("log4js");
+var logger = log4js.getLogger();
+logger.level = "debug"
+
 module.exports = function (app, usersRepository, publicationsRepository) {
 
-    const TOTAL_PUBLICATIONS_PER_PAGE = 9;
+    const TOTAL_PUBLICATIONS_PER_PAGE = 5;
 
     //GET LISTAR PUBLICACIONES
     app.get("/publications/list", function (req, res) {
 
+        logger.info("[GET] - [/publications/list")
 
         let page = parseInt(req.query.page); // Es String !!!
         if (typeof req.query.page === "undefined"
@@ -16,25 +21,32 @@ module.exports = function (app, usersRepository, publicationsRepository) {
             page = 1;
         }
 
-        //busco el usuario logeado para obtener sus publicaciones
+        //busco el usuario logueado para obtener sus publicaciones
 
 
 
 
-        //Si no estoy logeado, me manda a la pagina de inicio de sesion
+        //Si no estoy logueado, me manda a la pagina de inicio de sesion
         if(!req.session.user){
             res.render("/login")
             ;        }
+
+
+
 
         usersRepository.findUser({email: req.session.user}, {})
             .then(async users => {
 
                 //Cuando recibo el user, obtengo el _id y busco las publicaciones
 
+
+
                 if(users.length < 0 ){
+
                     //Como lo que se devuelve al buscar un usuario es una array,
                     // si no contiene nada significa que no encontró el usuario
                     res.status(500);
+                    logger.error("Error reconociendo usuario: no existe")
                     res.render("error.twig",
                         {
                             message: "Error reconociendo usuario: no existe",
@@ -42,6 +54,9 @@ module.exports = function (app, usersRepository, publicationsRepository) {
                         });
                     return;
                 }
+
+
+
                 //Si se devuelve algo en la array, debería ser un solo usuario, se selecciona el primer elemento
                 let user = users[0];
 
@@ -52,6 +67,7 @@ module.exports = function (app, usersRepository, publicationsRepository) {
 
             })
             .catch(error => {
+                logger.error("Error listando tus publicaciones")
                 res.render("error.twig",
                     {
                         message: "Error listando tus publicaciones",
@@ -71,8 +87,8 @@ module.exports = function (app, usersRepository, publicationsRepository) {
 
 
 
-
-        res.render("publications/add.twig",{isLogedIn: ( req.session.user!=null && req.session.user!= 'undefined')});
+        logger.info("[GET] - [/publications/add]")
+        res.render("publications/add.twig",{isLoggedIn: ( req.session.user )});
     });
 
 
@@ -80,16 +96,18 @@ module.exports = function (app, usersRepository, publicationsRepository) {
     app.post("/publications/add", async function (req, res){
 
 
+        logger.info("[POST] - [/publications/add]")
 
-
-        //Si no estoy logeado, me manda a la pagina de inicio de sesion
+        //Si no estoy logueado, me manda a la pagina de inicio de sesión
         if(!req.session.user){
-            res.render("/login")
+            logger.error("Usuario no logueado")
+            res.redirect("/login")
             ;        }
 
 
         if(req.session.user == null || req.session.user == undefined){
-            res.render("login.twig")
+            logger.error("Usuario no logueado")
+            res.redirect("/login")
         }else{
 
             let errorMessage = "";
@@ -105,6 +123,7 @@ module.exports = function (app, usersRepository, publicationsRepository) {
             }
 
             if( emptyFields){
+                logger.warn("Error en formulario de añadir publicacion")
                 res.redirect("/publications/add" +
                     "?message="+ errorMessage +
                     "&messageType=alert-danger");
@@ -137,6 +156,7 @@ module.exports = function (app, usersRepository, publicationsRepository) {
 
 
 
+            //No chequeo error porque se supone que el loggin funciona (me fio de mis compañeros=+)
             //Find ObjectID of current user:
             let currentID = await usersRepository.findUser({email: req.session.user},
                 {email:0,name:0,surname:0,password:0,_id:1});
@@ -151,7 +171,8 @@ module.exports = function (app, usersRepository, publicationsRepository) {
                         imagen.mv(app.get("uploadPath") + '\\public\\images\\' + randomUUIDForImage + '.png',
                             function (err) {
                                 if(err){
-                                    res.send("Error al subir la imagen.");
+                                    logger.error("Error al subir la imagen, pero publicación añadida")
+                                    res.send("Error al subir la imagen, pero publicación añadida");
                                 }else{
                                     res.redirect("/publications/list");
                                 }
@@ -166,7 +187,7 @@ module.exports = function (app, usersRepository, publicationsRepository) {
                 })
                 .catch(error => {
                     res.redirect("/publications/add" +
-                        "?message=Error al registrar la publicacion, intentelo de nuevo:"+error +
+                        "?message=Error al registrar la publicación, inténtelo de nuevo:"+error +
                         "&messageType=alert-danger");
                 })
 
@@ -182,7 +203,7 @@ module.exports = function (app, usersRepository, publicationsRepository) {
 
     //GET LISTAR PUBLICACIONES
     app.get("/publications/friend/:friendId", function (req, res) {
-
+        logger.info("[GET] - [/publications/friend/:friendId] - [friendId: " + req.params.friendId + " ]")
 
         let page = parseInt(req.query.page); // Es String !!!
         if (typeof req.query.page === "undefined"
@@ -192,14 +213,14 @@ module.exports = function (app, usersRepository, publicationsRepository) {
             page = 1;
         }
 
-        //busco el usuario logeado para obtener sus publicaciones
+        //busco el usuario logueado para obtener sus publicaciones
 
 
 
 
-        //Si no estoy logeado, me manda a la pagina de inicio de sesion
+        //Si no estoy logueado, me manda a la pagina de inicio de sesion
         if(!req.session.user){
-            res.render("/login")
+            res.redirect("/login")
 ;        }
 
 
@@ -312,7 +333,7 @@ module.exports = function (app, usersRepository, publicationsRepository) {
                     res.render("publications/publications.twig",
                         {
                             publications: realPublications,
-                            isLogedIn:( req.session.user!=null && req.session.user!= 'undefined'),
+                            isLoggedIn:( req.session.user!=null && req.session.user!= 'undefined'),
                             pages: pages,
                             currentPage: page,
                             author: publications.author
@@ -323,7 +344,7 @@ module.exports = function (app, usersRepository, publicationsRepository) {
                     res.render("publications/publications.twig",
                         {
                             publications: [],
-                            isLogedIn:( req.session.user!=null && req.session.user!= 'undefined'),
+                            isLoggedIn:( req.session.user!=null && req.session.user!= 'undefined'),
                             pages: 1,
                             currentPage: 1,
                             author: publications.author

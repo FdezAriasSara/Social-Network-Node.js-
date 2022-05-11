@@ -36,7 +36,7 @@ module.exports = {
 
 
 
-
+            client.close();
             return publicationsOfUser._id;
         } catch (error) {
             throw (error);
@@ -45,7 +45,7 @@ module.exports = {
     },
     findAllPublicationsByAuthorAndPage: async function (authorStringId, page){
 
-        const limit = 9; //TOTAL_PUBLICATIONS_PER_PAGE
+        const limit = 5; //TOTAL_PUBLICATIONS_PER_PAGE
         const client = await this.mongoClient
             .connect(this.app.get('connectionStrings'));
         const database = client.db("redsocial");
@@ -72,7 +72,7 @@ module.exports = {
 
 
 
-
+        client.close();
         return {publicationsArray: publicationsArray, total: totalPublicationsFromUser, author: authorEmail};
 
     },
@@ -85,9 +85,23 @@ module.exports = {
 
         let publicationsDocument = await publicationsCollection.find({userID: authorObjectID}, {publications: 1, _id:0}).toArray();
 
-
+        client.close();
         return publicationsDocument;
 
+    },
+    deletePublications:async function (filter) {
+        try {
+            const client = await this.mongoClient
+                .connect(this.app.get('connectionStrings'));
+            const database = client.db("redsocial");
+            const collectionName = 'publications';
+            const publicationsCollection = database.collection(collectionName);
+            const result = await publicationsCollection.deleteMany(filter);
+            client.close();
+            return result;
+        } catch (error) {
+            throw (error);
+        }
     }
 
 }
