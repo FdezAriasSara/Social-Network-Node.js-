@@ -7,6 +7,8 @@ import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Filters;
+
+import com.mongodb.client.model.Updates;
 import com.uniovi.sdipractica234.pageobjects.*;
 import com.uniovi.sdipractica234.util.SeleniumUtils;
 import org.bson.Document;
@@ -39,11 +41,12 @@ class SdiPractica234ApplicationTests {
     //static String Geckodriver = "C:\\Path\\geckodriver-v0.30.0-win64.exe";
   //  static String Geckodriver = "C:\\Users\\usuario\\Desktop\\Eii\\AÑO 3 GRADO INGENIERIA INFORMATICA\\Sistemas Distribuidos e Internet\\Lab\\sesion05\\PL-SDI-Sesión5-material\\geckodriver-v0.30.0-win64.exe";
     //sebas
-    //static String Geckodriver ="C:\\Users\\sebas\\Downloads\\TERCERO\\SEGUNDO CUATRIMESTRE\\SDI\\PL-SDI-Sesión5-material\\PL-SDI-Sesión5-material\\geckodriver-v0.30.0-win64.exe";
+    static String Geckodriver ="C:\\Users\\sebas\\Downloads\\TERCERO\\SEGUNDO CUATRIMESTRE\\SDI\\PL-SDI-Sesión5-material\\PL-SDI-Sesión5-material\\geckodriver-v0.30.0-win64.exe";
 
     //ce
     //static String PathFirefox = "C:\\Program Files\\Mozilla Firefox\\firefox.exe";
-    static String Geckodriver = "E:\\UNIOVI\\TERCERO\\Segundo cuatri\\SDI\\PL-SDI-Sesión5-material\\geckodriver-v0.30.0-win64.exe"; //CASA
+
+    //static String Geckodriver = "E:\\UNIOVI\\TERCERO\\Segundo cuatri\\SDI\\PL-SDI-Sesión5-material\\geckodriver-v0.30.0-win64.exe"; //CASA
     //static String Geckodriver = "C:\\Users\\Sara\\Desktop\\Universidad\\3-tercer curso\\segundo cuatri\\(SDI)-Sistemas Distribuidos e Internet\\Sesión5-material\\geckodriver-v0.30.0-win64.exe";
 
     /* SARA */
@@ -419,7 +422,7 @@ class SdiPractica234ApplicationTests {
     public void PR13(){
         loginAs("admin@email.com", "admin");
         PO_UsersView.goToUsersList(driver);
-        deleteUserInPath("//*[@id=\"tableUsers\"]/tbody/tr[last()-1]/td[4]/input");
+        deleteUserInPath("//*[@id=\"tableUsers\"]/tbody/tr[last()]/td[4]/input");
 
     }
 
@@ -722,7 +725,8 @@ class SdiPractica234ApplicationTests {
 
         //now we remove the user from the database. TODO check it works <3
         usersCollection.deleteOne(eq("email","test@email.com"));
-        usersCollection.deleteOne(eq("invitesReceived", id));
+        usersCollection.findOneAndUpdate(eq("email", "user02@email.com"),
+                Updates.pull("invitesSent", id));
     }
 
     //[Prueba20] Iniciamos sesión, mandamos una invitación de amistad a otro usuario, y tratamos de volver a mandar una
@@ -757,7 +761,8 @@ class SdiPractica234ApplicationTests {
 
         //now we remove the user from the database. TODO check it works <3
         usersCollection.deleteOne(eq("email","test@email.com"));
-        usersCollection.deleteOne(eq("invitesReceived", id));
+        usersCollection.findOneAndUpdate(eq("email", "user04@email.com"),
+                Updates.pull("invitesReceived", id));
     }
 
     //[Prueba21] Iniciamos sesión y mostramos el listado de invitaciones de amistad recibidas
@@ -832,7 +837,10 @@ class SdiPractica234ApplicationTests {
 
         //now we remove the user from the database. TODO check it works <3
         usersCollection.deleteOne(eq("email","test@email.com"));
-        usersCollection.deleteOne(eq("friendships", id));
+
+
+        usersCollection.findOneAndUpdate(eq("email", "user05@email.com"),
+                Updates.pull("friendships", id));
     }
 
     //[Prueba22_1] Prueba adicional para comprobar que tras aceptar la invitación, aparece el usuario en el listado de
@@ -883,7 +891,8 @@ class SdiPractica234ApplicationTests {
 
         //now we remove the user from the database. TODO check it works <3
         usersCollection.deleteOne(eq("email","test@email.com"));
-        usersCollection.deleteOne(eq("friendships", id));
+        usersCollection.findOneAndUpdate(eq("email", "user05@email.com"),
+                Updates.pull("friendships", id));
     }
 
     //[Prueba23] Mostrar el listado de amigos de un usuario. Comprobar que el listado contiene los amigos que deben ser
