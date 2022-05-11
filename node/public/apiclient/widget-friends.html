@@ -45,6 +45,8 @@
      * Nos lleva a otro widget , el de la conversación.
      */
     function showConversationWith(friend){
+        console.log(friend)
+        console.log(currentFriend)
                 currentFriend=friend
                 $("#main-container").load("widget-conversation.html");
 
@@ -65,7 +67,7 @@
                dataType: 'json',
                headers: {"token": token},
             success: function (response) {
-                currentFriend= JSON.parse(JSON.stringify(friend))
+                currentFriend= JSON.parse(JSON.stringify(friend._id))
                 messages = response.messages;
 
                 var last=messages[messages.length-1];
