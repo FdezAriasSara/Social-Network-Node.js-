@@ -25,6 +25,9 @@
         background: aliceblue;
         color:#363a42;
     }
+    .waitMessage{
+        color: #1efabe;
+    }
 
 </style>
 <div id="widget-conversation" >
@@ -38,6 +41,10 @@
 </div>
 </div>
 <script>
+    /**
+     * Este método obtiene los mensajes que hay en este momento en la base de datos entre el usuario que está actualmente en sesión
+     * y aquel cuyo id es indicado en el body.
+     */
     function loadMessages() {
 
         $.ajax({
@@ -51,12 +58,18 @@
                 messages = response.messages;
             },
             error: function (error) {
+                $(".alert").remove();
                 $("#widget-conversation").append("<div class='alert alert-danger' > Se ha producido un error al acceder a la conversación</div>");
             }
         });
 
 
     }
+
+    /**
+     * Muestra los mensajes de la conversación, con su fecha , hora y autor.
+     * @param messages, los mensajes a mostrar.
+     */
     function displayConversation(messages) {
         $('.waitMessage').remove();
         for ( i = 0; i <messages.length; i++) {
@@ -65,11 +78,14 @@
         }
 
     }
+    /**
+     * Envía un nuevo mensaje a la api, y escribe un texto informativo en el cuadro del chat.
+     */
     function sendMessage() {
-        $(".waitMessage").remove();
+
         let messageText = $("#newMessage").val();
         let receiverEmail=messages[0].receiverEmail;
-        oldMessages=messages.map((x)=>x);
+        oldMessages=messages.map((x)=>x); //store the messages prior to the new one
             $.ajax({
                 url: URLbase + "/message/add?token=" + token,
                 type: "POST",
@@ -77,10 +93,12 @@
                 dataType: 'json',
                 headers: {},
                 success: function (response) {
+                    $(".waitMessage").remove();
                     $("#chatbox").append("<p class='waitMessage'>enviando mensaje...<em>'"+messageText+"'</em></p>");
 
                 },
                 error: function (error) {
+                    $(".alert").remove();
                     $("#widget-conversation").append("<div class='alert alert-danger' >Se ha producido un error al enviar tu mensaje</div>");
                 }
             });
@@ -89,20 +107,34 @@
 
     }
     let oldMessages;
+    /**
+     * Este método se ejecuta de forma periódica. Carga los posibles nuevos mensajes, y los muestra en la conversación
+     * (añadiéndolos al final)
+     * Una vez los mensajes se han cargado, se establece el conjunto de mensajes como "mensajes antiguos" , ya que en la
+     * proxima ejecución probablemente haya mensajes nuevos por añadir.
+     * En la base de datos, los mensajes están ordenados de  más reciente a menos reciente. En la conversación , para mostrarlo
+     * como es habitual ( al revés) , invierto el orden de la array que se recibe.
+     */
     setInterval(function() {
-        console.log(oldMessages.length)
-        console.log(messages.length)
-         loadMessages();
+         loadMessages();//refresh conversation
         let toWrite=[];
+        let j=0;//Messages get inverted in the data base since they are ordered by date
         for ( i = oldMessages.length; i < messages.length ; i++) {
-            toWrite.push(messages[i]);
-            console.log(messages[i].text)
+            toWrite.push(messages[j]);
         }
-
-       displayConversation(toWrite);
+         displayConversation(toWrite);
+        oldMessages=messages;//now messages are up to date.
     }, 5000);
     displayConversation(messages);//will be executed when this view is accesed for the first time
+
+    /**
+     * Este botón permite volver al widget en el que se muestra la lista de amigos.
+     * Borra los mensajes de chat, alerta y espera para dejar la vista "limpia" .
+     */
     function volver() {
+        $(".waitMessage").remove();
+        $(".chatMessage").remove();
+        $(".alert").remove();
         $("#main-container").load("widget-friends.html");
     }
 

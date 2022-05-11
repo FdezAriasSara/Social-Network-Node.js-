@@ -14,6 +14,10 @@
 </div>
 <script>
     var friends;
+
+    /**
+     * Carga todos los usuarios que son amigos del actual.
+     */
     function loadUsers() {
         $.ajax({
             url: URLbase + "/friends/list",
@@ -35,11 +39,20 @@
 
     var messages;
     var currentFriend = null;
+
+    /**
+     * Nos lleva a otro widget , el de la conversación.
+     */
     function showConversationWith(){
                 $("#main-container").load("widget-conversation.html");
 
     }
 
+    /**
+     * Método que obtiene el último mensaje de una conversación entre dos usuarios, y lo muestra debajo de él en la lista.
+     * Si hay más de un mensaje, se muestra como un enlace a la converasción.
+     * @param friend
+     */
 
     function obtainLastMessage(friend) {
            currentFriend = friend
@@ -72,6 +85,10 @@
 
     }
 
+    /**
+     * Método que introduce los nombres y apellidos de los amigos del actual usuario
+     * @param friends
+     */
     function updateFriendTable(friends) {
         $("#friendsTableBody").empty(); // Vaciar la tabla
         for (i = 0; i < friends.length; i++) {
@@ -89,7 +106,9 @@
 
         }
     } loadUsers();
-
+    /**
+     * Permite filtrar ususarios mediante un cuadro de texto
+     */
     $('#filter-by-name').on('input',function(e){
         let filteredFriends = [];
         let filterValue = $("#filter-by-name").val();
