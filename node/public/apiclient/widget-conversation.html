@@ -66,8 +66,10 @@
 
     }
     function sendMessage() {
+        $(".waitMessage").remove();
         let messageText = $("#newMessage").val();
         let receiverEmail=messages[0].receiverEmail;
+        oldMessages=messages.map((x)=>x);
             $.ajax({
                 url: URLbase + "/message/add?token=" + token,
                 type: "POST",
@@ -86,11 +88,17 @@
 
 
     }
+    let oldMessages;
     setInterval(function() {
-        let oldMessages=messages;
-        let toWrite={};
+        console.log(oldMessages.length)
+        console.log(messages.length)
          loadMessages();
-         messages.map(msg=>{if(oldMessages.contains(msg)){toWrite[toWrite.length]=msg;}})
+        let toWrite=[];
+        for ( i = oldMessages.length; i < messages.length ; i++) {
+            toWrite.push(messages[i]);
+            console.log(messages[i].text)
+        }
+
        displayConversation(toWrite);
     }, 5000);
     displayConversation(messages);//will be executed when this view is accesed for the first time
