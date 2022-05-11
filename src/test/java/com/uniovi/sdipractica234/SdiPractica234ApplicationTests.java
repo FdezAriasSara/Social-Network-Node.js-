@@ -723,7 +723,7 @@ class SdiPractica234ApplicationTests {
         List<WebElement> result = PO_View.checkElementBy(driver, "text", checkText);
         Assertions.assertEquals(checkText, result.get(0).getText());
 
-        //now we remove the user from the database. TODO check it works <3
+        //now we remove the user from the database.
         usersCollection.deleteOne(eq("email","test@email.com"));
         usersCollection.findOneAndUpdate(eq("email", "user02@email.com"),
                 Updates.pull("invitesSent", id));
@@ -759,10 +759,10 @@ class SdiPractica234ApplicationTests {
         driver.get(url);
         Assertions.assertEquals("ERROR:", PO_View.checkElementBy(driver, "text", "ERROR").get(0).getText());
 
-        //now we remove the user from the database. TODO check it works <3
+        //now we remove the user from the database.
         usersCollection.deleteOne(eq("email","test@email.com"));
         usersCollection.findOneAndUpdate(eq("email", "user04@email.com"),
-                Updates.pull("invitesReceived", id));
+                Updates.pull("invitesSent", id));
     }
 
     //[Prueba21] Iniciamos sesión y mostramos el listado de invitaciones de amistad recibidas
@@ -835,7 +835,7 @@ class SdiPractica234ApplicationTests {
         inviteList = SeleniumUtils.waitLoadElementsBy(driver, "free", "//tbody/tr", PO_View.getTimeout());
         Assertions.assertEquals(3, inviteList.size());
 
-        //now we remove the user from the database. TODO check it works <3
+        //now we remove the user from the database.
         usersCollection.deleteOne(eq("email","test@email.com"));
 
 
@@ -889,7 +889,7 @@ class SdiPractica234ApplicationTests {
         List<WebElement> friendList = SeleniumUtils.waitLoadElementsBy(driver, "free", "//tbody/tr", PO_View.getTimeout());
         Assertions.assertEquals(1, friendList.size());
 
-        //now we remove the user from the database. TODO check it works <3
+        //now we remove the user from the database.
         usersCollection.deleteOne(eq("email","test@email.com"));
         usersCollection.findOneAndUpdate(eq("email", "user05@email.com"),
                 Updates.pull("friendships", id));
