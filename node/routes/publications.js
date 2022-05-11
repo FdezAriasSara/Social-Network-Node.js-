@@ -6,7 +6,7 @@ logger.level = "debug"
 
 module.exports = function (app, usersRepository, publicationsRepository) {
 
-    const TOTAL_PUBLICATIONS_PER_PAGE = 9;
+    const TOTAL_PUBLICATIONS_PER_PAGE = 5;
 
     //GET LISTAR PUBLICACIONES
     app.get("/publications/list", function (req, res) {
