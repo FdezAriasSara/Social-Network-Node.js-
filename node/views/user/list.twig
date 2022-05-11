@@ -47,7 +47,7 @@
                     <td>
                         {% if user.email not in canNotSendUsers %}
                             <form method="post" action="/friends/invite/{{ user._id }}">
-                                <button>
+                                <button id="sendButton{{ invite.email }}">
                                     Agregar amigo
                                 </button>
                             </form>
