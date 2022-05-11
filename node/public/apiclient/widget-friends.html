@@ -74,7 +74,7 @@
                 if(messages.length>1){//A link to the conversation is only available if there is more than one message.
                     $("#friendsTableBody").find('#friendMsg'+i).append("<tr><td><a"+" onclick=showConversationWith(currentFriend)>["+last.date+"] "+last.senderEmail+" dijo :"+last.text+"</></td></tr>");
 
-                }else{
+                }else if(messages.length==1){
 
                     $("#friendsTableBody").append("<tr class='lastMsg'><td >"+"["+last.date+"] "+last.senderEmail+" dijo :"+last.text+"</td></tr>");
                 }
