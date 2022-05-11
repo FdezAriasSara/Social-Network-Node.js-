@@ -1,4 +1,5 @@
 <div id="widget-friends" >
+    <h1>Listado de amigos:</h1>
     <input type="text" class="form-control" placeholder="Filtrar por nombre de amigo" id="filter-by-name"/>
     <button class="btn" onclick="loadUsers()" >Actualizar</button>
     <table class="table table-hover">
@@ -95,7 +96,7 @@
         $("#friendsTableBody").empty(); // Vaciar la tabla
         for (i = 0; i < friends.length; i++) {
             $("#friendsTableBody").append("<tr>"+
-                "<td>" + friends[i].name + "</td>" +
+                "<td name='userName'>" + friends[i].name + "</td>" +
                 "<td>" + friends[i].surname+ "</td>"
             +"<tr id=friendMsg"+i+">");
 
