@@ -1,5 +1,8 @@
 const {ObjectId} = require('mongodb');
-const {sendInvite} = require("../repositories/usersRepository");
+const {v4: uuidv4} = require("uuid");
+var log4js = require("log4js");
+var logger = log4js.getLogger();
+logger.level = "debug";
 module.exports = function (app, usersRepository) {
 
     const TOTAL_INVITES_PER_PAGE = 5;
@@ -9,6 +12,9 @@ module.exports = function (app, usersRepository) {
      * Devuelve la lista de invitaciones de amistad recibidas por el usuario en sesión
      */
     app.get('/friends/invites', function(req, res) {
+
+        logger.info("[GET] - [/friends/invites]");
+
         //paginación
         let page = parseInt(req.query.page);
         if (typeof req.query.page === "undefined"
@@ -24,6 +30,7 @@ module.exports = function (app, usersRepository) {
             if (users.length < 1){
                 //Si no encontramos el usuario, error
                 res.status(500);
+                logger.error("Error reconociendo usuario: no existe");
                 res.render("error.twig",
                     {
                         message: "Error reconociendo usuario: no existe",
@@ -59,6 +66,7 @@ module.exports = function (app, usersRepository) {
                         pages: pages,
                         currentPage: page});
             }).catch(error => {
+                logger.error("Error listando las invitaciones de amistad del usuario " + user);
                 res.render("error.twig",
                     {
                         message: "Error listando las invitaciones de amistad del usuario " + user,
@@ -66,6 +74,7 @@ module.exports = function (app, usersRepository) {
                     });
             })
         }).catch(error => {
+            logger.error("Error encontrando al usuario");
             res.render("error.twig",
                 {
                     message: "Error encontrando al usuario",
@@ -78,6 +87,7 @@ module.exports = function (app, usersRepository) {
      * Devuelve la lista de amigos del usuario en sesión
      */
     app.get('/friends/list', function (req, res){
+        logger.info("[GET] - [/friends/list]");
         //paginación
         let page = parseInt(req.query.page);
         if (typeof req.query.page === "undefined"
@@ -92,6 +102,7 @@ module.exports = function (app, usersRepository) {
             if (users.length < 1){
                 //Si no encontramos el usuario, error
                 res.status(500);
+                logger.error("Error reconociendo usuario: no existe")
                 res.render("error.twig",
                     {
                         message: "Error reconociendo usuario: no existe",
@@ -127,6 +138,7 @@ module.exports = function (app, usersRepository) {
                         pages: pages,
                         currentPage: page});
             }).catch(error => {
+                logger.error("Error listando las amistades del usuario " + user);
                 res.render("error.twig",
                     {
                         message: "Error listando las amistades del usuario " + user,
@@ -134,6 +146,7 @@ module.exports = function (app, usersRepository) {
                     });
             })
         }).catch(error => {
+            logger.error("Error encontrando al usuario");
             res.render("error.twig",
                 {
                     message: "Error encontrando al usuario",
@@ -148,12 +161,16 @@ module.exports = function (app, usersRepository) {
      * pendientes nuestras, tanto recibidas como mandadas
      */
     app.post('/friends/invite/:id', function (req, res){
+
+        logger.info("[POST] - [/friends/invite/" + req.params.id + "]");
+
         let filter = { email: req.session.user};
         usersRepository.findUser( filter, {} ).then(async users => {
             //Obtenemos el usuario en sesión para usarlo como sender
             if (users.length < 1) {
                 //Si no encontramos el usuario, error
                 res.status(500);
+                logger.error("Error reconociendo usuario: no existe");
                 res.render("error.twig",
                     {
                         message: "Error reconociendo usuario: no existe",
@@ -168,6 +185,7 @@ module.exports = function (app, usersRepository) {
                 if (usersParam.length < 1) {
                     //Si no encontramos el usuario, error
                     res.status(500);
+                    logger.error("Error reconociendo usuario: no existe");
                     res.render("error.twig",
                         {
                             message: "Error reconociendo usuario: no existe",
@@ -203,6 +221,7 @@ module.exports = function (app, usersRepository) {
                             "&messageType=alert-info");
                     }
                 }).catch(error => {
+                    logger.error("Error encontrando al usuario");
                     res.render("error.twig",
                         {
                             message: "Error encontrando al usuario",
@@ -210,6 +229,7 @@ module.exports = function (app, usersRepository) {
                         });
                 })
             }).catch(error => {
+                logger.error("Error encontrando al usuario");
                 res.render("error.twig",
                     {
                         message: "Error encontrando al usuario",
@@ -217,6 +237,7 @@ module.exports = function (app, usersRepository) {
                     });
             })
         }).catch(error => {
+            logger.error("Error encontrando al usuario");
             res.render("error.twig",
                 {
                     message: "Error encontrando al usuario",
@@ -229,12 +250,16 @@ module.exports = function (app, usersRepository) {
      * Aceptar una invitación de amistad
      */
     app.post('/friends/accept/:id', function (req, res){
+
+        logger.info("[POST] - [/friends/accept/" + req.params.id + "]");
+
         let filter = { email: req.session.user};
         usersRepository.findUser( filter, {} ).then(async users => {
             //Obtenemos el usuario en sesión para usarlo como receiver
             if (users.length < 1) {
                 //Si no encontramos el usuario, error
                 res.status(500);
+                logger.error("Error reconociendo usuario: no existe");
                 res.render("error.twig",
                     {
                         message: "Error reconociendo usuario: no existe",
@@ -249,6 +274,7 @@ module.exports = function (app, usersRepository) {
                 if (usersParam.length < 1) {
                     //Si no encontramos el usuario, error
                     res.status(500);
+                    logger.error("Error reconociendo usuario: no existe");
                     res.render("error.twig",
                         {
                             message: "Error reconociendo usuario: no existe",
@@ -278,6 +304,7 @@ module.exports = function (app, usersRepository) {
                             "&messageType=alert-danger");
                     }
                 }).catch(error => {
+                    logger.error("Error encontrando al usuario");
                     res.render("error.twig",
                         {
                             message: "Error encontrando al usuario",
@@ -285,6 +312,7 @@ module.exports = function (app, usersRepository) {
                         });
                 })
             }).catch(error => {
+                logger.error("Error encontrando al usuario");
                 res.render("error.twig",
                     {
                         message: "Error encontrando al usuario",
@@ -292,6 +320,7 @@ module.exports = function (app, usersRepository) {
                     });
             })
         }).catch(error => {
+            logger.error("Error encontrando al usuario");
             res.render("error.twig",
                 {
                     message: "Error encontrando al usuario",
