@@ -18,6 +18,8 @@ import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.firefox.FirefoxDriver;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
 
 
 import java.util.LinkedList;
@@ -25,6 +27,8 @@ import java.util.List;
 
 import static com.mongodb.client.model.Filters.*;
 import static com.mongodb.client.model.Sorts.ascending;
+
+import static com.mongodb.client.model.Filters.eq;
 
 
 class SdiPractica234ApplicationTests {
@@ -39,13 +43,13 @@ class SdiPractica234ApplicationTests {
 
     //ce
     //static String PathFirefox = "C:\\Program Files\\Mozilla Firefox\\firefox.exe";
-    static String Geckodriver = "E:\\UNIOVI\\TERCERO\\Segundo cuatri\\SDI\\PL-SDI-Sesión5-material\\geckodriver-v0.30.0-win64.exe"; //CASA
+   // static String Geckodriver = "E:\\UNIOVI\\TERCERO\\Segundo cuatri\\SDI\\PL-SDI-Sesión5-material\\geckodriver-v0.30.0-win64.exe"; //CASA
     //static String Geckodriver = "C:\\Users\\Sara\\Desktop\\Universidad\\3-tercer curso\\segundo cuatri\\(SDI)-Sistemas Distribuidos e Internet\\Sesión5-material\\geckodriver-v0.30.0-win64.exe";
 
     /* SARA */
     static String PathFirefox = "C:\\Program Files\\Mozilla Firefox\\firefox.exe";
     //static String Geckodriver = "C:\\Path\\geckodriver-v0.30.0-win64.exe";
-    //static String Geckodriver = "C:\\Users\\Sara\\Desktop\\Universidad\\3-tercer curso\\segundo cuatri\\(SDI)-Sistemas Distribuidos e Internet\\Sesión5-material\\geckodriver-v0.30.0-win64.exe";
+    static String Geckodriver = "C:\\Users\\Sara\\Desktop\\Universidad\\3-tercer curso\\segundo cuatri\\(SDI)-Sistemas Distribuidos e Internet\\Sesión5-material\\geckodriver-v0.30.0-win64.exe";
 
     //static String PathFirefox = "/Applications/Firefox.app/Contents/MacOS/firefox-bin";
     // static String Geckodriver = "/Users/USUARIO/selenium/geckodriver-v0.30.0-macos";
@@ -53,13 +57,13 @@ class SdiPractica234ApplicationTests {
 
     static WebDriver driver = getDriver(PathFirefox, Geckodriver);
     static String URL = "http://localhost:8090";
-    private String signUpURL="http://localhost:8090/users/signup";
-    static MongoClient mongoClient= MongoClients.create("mongodb+srv://admin:admin@cluster0.6uext.mongodb.net/myFirstDatabase?retryWrites=true&w=majority");
+    private String signUpURL = "http://localhost:8090/users/signup";
+    static MongoClient mongoClient = MongoClients.create("mongodb+srv://admin:admin@cluster0.6uext.mongodb.net/myFirstDatabase?retryWrites=true&w=majority");
 
     static MongoDatabase db;
     static MongoCollection<Document> usersCollection;
     static MongoCollection<Document> publiCollection;
-    static  MongoCollection<Document>  msgsCollection;
+    static MongoCollection<Document> msgsCollection;
 
 
     //Común a Windows y a MACOSX
@@ -72,7 +76,8 @@ class SdiPractica234ApplicationTests {
 
     @BeforeEach
     public void setUp() {
-      //  driver.navigate().to(URL);
+
+         driver.navigate().to(URL);
     } //Después de cada prueba se borran las cookies del navegador
 
     @AfterEach
@@ -84,22 +89,23 @@ class SdiPractica234ApplicationTests {
     //Antes de la primera prueba
     @BeforeAll
     static public void begin() {
-    try{
-            db=mongoClient.getDatabase("redsocial");
-            usersCollection=  db.getCollection("users");
-            publiCollection=  db.getCollection("publications");
-            msgsCollection=  db.getCollection("messages");
-    }catch (MongoException e){
-      throw e;
-    }}
+        try {
+            db = mongoClient.getDatabase("redsocial");
+            usersCollection = db.getCollection("users");
+            publiCollection = db.getCollection("publications");
+            msgsCollection = db.getCollection("messages");
+        } catch (MongoException e) {
+            throw e;
+        }
+    }
 
     //Al finalizar la última prueba
     @AfterAll
     static public void end() {
-      Bson query=eq("name","test");
-        var deleteUsers=usersCollection.deleteMany(query);
-        var deletePublications=usersCollection.deleteMany(query);
-        var deleteMessages=usersCollection.deleteMany(query);
+        Bson query = eq("name", "test");
+        var deleteUsers = usersCollection.deleteMany(query);
+        var deletePublications = usersCollection.deleteMany(query);
+        var deleteMessages = usersCollection.deleteMany(query);
         mongoClient.close();
         driver.quit();
     }
@@ -109,18 +115,18 @@ class SdiPractica234ApplicationTests {
     //[Prueba1-1] Registro de Usuario con datos válidos.
     @Test
     @Order(1)
-    void PR01_1() {
-       PO_SignUpView.goToSignUpPage(driver);
-       long usersBefore=usersCollection.countDocuments();//Number of users prior to sign up process.
+    void PR01() {
+        PO_SignUpView.goToSignUpPage(driver);
+        long usersBefore = usersCollection.countDocuments();//Number of users prior to sign up process.
 
         PO_SignUpView.goToSignUpPage(driver);
-        PO_SignUpView.fillForm(driver,"sara@email.com","Sara","Fernández Arias",
-               "password","password");
-       Document user=usersCollection.find(eq("email","sara@email.com")).first();
-        Assertions.assertTrue(user!=null);//check that the user can be found by  his/her email
-       Assertions.assertTrue(usersBefore < usersCollection.countDocuments());//Check that the number of documents increases after registering.
+        PO_SignUpView.fillForm(driver, "sara@email.com", "Sara", "Fernández Arias",
+                "password", "password");
+        Document user = usersCollection.find(eq("email", "sara@email.com")).first();
+        Assertions.assertTrue(user != null);//check that the user can be found by  his/her email
+        Assertions.assertTrue(usersBefore < usersCollection.countDocuments());//Check that the number of documents increases after registering.
         //now we remove the document from the database.
-        usersCollection.deleteOne(eq("email","sara@email.com"));
+        usersCollection.deleteOne(eq("email", "sara@email.com"));
 
     }
 
@@ -128,22 +134,22 @@ class SdiPractica234ApplicationTests {
     //[Prueba1-2] Registro de Usuario con datos inválidos (username vacío, nombre vacío, apellidos vacíos).
     @Test
     @Order(2)
-    void PR01_2() {
+    void PR02() {
         PO_SignUpView.goToSignUpPage(driver);
-        long usersBefore=usersCollection.countDocuments(); //Number of users prior to sign up process.
+        long usersBefore = usersCollection.countDocuments(); //Number of users prior to sign up process.
 
         PO_SignUpView.goToSignUpPage(driver);
-        PO_SignUpView.fillForm(driver,"","","",
-                "password","password");
+        PO_SignUpView.fillForm(driver, "", "", "",
+                "password", "password");
 
         //The register will not take place since all fields are required.
-       Assertions.assertTrue(usersBefore == usersCollection.countDocuments());//Check that the number of documents REMAINS EQUAL
+        Assertions.assertTrue(usersBefore == usersCollection.countDocuments());//Check that the number of documents REMAINS EQUAL
         //Se that we are still in sign up view.
 
-        String welcomeExpected="¡Regístrate como usuario!";
+        String welcomeExpected = "¡Regístrate como usuario!";
         String welcomeFound = driver.findElement(By.tagName("h2")).getText();
-        Assertions.assertTrue(welcomeFound!=null);
-        Assertions.assertEquals(welcomeExpected,welcomeFound);
+        Assertions.assertTrue(welcomeFound != null);
+        Assertions.assertEquals(welcomeExpected, welcomeFound);
 
     }
 
@@ -151,18 +157,17 @@ class SdiPractica234ApplicationTests {
     //[Prueba1-3] Registro de Usuario con datos inválidos (repetición de contraseña inválida).
     @Test
     @Order(3)
-    public void PR01_3() {
+    public void PR03() {
         PO_SignUpView.goToSignUpPage(driver);
-        long usersBefore=usersCollection.countDocuments(); //Number of users prior to sign up process.
+        long usersBefore = usersCollection.countDocuments(); //Number of users prior to sign up process.
         PO_SignUpView.goToSignUpPage(driver);
-        PO_SignUpView.fillForm(driver,"sara@email.com","Sara","Fernández",
-                "pass","pass123");
-        String alert="Las contraseñas no coinciden.";
-        String found=driver.findElement(By.className("alert")).getText();
-        Assertions.assertTrue(found!=null);
-       Assertions.assertEquals(alert,found);//to make the test fail in case the verbose alert is not displayed
-        Assertions.assertTrue(usersCollection.countDocuments()==usersBefore);//Check that the number of documents remains equals
-
+        PO_SignUpView.fillForm(driver, "sara@email.com", "Sara", "Fernández",
+                "pass", "pass123");
+        String alert = "Las contraseñas no coinciden.";
+        String found = driver.findElement(By.className("alert")).getText();
+        Assertions.assertTrue(found != null);
+        Assertions.assertEquals(alert, found);//to make the test fail in case the verbose alert is not displayed
+        Assertions.assertTrue(usersCollection.countDocuments() == usersBefore);//Check that the number of documents remains equals
 
 
     }
@@ -170,60 +175,61 @@ class SdiPractica234ApplicationTests {
     //[Prueba1-4] Registro de Usuario con datos inválidos (email existente).
     @Test
     @Order(4)
-    public void PR01_4() {
+    public void PR04() {
 
         PO_SignUpView.goToSignUpPage(driver);
-        long usersBefore=usersCollection.countDocuments(); //Number of users prior to sign up process.
+        long usersBefore = usersCollection.countDocuments(); //Number of users prior to sign up process.
         PO_SignUpView.goToSignUpPage(driver);
-        PO_SignUpView.fillForm(driver,"user01@email.com","Sara","Fernández",
-                "pass","pass");
+        PO_SignUpView.fillForm(driver, "user01@email.com", "Sara", "Fernández",
+                "pass", "pass");
         //check that the alert message is displayed.
-        String alert="Ya existe un usuario con ese correo electrónico.";
-        String found=driver.findElement(By.className("alert")).getText();
-        Assertions.assertTrue(found!=null);
-        Assertions.assertEquals(alert,found);//to make the test fail in case the verbose alert is not displayed
-        Assertions.assertTrue(usersCollection.countDocuments() ==usersBefore);
+        String alert = "Ya existe un usuario con ese correo electrónico.";
+        String found = driver.findElement(By.className("alert")).getText();
+        Assertions.assertTrue(found != null);
+        Assertions.assertEquals(alert, found);//to make the test fail in case the verbose alert is not displayed
+        Assertions.assertTrue(usersCollection.countDocuments() == usersBefore);
     }
+
     //[Prueba EXTRA] Registro de Usuario con datos inválidos (el email tiene formato inválido)
     @Test
     @Order(5)
-    public void PR01_Extra1() {
+    public void PR01_1() {
 
         PO_SignUpView.goToSignUpPage(driver);
-        long usersBefore=usersCollection.countDocuments(); //Number of users prior to sign up process.
+        long usersBefore = usersCollection.countDocuments(); //Number of users prior to sign up process.
         PO_SignUpView.goToSignUpPage(driver);
-        PO_SignUpView.fillForm(driver,"emailInvalido@email","Sara","Fernández",
-                "pass","pass");
+        PO_SignUpView.fillForm(driver, "emailInvalido@email", "Sara", "Fernández",
+                "pass", "pass");
         //check that the alert message is displayed.
-        String alert="El formato del email es incorrecto. Debe ser parecido al siguiente: nombre@dominio.dominio";
-        String found=driver.findElement(By.className("alert")).getText();
-        Assertions.assertTrue(found!=null);
-        Assertions.assertEquals(alert,found);//to make the test fail in case the verbose alert is not displayed
-        Assertions.assertTrue(usersCollection.countDocuments() ==usersBefore);
+        String alert = "El formato del email es incorrecto. Debe ser parecido al siguiente: nombre@dominio.dominio";
+        String found = driver.findElement(By.className("alert")).getText();
+        Assertions.assertTrue(found != null);
+        Assertions.assertEquals(alert, found);//to make the test fail in case the verbose alert is not displayed
+        Assertions.assertTrue(usersCollection.countDocuments() == usersBefore);
     }
 
 
     //[Prueba2-1] Inicio de sesión con datos válidos (administrador).
     @Test
     @Order(5)
-    public void PR02_1() {
+    public void PR05() {
 
         PO_LoginView.goToLoginPage(driver);
-        PO_LoginView.fillForm(driver,"admin@email.com","admin");
+        PO_LoginView.fillForm(driver, "admin@email.com", "admin");
 
-         //check that the logout option is displayed.
+        //check that the logout option is displayed.
         WebElement logoutButton = driver.findElement(By.id("logout"));
         Assertions.assertTrue(logoutButton != null);
         //check that publication options are not displayed.(looking for them should throw an exception)
-        Exception thrown=Assertions.assertThrows(NoSuchElementException.class,()->driver.findElement(By.id("listOwnPosts")));
-        Assertions.assertEquals("Unable to locate element: #listOwnPosts",thrown.getMessage().split("\n")[0]);
-        thrown=Assertions.assertThrows(NoSuchElementException.class,()->driver.findElement(By.id("addPost")));
-        Assertions.assertEquals("Unable to locate element: #addPost",thrown.getMessage().split("\n")[0]);
+        Exception thrown = Assertions.assertThrows(NoSuchElementException.class, () -> driver.findElement(By.id("listOwnPosts")));
+        Assertions.assertEquals("Unable to locate element: #listOwnPosts", thrown.getMessage().split("\n")[0]);
+        thrown = Assertions.assertThrows(NoSuchElementException.class, () -> driver.findElement(By.id("addPost")));
+        Assertions.assertEquals("Unable to locate element: #addPost", thrown.getMessage().split("\n")[0]);
         //check that the welcome message of the listing page is displayed.
-        String welcomeExpected="Bienvenido, admin@email.com";
+        String welcomeExpected = "Bienvenido, admin@email.com";
         String welcomeFound = driver.findElement(By.tagName("h1")).getText();
-        Assertions.assertTrue(welcomeFound!=null);
-        Assertions.assertEquals(welcomeExpected,welcomeFound);
+        Assertions.assertTrue(welcomeFound != null);
+        Assertions.assertEquals(welcomeExpected, welcomeFound);
 
     }
 
@@ -231,29 +237,29 @@ class SdiPractica234ApplicationTests {
     //[Prueba2-2] Inicio de sesión con datos válidos (usuario estándar).
     @Test
     @Order(6)
-    public void PR02_2() {
+    public void PR06() {
 
 
         PO_LoginView.goToLoginPage(driver);
-        PO_LoginView.fillForm(driver,"user01@email.com","user01");
+        PO_LoginView.fillForm(driver, "user01@email.com", "user01");
 
 
         //When login is successfull , standard users can list post, add post , list friends or logout.
         WebElement logoutButton = driver.findElement(By.id("logout"));
         Assertions.assertTrue(logoutButton != null);
-        WebElement listPostsBtn= driver.findElement(By.id("listOwnPosts"));
-        Assertions.assertTrue( listPostsBtn != null);
+        WebElement listPostsBtn = driver.findElement(By.id("listOwnPosts"));
+        Assertions.assertTrue(listPostsBtn != null);
         WebElement addPostBtn = driver.findElement(By.id("addPost"));
         Assertions.assertTrue(addPostBtn != null);
         WebElement listUsersBtn = driver.findElement(By.id("listUsers"));
         Assertions.assertTrue(listUsersBtn != null);
 
-       //The user is redirected to the list view, so he /She should witness the welcome message:
+        //The user is redirected to the list view, so he /She should witness the welcome message:
 
-        String welcomeExpected="Bienvenido, user01@email.com";
+        String welcomeExpected = "Bienvenido, user01@email.com";
         String welcomeFound = driver.findElement(By.tagName("h1")).getText();
-        Assertions.assertTrue(welcomeFound!=null);
-        Assertions.assertEquals(welcomeExpected,welcomeFound);
+        Assertions.assertTrue(welcomeFound != null);
+        Assertions.assertEquals(welcomeExpected, welcomeFound);
 
 
     }
@@ -262,55 +268,54 @@ class SdiPractica234ApplicationTests {
     //Al ser campos marcados como required, no se puede avanzar
     @Test
     @Order(7)
-    public void PR02_3() {
+    public void PR07() {
 
         PO_LoginView.goToLoginPage(driver);
-        PO_LoginView.fillForm(driver,"","");
+        PO_LoginView.fillForm(driver, "", "");
         //logout buton not available.
-        Exception thrown=Assertions.assertThrows(NoSuchElementException.class,()->driver.findElement(By.id("logout")));
-        Assertions.assertEquals("Unable to locate element: #logout",thrown.getMessage().split("\n")[0]);
+        Exception thrown = Assertions.assertThrows(NoSuchElementException.class, () -> driver.findElement(By.id("logout")));
+        Assertions.assertEquals("Unable to locate element: #logout", thrown.getMessage().split("\n")[0]);
         //sign up & login are available still
         WebElement signupButton = driver.findElement(By.id("signup"));
         Assertions.assertTrue(signupButton != null);
         WebElement loginButton = driver.findElement(By.id("login"));
         Assertions.assertTrue(loginButton != null);
         //The register message is displayed still because user hasnt moved from that page.
-        String welcomeExpected="Inicia sesión en Facecook";
+        String welcomeExpected = "Inicia sesión en Facecook";
         String welcomeFound = driver.findElement(By.tagName("h2")).getText();
-        Assertions.assertTrue(welcomeFound!=null);
-        Assertions.assertEquals(welcomeExpected,welcomeFound);
+        Assertions.assertTrue(welcomeFound != null);
+        Assertions.assertEquals(welcomeExpected, welcomeFound);
     }
-
 
 
     //[Prueba2-4] Inicio de sesión con datos válidos (usuario estándar, email existente, pero contraseña incorrecta).
     @Test
     @Order(8)
-    public void PR02_4() {
+    public void PR08() {
 
         PO_LoginView.goToLoginPage(driver);
-        PO_LoginView.fillForm(driver,"user01@email.com","nopassword");
-        String alertExp="Email o password incorrecto";
+        PO_LoginView.fillForm(driver, "user01@email.com", "nopassword");
+        String alertExp = "Email o password incorrecto";
         String alertFound = driver.findElement(By.className("alert")).getText();
-        Assertions.assertTrue(alertFound!=null);
-        Assertions.assertEquals(alertExp,alertFound);
+        Assertions.assertTrue(alertFound != null);
+        Assertions.assertEquals(alertExp, alertFound);
         //The register message is displayed still because user hasnt moved from that page.
-        String welcomeExpected="Inicia sesión en Facecook";
+        String welcomeExpected = "Inicia sesión en Facecook";
         String welcomeFound = driver.findElement(By.tagName("h2")).getText();
-        Assertions.assertTrue(welcomeFound!=null);
-        Assertions.assertEquals(welcomeExpected,welcomeFound);
+        Assertions.assertTrue(welcomeFound != null);
+        Assertions.assertEquals(welcomeExpected, welcomeFound);
         //sign up & login are available still
         WebElement signupButton = driver.findElement(By.id("signup"));
         Assertions.assertTrue(signupButton != null);
         WebElement loginButton = driver.findElement(By.id("login"));
         Assertions.assertTrue(loginButton != null);
         //check that publication options are not displayed.(looking for them should throw an exception)
-        Exception thrown=Assertions.assertThrows(NoSuchElementException.class,()->driver.findElement(By.id("listOwnPosts")));
-        Assertions.assertEquals("Unable to locate element: #listOwnPosts",thrown.getMessage().split("\n")[0]);
-        thrown=Assertions.assertThrows(NoSuchElementException.class,()->driver.findElement(By.id("addPost")));
-        Assertions.assertEquals("Unable to locate element: #addPost",thrown.getMessage().split("\n")[0]);
-        thrown=Assertions.assertThrows(NoSuchElementException.class,()->driver.findElement(By.id("listUsers")));
-        Assertions.assertEquals("Unable to locate element: #listUsers",thrown.getMessage().split("\n")[0]);
+        Exception thrown = Assertions.assertThrows(NoSuchElementException.class, () -> driver.findElement(By.id("listOwnPosts")));
+        Assertions.assertEquals("Unable to locate element: #listOwnPosts", thrown.getMessage().split("\n")[0]);
+        thrown = Assertions.assertThrows(NoSuchElementException.class, () -> driver.findElement(By.id("addPost")));
+        Assertions.assertEquals("Unable to locate element: #addPost", thrown.getMessage().split("\n")[0]);
+        thrown = Assertions.assertThrows(NoSuchElementException.class, () -> driver.findElement(By.id("listUsers")));
+        Assertions.assertEquals("Unable to locate element: #listUsers", thrown.getMessage().split("\n")[0]);
 
     }
 
@@ -319,27 +324,27 @@ class SdiPractica234ApplicationTests {
     // y comprobar que se redirige a la página de inicio de sesión (Login).
     @Test
     @Order(9)
-    public void PR03_1() {
+    public void PR09() {
 
         PO_LoginView.goToLoginPage(driver);
-        PO_LoginView.fillForm(driver,"user01@email.com","user01");
+        PO_LoginView.fillForm(driver, "user01@email.com", "user01");
         PO_NavView.clickLogout(driver);
 
         //The login message is displayed due to redirection
-        String welcomeExpected="Inicia sesión en Facecook";
+        String welcomeExpected = "Inicia sesión en Facecook";
         String welcomeFound = driver.findElement(By.tagName("h2")).getText();
-        Assertions.assertTrue(welcomeFound!=null);
-        Assertions.assertEquals(welcomeExpected,welcomeFound);
+        Assertions.assertTrue(welcomeFound != null);
+        Assertions.assertEquals(welcomeExpected, welcomeFound);
         //check that publication options are not displayed.(looking for them should throw an exception)
-        Exception thrown=Assertions.assertThrows(NoSuchElementException.class,()->driver.findElement(By.id("listOwnPosts")));
-        Assertions.assertEquals("Unable to locate element: #listOwnPosts",thrown.getMessage().split("\n")[0]);
-        thrown=Assertions.assertThrows(NoSuchElementException.class,()->driver.findElement(By.id("addPost")));
-        Assertions.assertEquals("Unable to locate element: #addPost",thrown.getMessage().split("\n")[0]);
-        thrown=Assertions.assertThrows(NoSuchElementException.class,()->driver.findElement(By.id("listUsers")));
-        Assertions.assertEquals("Unable to locate element: #listUsers",thrown.getMessage().split("\n")[0]);
+        Exception thrown = Assertions.assertThrows(NoSuchElementException.class, () -> driver.findElement(By.id("listOwnPosts")));
+        Assertions.assertEquals("Unable to locate element: #listOwnPosts", thrown.getMessage().split("\n")[0]);
+        thrown = Assertions.assertThrows(NoSuchElementException.class, () -> driver.findElement(By.id("addPost")));
+        Assertions.assertEquals("Unable to locate element: #addPost", thrown.getMessage().split("\n")[0]);
+        thrown = Assertions.assertThrows(NoSuchElementException.class, () -> driver.findElement(By.id("listUsers")));
+        Assertions.assertEquals("Unable to locate element: #listUsers", thrown.getMessage().split("\n")[0]);
         //logout option should not be displayed either
-        thrown=Assertions.assertThrows(NoSuchElementException.class,()->driver.findElement(By.id("logout")));
-        Assertions.assertEquals("Unable to locate element: #logout",thrown.getMessage().split("\n")[0]);
+        thrown = Assertions.assertThrows(NoSuchElementException.class, () -> driver.findElement(By.id("logout")));
+        Assertions.assertEquals("Unable to locate element: #logout", thrown.getMessage().split("\n")[0]);
         //sign up & login are available
         WebElement signupButton = driver.findElement(By.id("signup"));
         Assertions.assertTrue(signupButton != null);
@@ -351,10 +356,10 @@ class SdiPractica234ApplicationTests {
     //[Prueba3-2] Comprobar que el botón cerrar sesión no está visible si el usuario no está autenticado
     @Test
     @Order(10)
-    public void PR03_2() {
+    public void PR010() {
 
-        Exception thrown=Assertions.assertThrows(NoSuchElementException.class,()->driver.findElement(By.id("logout")));
-        Assertions.assertEquals("Unable to locate element: #logout",thrown.getMessage().split("\n")[0]);
+        Exception thrown = Assertions.assertThrows(NoSuchElementException.class, () -> driver.findElement(By.id("logout")));
+        Assertions.assertEquals("Unable to locate element: #logout", thrown.getMessage().split("\n")[0]);
 
         //sign up & login are available
         WebElement signupButton = driver.findElement(By.id("signup"));
@@ -878,381 +883,145 @@ class SdiPractica234ApplicationTests {
 
     }
 
-/*
+
     //[Prueba24] Ir al formulario de crear publicaciones , rellenarlo con datos VÁLIDOS y pulsar el botón de enviar.
     @Test
     @Order(17)
-    public void PR012_1() {
-        //El usuario debe estar registrado para hacer un post , por tanto
-        PO_LoginView.fillForm(driver,"user17@email.com","user17");
-        //Una vez autenticado el usuario,rellena el formulario
-        PO_PostFormView.fillForm(driver,"Días de vacaciones", "Me lo he pasado genial en málaga! :)");
+    public void PR24() {
 
-        //Vamos a la última página
-        List<WebElement> elements= PO_View.checkElementBy(driver, "free", "//a[contains(@class, 'page-link')]");
-        //Nos vamos a la última página
-        elements.get(1).click();
-        elements=PO_View.checkElementBy(driver, "text", "Días de vacaciones");
-        //Comprobamos que aparece la nueva publicación.
-        Assertions.assertEquals("Días de vacaciones",elements.get(0).getText());
+        //The user must be registered in order to post
+        PO_LoginView.goToLoginPage(driver);
+        PO_LoginView.fillForm(driver, "user01@email.com", "user01");
+        //fill the form
+        PO_PostFormView.goToPostFormView(driver);
+        PO_PostFormView.fillForm(driver, "Días de vacaciones", "Me lo he pasado genial en málaga! :)");
+
+        //go to the last page.
+        List<WebElement> elements = PO_View.checkElementBy(driver, "free", "//a[contains(@class, 'page-link')]");
+
+        elements.get(2).click();
+        //search for the publication we just did.
+        elements = PO_View.checkElementBy(driver, "text", "Días de vacaciones");
+
+        Assertions.assertEquals("Días de vacaciones", elements.get(0).getText());
+
+        publiCollection.deleteOne(eq("title", "Días de vacaciones"));
     }
 
     //[Prueba25] Ir al formulario de crear publicaciones , rellenarlo con datos INVÁLIDOS (título vacío) y pulsar el botón de enviar.
     @Test
     @Order(18)
-    public void PR012_2() {
-        //El usuario debe estar registrado para hacer un post , por tanto
-        PO_LoginView.fillForm(driver,"user01@email.com","user01");
-        //Una vez autenticado el usuario,rellena el formulario
-        PO_PostFormView.fillForm(driver,"", "Me lo he pasado genial en málaga! :)");
+    public void PR25() {
 
-        List<WebElement> emptyMessage= PO_View.checkElementBy(driver, "text", PO_View.getP().getString("Error.posts.add.empty.title",PO_Properties.getSPANISH()));
+        PO_LoginView.goToLoginPage(driver);
+        //The user must be registered in order to post
+        PO_LoginView.fillForm(driver, "user01@email.com", "user01");
+        //fill the form
+        PO_PostFormView.goToPostFormView(driver);
+        PO_PostFormView.fillForm(driver, "", "Me lo he pasado genial en málaga! :)");
 
-        Assertions.assertTrue(emptyMessage.get(0).getText().contains("El título de la publicación no puede estar vacío."));
-        //Como aparece también el mensaje de longitud, uso assert equals y contains para centrarme en el mensaje de vacío.
+
+        String welcomeExpected = "Añade una publicación";
+        String welcomeFound = driver.findElement(By.tagName("h2")).getText();
+        Assertions.assertTrue(welcomeFound != null);
+        Assertions.assertEquals(welcomeExpected, welcomeFound);
+        //Check that we remain on the view we were at.
     }
-    //[PRUEBA EXTRA APARTADO 12]Comprobar que no se puede realizar una publicación sin cuerpo.
-    @Test
-    @Order(19)
-    public void PR012_3() {
-        //El usuario debe estar registrado para hacer un post , por tanto
-        PO_LoginView.fillForm(driver,"user01@email.com","user01");
-        //Una vez autenticado el usuario,rellena el formulario
-        PO_PostFormView.fillForm(driver,"Vacaciones!", "");
-        List<WebElement> emptyMessage= PO_View.checkElementBy(driver, "text", PO_View.getP().getString("Error.posts.add.empty.description",PO_Properties.getSPANISH()));
-        Assertions.assertTrue(emptyMessage.get(0).getText().contains("La descripción de la publicación no puede estar vacía."));//Como aparece también el mensaje de longitud, uso assert equals y contains para centrarme en el mensaje de vacío.
 
-    }
-    //[PRUEBA EXTRA APARTADO 12]Comprobar que no se puede realizar una publicación con un título demasiado corto (menor a 10 caracteres)
-    @Test
-    @Order(20)
-    public void PR012_4() {
-        //El usuario debe estar registrado para hacer un post , por tanto
-        PO_LoginView.fillForm(driver,"user01@email.com","user01");
-        //Una vez autenticado el usuario,rellena el formulario
-        PO_PostFormView.fillForm(driver,"corto", "Descripción de más de 15 caracteres");
-        List<WebElement> emptyMessage= PO_View.checkElementBy(driver, "text", PO_View.getP().getString("Error.posts.add.title.tooShort",PO_Properties.getSPANISH()));
-        Assertions.assertEquals("El título debe tener al menos 10 caracteres.",emptyMessage.get(0).getText());
-
-    }
-    //[PRUEBA EXTRA APARTADO 12]Comprobar que no se puede realizar una publicación con una descripción demasiado corta (menor a 15 caracteres)
-    @Test
-    @Order(21)
-    public void PR012_5() {
-        //El usuario debe estar registrado para hacer un post , por tanto
-        PO_LoginView.fillForm(driver,"user01@email.com","user01");
-        //Una vez autenticado el usuario,rellena el formulario
-        PO_PostFormView.fillForm(driver,"Vacaciones!", "hola");
-        List<WebElement> emptyMessage= PO_View.checkElementBy(driver, "text", PO_View.getP().getString("Error.posts.add.description.tooShort",PO_Properties.getSPANISH()));
-        Assertions.assertEquals("La descripción debe tener al menos 15 caracteres.",emptyMessage.get(0).getText());
-
-    }
 
     //[Prueba26]Mostrar el listado de publicaciones de un usuario y comprobar que se muestran todas las que existen para dicho usuario.
     @Test
     @Order(22)
-    public void PR013_1() {
-        //El usuario debe estar registrado para hacer un post , por tanto
-        PO_LoginView.fillForm(driver,"user17@email.com","user17");
-        //Una vez inciada la sesión , el usuario podrá ver sus publicaciones.
+    public void PR26() {
+        PO_LoginView.goToLoginPage(driver);
+        //The user must be in session in order to make a post
+        PO_LoginView.fillForm(driver, "user11@email.com", "user11");
+        //Once logged in, he can access his own posts
+
         PO_NavView.clickListPosts(driver);
-        //Una vez el usuario seleccione la opción de ver sus publicaciones, comprobamos que realmente se muestran.
-        PO_ListPostsView.checkPosts(driver,5);//primera página.
-        List<WebElement> elements= PO_View.checkElementBy(driver, "free", "//a[contains(@class, 'page-link')]");
+        //We check that two pages are displayed,each with 5 posts
+        PO_ListPostsView.checkPosts(driver, 5);//primera página.
+        List<WebElement> elements = PO_View.checkElementBy(driver, "free", "//a[contains(@class, 'page-link')]");
         //Nos vamos a la última página
         elements.get(1).click();
-        PO_ListPostsView.checkPosts(driver,5);//segunda página.
+        PO_ListPostsView.checkPosts(driver, 5);//segunda página.
     }
 
-    //[Prueba26-EXTRA]Mostrar el listado de publicaciones de un usuario que no tiene ninguna-> mensaje "No hay publicaciones"
-    @Test
-    @Order(23)
-    public void PR013_2() {
-        //El usuario debe estar registrado para hacer un post , por tanto
-        PO_LoginView.fillForm(driver,"userExtra@email.com","userExtra");
-        //Una vez inciada la sesión , el usuario podrá ver sus publicaciones.(No tiene)
-        PO_NavView.clickListPosts(driver);
-        //Una vez el usuario seleccione la opción de ver sus publicaciones, comprobamos que realmente se muestran.
-        List<WebElement>  noPostsMsg=PO_View.checkElementBy(driver, "text", PO_View.getP().getString("posts.list.noPosts",PO_Properties.getSPANISH()));
-        Assertions.assertEquals("No hay publicaciones disponibles.",noPostsMsg.get(0).getText());
-    }
 
     //[PRUEBA 27]Mostrar el listado de publicaciones de un usuario amigo y comprobar que se muestran todas las que existen para dicho usuario.
     @Test
     @Order(24)
-    public void PR014_1() {
+    public void PR27() {
+        PO_LoginView.goToLoginPage(driver);
         //El usuario debe estar registrado para hacer un post , por tanto
-        PO_LoginView.fillForm(driver,"user01@email.com","user01");
-        //El usuario 01 es amigo del usuario 17, que tiene 10 publicaciones.
+        PO_LoginView.fillForm(driver, "user02@email.com", "user02");
+        //El usuario 01 es amigo del usuario 3, que tiene 10 publicaciones.
         PO_FriendsView.goToListFriends(driver);
-        By enlace = By.id("User17Nombre");
+        By enlace = By.id("publicationsButtonuser03@email.com");
         driver.findElement(enlace).click();
-        List<WebElement> postMessage= PO_View.checkElementBy(driver, "text", PO_View.getP().getString("posts.list.message",PO_Properties.getSPANISH()));
-        Assertions.assertEquals("Estas son las publicaciones del usuario:",postMessage.get(0).getText());
-        //Una vez el usuario seleccione la opción de ver sus publicaciones, comprobamos que realmente se muestran.
-        PO_ListPostsView.checkPosts(driver,5);//primera página.
-        List<WebElement> elements= PO_View.checkElementBy(driver, "free", "//a[contains(@class, 'page-link')]");
+        String welcomeExpected = "Publicaciones de user03@email.com";
+        String welcomeFound = driver.findElement(By.tagName("h1")).getText();
+        Assertions.assertTrue(welcomeFound != null);
+        Assertions.assertEquals(welcomeExpected, welcomeFound);
+
+        //We check that two pages are displayed,each with 5 posts
+        PO_ListPostsView.checkPosts(driver, 5);//primera página.
+        List<WebElement> elements = PO_View.checkElementBy(driver, "free", "//a[contains(@class, 'page-link')]");
         //Nos vamos a la última página
         elements.get(1).click();
-        PO_ListPostsView.checkPosts(driver,5);//segunda página.
+        PO_ListPostsView.checkPosts(driver, 5);//segunda página.
+
     }
 
-    //[PRUEBA 24]Utilizando un acceso vía URL u otra alternativa, tratar de listar las publicaciones de un usuario que no sea amigo del usuario identificado en sesión. Comprobar que el sistema da un error de autorización.
+    //[PRUEBA 28]Utilizando un acceso vía URL u otra alternativa, tratar de listar las publicaciones de un usuario que no sea amigo del usuario identificado en sesión. Comprobar que el sistema da un error de autorización.
     @Test
     @Order(25)
-    public void PR014_2() {
-        //El usuario debe estar registrado para hacer un post , por tanto
-        PO_LoginView.fillForm(driver,"user02@email.com","user02");
-        //El usuario 02 NO es amigo del usuario 17, que tiene 10 publicaciones.
-        driver.get("http://localhost:8090/posts/listFor/user17@email.com");
-        List<WebElement> forbiddenMessage= PO_View.checkElementBy(driver, "text", PO_View.getP().getString("error.message",PO_Properties.getSPANISH()));
-        Assertions.assertEquals("Parece que este sitio no existe o no tienes acceso a él :(",forbiddenMessage.get(0).getText());
-    }
-
-    //[PRUEBA EXTRA APARTADO 14]Mostrar el listado de publicaciones de un usuario amigo que no tiene publicaciones.
-    @Test
-    @Order(26)
-    public void PR014_3() {
-        //El usuario debe estar registrado para hacer un post , por tanto
-        PO_LoginView.fillForm(driver,"user02@email.com","user02");
-        //El usuario 02 es amigo del usuario extra, que NO tiene publicaciones.
-        PO_FriendsView.goToListFriends(driver);
-        By enlace = By.id("UserExtraNombre");
-        driver.findElement(enlace).click();
-        //Una vez el usuario seleccione la opción de ver sus publicaciones, comprobamos que realmente se muestran.
-        List<WebElement>  noPostsMsg=PO_View.checkElementBy(driver, "text", PO_View.getP().getString("posts.list.noPosts",PO_Properties.getSPANISH()));
-        Assertions.assertEquals("No hay publicaciones disponibles.",noPostsMsg.get(0).getText());
-    }
-
-    //[PRUEBA EXTRA APARTADO 14]Visualizar al menos cuatro páginas en español/inglés/español
-    // (comprobando que algunas de las etiquetas cambian al idioma correspondiente).
-    // Ejemplo, Página principal/Opciones Principales de Usuario/Listado de Usuarios.
-    @Test
-    @Order(99)
-    public void PR015_1() {
-
-        //Nos vamos a la página de inicio de session
+    public void PR28() {
         PO_LoginView.goToLoginPage(driver);
-
-        //El texto de bienvenida debe estar en español
-        List<WebElement>  loginText=PO_View.checkElementBy(driver, "text", PO_View.getP().getString("login.title",PO_Properties.getSPANISH()));
-        Assertions.assertEquals("Identifícate",loginText.get(0).getText());
-
-        //Cambiamos a inglés
-        driver.findElement(By.id("btnLanguage")).click();
-        driver.findElement(By.id("btnEnglish"));
-
-        //El texto de bienvenida debe estar en ingles
-        loginText=PO_View.checkElementBy(driver, "text", PO_View.getP().getString("login.title",PO_Properties.getSPANISH()));
-        Assertions.assertEquals("Login to enter",loginText.get(0).getText());
-
+        //El usuario debe estar registrado para hacer un post , por tanto
+        PO_LoginView.fillForm(driver, "user02@email.com", "user02");
+        //El usuario 02 NO es amigo del usuario 12, que tiene 10 publicaciones.
+        driver.get("http://localhost:8090/posts/listFor/user12@email.com");
+//        List<WebElement> forbiddenMessage= PO_View.checkElementBy(driver, "text", PO_View.getP().getString("error.message",PO_Properties.getSPANISH()));
+        //Assertions.assertEquals("Parece que este sitio no existe o no tienes acceso a él :(",forbiddenMessage.get(0).getText());
     }
 
 
-    //[Prueba16-1] Intentar acceder sin estar autenticado a la opción de
+    //[Prueba29] Intentar acceder sin estar autenticado a la opción de
     //listado de usuarios. Se deberá volver al formulario de login.
     @Test
     @Order(27)
-    void PR016_1() {
+    void PR029() {
 
-        PO_LogsView.goToLogsPage(driver);
-        List<WebElement> welcomeMessageElement = PO_LoginView.getLoginText(driver,PO_Properties.getSPANISH());
+        PO_UsersView.goToUsersList(driver);
+        //check we are redirected to the login page.
+        String welcomeExpected = "Inicia sesión en Facecook";
+        String welcomeFound = driver.findElement(By.tagName("h2")).getText();
+        Assertions.assertTrue(welcomeFound != null);
+        Assertions.assertEquals(welcomeExpected, welcomeFound);
 
-        Assertions.assertEquals(welcomeMessageElement.get(0).getText(),
-                PO_View.getP().getString("login.message",
-                        PO_Properties.getSPANISH()));
 
     }
 
-    //[Prueba16-2] Intentar acceder sin estar autenticado a la opción de listado de invitaciones de amistad
+    //[Prueba30] Intentar acceder sin estar autenticado a la opción de listado de invitaciones de amistad
     // recibida de un usuario estándar. Se deberá volver al formulario de login
     @Test
     @Order(28)
-    void PR016_2() {
+    void PR030() {
 
         PO_FriendsView.goToListFriendsInvitations(driver);
-        List<WebElement> welcomeMessageElement = PO_LoginView.getLoginText(driver,PO_Properties.getSPANISH());
-
-        Assertions.assertEquals(welcomeMessageElement.get(0).getText(),
-                PO_View.getP().getString("login.message",
-                        PO_Properties.getSPANISH()));
-
+        //check we are redirected to the login page.
+        String welcomeExpected = "Inicia sesión en Facecook";
+        String welcomeFound = driver.findElement(By.tagName("h2")).getText();
+        Assertions.assertTrue(welcomeFound != null);
+        Assertions.assertEquals(welcomeExpected, welcomeFound);
     }
 
 
-    //[Prueba6-3] Estando autenticado como usuario estándar intentar acceder a una opción disponible
-    // solo para usuarios administradores (Añadir menú de auditoria (visualizar logs)).
-    // Se deberá indicar un mensaje de acción prohibida.
-    @Test
-    @Order(29)
-    void PR016_3() {
 
-        PO_SignUpView.goToSignUpPage(driver);
-        PO_SignUpView.fillForm(driver,"martin@email.com","Martin","Beltran",
-                "password","password");
-
-        PO_LoginView.goToLoginPage(driver);
-        PO_LoginView.fillForm(driver,"martin@email.com","password");
-
-        PO_LogsView.goToLogsPage(driver);
-
-        List<WebElement> ohohMessage = PO_ErrorView.getErrorText(driver,PO_Properties.getSPANISH());
-
-        Assertions.assertEquals(ohohMessage.get(0).getText(), "OhOh");
-
-    }
-
-
-    //[Prueba16-4] Estando autenticado como usuario administrador visualizar
-    // todos los logs generados en una serie de interacciones.
-    // Esta prueba deberá generar al menos dos interacciones de cada tipo y
-    // comprobar que el listado incluye los logs correspondientes.
-    @Test
-    @Order(30)
-    void PR016_4() {
-
-        //Generate several logs of different types
-        PO_LogsView.generateBatchLogs(driver);
-
-        String[] types = {"PET","LOGOUT","LOGIN_EX","LOGIN_ERR","ALTA"};
-
-        List<WebElement> logsListed;
-        for(String type : types){
-
-            //Primer log de los PET
-            logsListed = PO_LogsView.getLogListedInPosition(driver, type, 1);
-            Assertions.assertEquals(logsListed.get(0).getText(), type);
-
-            //Primer log de los PET
-            logsListed = PO_LogsView.getLogListedInPosition(driver, type, 2);
-            Assertions.assertEquals(logsListed.get(0).getText(), type);
-        }
-
-
-    }
-
-
-    //[Prueba16-5] Estando autenticado como usuario administrador,
-    // ir a visualización de logs, pulsar el botón/enlace borrar logs y
-    // comprobar que se eliminan los logs de la base de datos
-    @Test
-    @Order(31)
-    void PR016_5() {
-        PO_LoginView.goToLoginPage(driver);
-        PO_LoginView.fillForm(driver,"admin@email.com","admin");
-        PO_LogsView.goToLogsPage(driver);
-
-        List<Log> prevDelete = logRepository.findAll();
-        int sizeBeforeDeletion = prevDelete.size();
-        Assertions.assertTrue( sizeBeforeDeletion >= 0);
-
-
-        PO_LogsView.deleteFirstLog(driver);
-
-        List<Log> afterDelete = logRepository.findAll();
-        int sizeAfterDeletion = afterDelete.size();
-
-
-
-        Assertions.assertTrue(sizeAfterDeletion + 1 == sizeBeforeDeletion);
-
-    }
-*/
-    //[Prueba 32] Inicio de sesión con datos válidos
-    @Test
-    @Order(36)
-    public void PR032() {
-
-
-        PO_APIClientView.goToApiView(driver);
-        PO_APIClientView.fillForm(driver,"user01@email.com","user01");
-
-        List<WebElement> alert = driver.findElements(By.className("alert-danger"));
-        //Login con éxito no muestra alerta de error.
-        Assertions.assertTrue(alert.isEmpty(), "Alerta enseñada al iniciar sesión con credenciales correctas");
-
-
-        //The user is redirected to the list view:
-        PO_View.checkElementBy(driver, "id", "widget-friends" ); //Esperamos que cargue el widget
-        String msgExpected="Listado de amigos:";
-        String msgFound = driver.findElement(By.tagName("h1")).getText();
-        Assertions.assertTrue(msgFound!=null);
-        Assertions.assertEquals(msgExpected,msgFound);
-
-    }
-
-    //[Prueba 33] Inicio de sesión con datos inválidos (usuario no existente en la aplicación)
-    @Test
-    @Order(37)
-    public void PR033() {
-
-
-        PO_APIClientView.goToApiView(driver);
-        //Iniciamos sesión con credenciales inválidas
-        PO_APIClientView.fillForm(driver,"dummyUserNoExisto@email.com","noExisto123");
-
-        PO_View.checkElementBy(driver, "id", "alert");
-
-        List<WebElement> alert = driver.findElements(By.id("alert"));
-        //Login sin éxito, no muestra alerta de error.
-        Assertions.assertTrue(!alert.isEmpty(), "Alerta enseñada al iniciar sesión con credenciales correctas");
-
-        Assertions.assertTrue(alert.get(0).getText().equals("Usuario no encontrado"),
-                "Mensaje de la alerta, al iniciar sesión con credenciales inválidas, es diferente al esperado");
-        //The user is not redirected to the list view:
-        String msgExpected="Listado de amigos:";
-        SeleniumUtils.waitTextIsNotPresentOnPage(driver, msgExpected, 20); //Esperamos no encontrar el mensaje
-                                                                        //'listado de usuarios'
-
-    }
-
-    //[Prueba 34] Acceder a la lista de amigos de un usuario, que al menos tenga tres amigos.
-    @Test
-    @Order(38)
-    public void PR034() {
-        PO_APIClientView.goToApiView(driver);
-        //Iniciamos sesión correctamente
-        PO_APIClientView.fillForm(driver,"user14@email.com","user14");
-
-        List<WebElement> alert = driver.findElements(By.id("alert"));
-        //Login con éxito no muestra alerta de error.
-        Assertions.assertTrue(alert.isEmpty(), "Alerta enseñada al iniciar sesión con credenciales correctas");
-
-
-        //The user is redirected to the list view:
-        PO_View.checkElementBy(driver, "id", "widget-friends" ); //Esperamos que cargue el widget
-        String msgExpected="Listado de amigos:";
-        String msgFound = driver.findElement(By.tagName("h1")).getText();
-
-        //Chequeamos que el mensaje se muestra en la vista.
-        Assertions.assertTrue(msgFound!=null);
-        Assertions.assertEquals(msgExpected,msgFound);
-
-        //Buscamos los amigos del usuario en bd
-        Document userThatAsks4List = usersCollection.find(eq("email", "user14@email.com")).first();
-        List<Document> friendsOfUser = new LinkedList<>();
-        usersCollection.find(
-                eq("friendships", new ObjectId(userThatAsks4List.get("_id").toString()))
-        ).into(friendsOfUser);
-
-        //Esperamos que se cargue en el DOM al menos un amigo.
-        SeleniumUtils.waitLoadElementsByXpath(driver,"//*[@id=\"friendsTableBody\"]/tr[4]", 20 );
-        List<WebElement> userFriendNamesInView = driver.findElements(By.name("userName"));
-        //Chequeamos que tamaño de lista amigos en BD y la renderizada sea la misma.
-        Assertions.assertTrue(friendsOfUser.size()==userFriendNamesInView.size(),
-                "Tamaño de lista de amigos difiere entre la real y la mostrada en vista");
-        Assertions.assertTrue(userFriendNamesInView.size() >=3,
-                "Lista de amigos renderizada es menor que 3.");
-
-        List<String> namesOfFriendsRendered = new LinkedList<>();
-        for (int i = 0; i < userFriendNamesInView.size(); i++) {
-            namesOfFriendsRendered.add(userFriendNamesInView.get(i).getText());
-        }
-        for (Document friendOfUser:
-             friendsOfUser) {
-            Assertions.assertTrue(namesOfFriendsRendered.contains(friendOfUser.getString("name")),
-                    "El usuario"+ friendOfUser.getString("name") + " no aparece en vista.");
-        }
-
-    }
 }
+
+
+
+
+
