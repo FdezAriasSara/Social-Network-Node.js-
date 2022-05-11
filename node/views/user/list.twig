@@ -45,9 +45,13 @@
                     <td><input type="checkbox" id="{{ user._id }}"></td>
                 {% else %}
                     <td>
-                        <button>
-                            Agregar amigo
-                        </button>
+                        {% if user.email not in canNotSendUsers %}
+                            <form method="post" action="/friends/invite/{{ user._id }}">
+                                <button>
+                                    Agregar amigo
+                                </button>
+                            </form>
+                        {% endif %}
                     </td>
                 {% endif %}
             </tr>

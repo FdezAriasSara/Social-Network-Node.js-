@@ -56,9 +56,15 @@
 
             {% for page in pages %}
 
-                <li class="page-item" id="pi-{{ page }}">
-                    <a class="page-link" href="/publications/list?page={{ page }}">{{ page }}</a>
-                </li>
+                {% if isFriend %}
+                    <li class="page-item" id="pi-{{ page }}">
+                        <a class="page-link" href="/publications/friend/{{ authorID }}?page={{ page }}">{{ page }}</a>
+                    </li>
+                {% else %}
+                    <li class="page-item" id="pi-{{ page }}">
+                        <a class="page-link" href="/publications/list?page={{ page }}">{{ page }}</a>
+                    </li>
+                {% endif %}
 
             {% endfor %}
 
