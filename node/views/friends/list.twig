@@ -11,6 +11,7 @@
                 <th scope="col">Nombre</th>
                 <th scope="col">Apellidos</th>
                 <th scope="col">Correo</th>
+                <th scope="col">Publicaciones</th>
             </tr>
             </thead>
             <tbody>
@@ -19,6 +20,13 @@
                     <td>{{ friend.name }}</td>
                     <td>{{ friend.surname }}</td>
                     <td>{{ friend.email }}</td>
+                    <td>
+                        <form method="get" action="/publications/friend/{{ friend._id }}">
+                            <button>
+                                Ver publicaciones
+                            </button>
+                        </form>
+                    </td>
                 </tr>
             {% endfor %}
             </tbody>
