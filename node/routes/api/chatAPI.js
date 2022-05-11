@@ -244,7 +244,8 @@ module.exports = function (app, publicationsRepository, usersRepository, message
                     res.status(500);
                     res.json({
                         message: "Error identificando ID del otro usuario",
-                        error: error
+                        error: error,
+                        idOtherUser: req.body.idOtherUser
                     })
                 })
 
@@ -252,6 +253,7 @@ module.exports = function (app, publicationsRepository, usersRepository, message
                 res.status(500);
                 res.json({
                     message: message,
+                    idOtherUser: req.body.idOtherUser,
                     error: new Error()
                 })
                 return;
@@ -267,14 +269,16 @@ module.exports = function (app, publicationsRepository, usersRepository, message
 
             res.status(200);
             res.json({
-                messages: messages
+                messages: messages,
+                idOtherUser: req.body.idOtherUser
             })
 
         }catch(e){
             res.status(500);
             res.json({
                 message: "Se ha producido un error al leer conversación",
-                error: e.message
+                error: e.message,
+                idOtherUser: req.body.idOtherUser
             })
         }
 
