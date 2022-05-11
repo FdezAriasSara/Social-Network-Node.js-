@@ -39,11 +39,11 @@ class SdiPractica234ApplicationTests {
     //static String Geckodriver = "C:\\Path\\geckodriver-v0.30.0-win64.exe";
   //  static String Geckodriver = "C:\\Users\\usuario\\Desktop\\Eii\\AÑO 3 GRADO INGENIERIA INFORMATICA\\Sistemas Distribuidos e Internet\\Lab\\sesion05\\PL-SDI-Sesión5-material\\geckodriver-v0.30.0-win64.exe";
     //sebas
-    static String Geckodriver ="C:\\Users\\sebas\\Downloads\\TERCERO\\SEGUNDO CUATRIMESTRE\\SDI\\PL-SDI-Sesión5-material\\PL-SDI-Sesión5-material\\geckodriver-v0.30.0-win64.exe";
+    //static String Geckodriver ="C:\\Users\\sebas\\Downloads\\TERCERO\\SEGUNDO CUATRIMESTRE\\SDI\\PL-SDI-Sesión5-material\\PL-SDI-Sesión5-material\\geckodriver-v0.30.0-win64.exe";
 
     //ce
     //static String PathFirefox = "C:\\Program Files\\Mozilla Firefox\\firefox.exe";
-   // static String Geckodriver = "E:\\UNIOVI\\TERCERO\\Segundo cuatri\\SDI\\PL-SDI-Sesión5-material\\geckodriver-v0.30.0-win64.exe"; //CASA
+    static String Geckodriver = "E:\\UNIOVI\\TERCERO\\Segundo cuatri\\SDI\\PL-SDI-Sesión5-material\\geckodriver-v0.30.0-win64.exe"; //CASA
     //static String Geckodriver = "C:\\Users\\Sara\\Desktop\\Universidad\\3-tercer curso\\segundo cuatri\\(SDI)-Sistemas Distribuidos e Internet\\Sesión5-material\\geckodriver-v0.30.0-win64.exe";
 
     /* SARA */
@@ -687,16 +687,21 @@ class SdiPractica234ApplicationTests {
         }
     }
 
-    //[Prueba 8-1] Iniciamos sesión, mandamos una invitación de amistad a otro usuario, cerramos sesión y entramos como
+    //[Prueba19] Iniciamos sesión, mandamos una invitación de amistad a otro usuario, cerramos sesión y entramos como
     // el otro usuario para comprobar que la nueva invitación aparece en la lista.
     @Test
     @Order(11)
-    public void PR08_1(){
+    public void PR19(){
         PO_SignUpView.goToSignUpPage(driver);
         PO_SignUpView.fillForm(driver,"test@email.com","test","Test Friends",
                 "password","password");
         PO_LoginView.goToLoginPage(driver);
         PO_LoginView.fillForm(driver,"user02@email.com","user02");
+
+        //get the user id
+        WebElement receiver = driver.findElement(By.xpath("//*[@id=\"tableUsers\"]/tbody/tr[2]/td[4]/form"));
+        String url = receiver.getAttribute("action");
+        ObjectId id = new ObjectId(url.substring(37));
 
         //send invite
         driver.findElement(By.xpath("//*[@id=\"sendButtontest@email.com\"]")).click();
@@ -715,17 +720,16 @@ class SdiPractica234ApplicationTests {
         List<WebElement> result = PO_View.checkElementBy(driver, "text", checkText);
         Assertions.assertEquals(checkText, result.get(0).getText());
 
-        //now we remove the user from the database.
+        //now we remove the user from the database. TODO check it works <3
         usersCollection.deleteOne(eq("email","test@email.com"));
-
-        //TODO borrar invitacion enviada a test user
+        usersCollection.deleteOne(eq("invitesReceived", id));
     }
 
-    //[Prueba 8-2] Iniciamos sesión, mandamos una invitación de amistad a otro usuario, y tratamos de volver a mandar una
+    //[Prueba20] Iniciamos sesión, mandamos una invitación de amistad a otro usuario, y tratamos de volver a mandar una
     //invitación. No existirá un botón para mandarlo ni deberá dejarnos mandarla desde la url
     @Test
     @Order(12)
-    public void PR08_2(){
+    public void PR20(){
         PO_SignUpView.goToSignUpPage(driver);
         PO_SignUpView.fillForm(driver,"test@email.com","test","Test Friends",
                 "password","password");
@@ -756,10 +760,10 @@ class SdiPractica234ApplicationTests {
         usersCollection.deleteOne(eq("invitesReceived", id));
     }
 
-    //[Prueba 9-1] Iniciamos sesión y mostramos el listado de invitaciones de amistad recibidas
+    //[Prueba21] Iniciamos sesión y mostramos el listado de invitaciones de amistad recibidas
     @Test
     @Order(13)
-    public void PR09_1(){
+    public void PR21(){
         PO_LoginView.goToLoginPage(driver);
         PO_LoginView.fillForm(driver,"user05@email.com","user05");
 
@@ -771,11 +775,13 @@ class SdiPractica234ApplicationTests {
         Assertions.assertEquals(3, inviteList.size());
     }
 
-    private void sendTestInvite(){
+    private void sendTestInvite(boolean create){
         //Mandamos una invitación con un usuario de prueba
-        PO_SignUpView.goToSignUpPage(driver);
-        PO_SignUpView.fillForm(driver,"test@email.com","test","Test Friends",
-                "password","password");
+        if (create){
+            PO_SignUpView.goToSignUpPage(driver);
+            PO_SignUpView.fillForm(driver,"test@email.com","test","Test Friends",
+                    "password","password");
+        }
         PO_LoginView.goToLoginPage(driver);
         PO_LoginView.fillForm(driver,"test@email.com","password");
         driver.findElements(By.className("page-link")).get(1).click();
@@ -784,12 +790,14 @@ class SdiPractica234ApplicationTests {
         PO_NavView.clickLogout(driver);
     }
 
-    //[Prueba 10-1] Sobre el listado de invitaciones recibidas. Hacer clic en el botón/enlace de una de ellas y comprobar
+    //[Prueba22] Sobre el listado de invitaciones recibidas. Hacer clic en el botón/enlace de una de ellas y comprobar
     // que dicha solicitud desaparece del listado de invitaciones
     @Test
     @Order(14)
-    public void PR010_1(){
-        sendTestInvite();
+    public void PR22(){
+        PO_SignUpView.goToSignUpPage(driver);
+        PO_SignUpView.fillForm(driver,"test@email.com","test","Test Friends",
+                "password","password");
 
         PO_LoginView.goToLoginPage(driver);
         PO_LoginView.fillForm(driver,"user05@email.com","user05");
@@ -798,6 +806,14 @@ class SdiPractica234ApplicationTests {
         WebElement receiver = driver.findElement(By.xpath("//*[@id=\"tableUsers\"]/tbody/tr[2]/td[4]/form"));
         String url = receiver.getAttribute("action");
         ObjectId id = new ObjectId(url.substring(37));
+
+        //logout
+        PO_NavView.clickLogout(driver);
+
+        sendTestInvite(false);
+
+        PO_LoginView.goToLoginPage(driver);
+        PO_LoginView.fillForm(driver,"user05@email.com","user05");
 
         //go to invite list
         PO_FriendsView.goToListFriendsInvitations(driver);
@@ -819,12 +835,14 @@ class SdiPractica234ApplicationTests {
         usersCollection.deleteOne(eq("friendships", id));
     }
 
-    //[Prueba 10-2] Prueba adicional para comprobar que tras aceptar la invitación, aparece el usuario en el listado de
+    //[Prueba22_1] Prueba adicional para comprobar que tras aceptar la invitación, aparece el usuario en el listado de
     // amigos
     @Test
     @Order(15)
-    public void PR010_2(){
-        sendTestInvite();
+    public void PR22_1(){
+        PO_SignUpView.goToSignUpPage(driver);
+        PO_SignUpView.fillForm(driver,"test@email.com","test","Test Friends",
+                "password","password");
 
         PO_LoginView.goToLoginPage(driver);
         PO_LoginView.fillForm(driver,"user05@email.com","user05");
@@ -833,6 +851,14 @@ class SdiPractica234ApplicationTests {
         WebElement receiver = driver.findElement(By.xpath("//*[@id=\"tableUsers\"]/tbody/tr[2]/td[4]/form"));
         String url = receiver.getAttribute("action");
         ObjectId id = new ObjectId(url.substring(37));
+
+        //logout
+        PO_NavView.clickLogout(driver);
+
+        sendTestInvite(false);
+
+        PO_LoginView.goToLoginPage(driver);
+        PO_LoginView.fillForm(driver,"user05@email.com","user05");
 
         //go to friends list
         PO_FriendsView.goToListFriends(driver);
@@ -860,10 +886,10 @@ class SdiPractica234ApplicationTests {
         usersCollection.deleteOne(eq("friendships", id));
     }
 
-    //[Prueba 11-1] Mostrar el listado de amigos de un usuario. Comprobar que el listado contiene los amigos que deben ser
+    //[Prueba23] Mostrar el listado de amigos de un usuario. Comprobar que el listado contiene los amigos que deben ser
     @Test
     @Order(16)
-    public void PR011_1(){
+    public void PR23(){
         PO_LoginView.goToLoginPage(driver);
         PO_LoginView.fillForm(driver,"user02@email.com","user02");
 
