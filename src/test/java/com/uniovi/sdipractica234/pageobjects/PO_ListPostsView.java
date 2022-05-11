@@ -14,7 +14,7 @@ public class PO_ListPostsView  extends PO_View{
      * @param expected
      */
     static public void checkPosts(WebDriver driver,int expected) {
-        List<WebElement> postList = SeleniumUtils.waitLoadElementsBy(driver, "free", "//div//div[1]//div[1]//div", PO_View.getTimeout());
+        List<WebElement> postList = SeleniumUtils.waitLoadElementsBy(driver, "free", "//div//div[1]//div[1]//div//", PO_View.getTimeout());
         Assertions.assertEquals(6, postList.size());
     }
     public static void goToPostsListView(WebDriver driver) {
