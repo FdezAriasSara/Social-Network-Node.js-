@@ -44,7 +44,7 @@
      * Nos lleva a otro widget , el de la conversación.
      */
     function showConversationWith(friend){
-                conversationFriend=friend
+
                 $("#main-container").load("widget-conversation.html");
 
     }
@@ -54,10 +54,10 @@
      * Si hay más de un mensaje, se muestra como un enlace a la converasción.
      * @param friend
      */
-    let conversationFriend;
-    function obtainLastMessage(friend) {
 
-           currentFriend= friend
+    function obtainLastMessage(friend,i) {
+
+           currentFriend= JSON.parse(JSON.stringify(friend))
            $.ajax({
             url: URLbase + "/conversation?token=" + token,
             type: "POST",
@@ -71,7 +71,7 @@
                 var last=messages[messages.length-1];
 
                 if(messages.length>1){//A link to the conversation is only available if there is more than one message.
-                    $("#friendsTableBody").append("<tr><td"+" onclick=showConversationWith(currentFriend)><a>["+last.date+"] "+last.senderEmail+" dijo :"+last.text+"</td></a></tr>");
+                    $("#friendsTableBody").find('#friendMsg'+i).append("<tr><td><a"+" onclick=showConversationWith(currentFriend)>["+last.date+"] "+last.senderEmail+" dijo :"+last.text+"</></td></tr>");
 
                 }else{
 
@@ -96,18 +96,18 @@
         for (i = 0; i < friends.length; i++) {
             $("#friendsTableBody").append("<tr>"+
                 "<td>" + friends[i].name + "</td>" +
-                "<td>" + friends[i].surname+ "</td>" +
+                "<td>" + friends[i].surname+ "</td>"
+            +"<tr id=friendMsg"+i+">");
 
-                "<td>" );
-
-            obtainLastMessage(friends[i]);
+            obtainLastMessage(friends[i],i);
 
             $("#friendsTableBody").append("</tr>");
 
 
 
         }
-    } loadUsers();
+    }
+    loadUsers();
     /**
      * Permite filtrar ususarios mediante un cuadro de texto
      */
