@@ -12,7 +12,7 @@
                         <input id="search" type="text" class="search-query form-control"
                                placeholder="Nombre, apellido o email de usuario" name="search"/>
                         <span class="input-group-btn">
-                        <button class="btn" type="submit">
+                        <button id="searchButton" class="btn" type="submit">
                         <span class="glyphicon glyphicon-search"></span>
                         </button>
                     </span>
@@ -38,7 +38,7 @@
         <tbody>
         {% for user in users %}
             <tr>
-                <td>{{ user.email }}</td>
+                <td class="user-email">{{ user.email }}</td>
                 <td class="username" >{{ user.name }}</td>
                 <td>{{ user.surname }}</td>
                 {% if admin %}

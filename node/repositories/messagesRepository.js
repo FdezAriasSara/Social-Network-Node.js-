@@ -20,6 +20,7 @@ module.exports = {
                date: new Date()
            }
             const result = await messagesCollection.insertOne(messageWithDate);
+
             client.close();
             return result.insertedId;
         } catch (error) {

@@ -4,7 +4,6 @@
     <table class="table table-hover">
         <thead>
         <tr>
-            <th>Email</th>
             <th>Nombre</th>
             <th>Apellidos</th>
             <th class="col-md-1"></th>
@@ -15,6 +14,10 @@
 </div>
 <script>
     var friends;
+
+    /**
+     * Carga todos los usuarios que son amigos del actual.
+     */
     function loadUsers() {
         $.ajax({
             url: URLbase + "/friends/list",
@@ -27,38 +30,89 @@
                 updateFriendTable(friends);
             },
             error: function (error) {
-                $("#main-container").load("widget-login.html");
+                $("#widget-friends").append("<div class='alert alert-danger' > Se ha producido un error al mostrar tus amigos</div>");
             }
         });
 
 
     }
 
+    var messages;
+    var currentFriend = null;
 
+    /**
+     * Nos lleva a otro widget , el de la conversación.
+     */
+    function showConversationWith(){
+                $("#main-container").load("widget-conversation.html");
+
+    }
+
+    /**
+     * Método que obtiene el último mensaje de una conversación entre dos usuarios, y lo muestra debajo de él en la lista.
+     * Si hay más de un mensaje, se muestra como un enlace a la converasción.
+     * @param friend
+     */
+
+    function obtainLastMessage(friend) {
+           currentFriend = friend
+           $.ajax({
+            url: URLbase + "/conversation?token=" + token,
+            type: "POST",
+            data: {idOtherUser:friend._id},
+            dataType: 'json',
+            headers: {},
+            success: function (response) {
+
+                messages = response.messages;
+
+                var last=messages[messages.length-1];
+
+                if(messages.length>1){//A link to the conversation is only available if there is more than one message.
+                    $("#friendsTableBody").append("<tr><td"+" onclick=showConversationWith()><a>["+last.date+"] "+last.senderEmail+" dijo :"+last.text+"</td></a></tr>");
+
+                }else{
+
+                    $("#friendsTableBody").append("<tr><td>"+"["+last.date+"] "+last.senderEmail+" dijo :"+last.text+"</td></tr>");
+                }
+
+            },
+            error: function (error) {
+                $("#widget-friends").append("<div class='alert alert-danger' >Se ha producido un error al mostrar los ultimos mensajes</div>");
+            }
+        });
+
+
+    }
+
+    /**
+     * Método que introduce los nombres y apellidos de los amigos del actual usuario
+     * @param friends
+     */
     function updateFriendTable(friends) {
         $("#friendsTableBody").empty(); // Vaciar la tabla
         for (i = 0; i < friends.length; i++) {
             $("#friendsTableBody").append("<tr>"+
-
-                "<td>" + friends[i].email + "</td>" +
                 "<td>" + friends[i].name + "</td>" +
-                "<td>" + friends[i].surname+ "</td>" + "</tr>");
-/*
-                "<td>" +
-                "<a onclick=lastMessage('" + friends[i].m + "')>último mensaje: </a><br>" +
-                "<a onclick=songDelete('" + songs[i]._id + "')>Eliminar</a>" +
-                "</td>" +
+                "<td>" + friends[i].surname+ "</td>" +
 
- */
+                "<td>" );
+
+            obtainLastMessage(friends[i]);
+
+            $("#friendsTableBody").append("</tr>");
+
 
 
         }
     } loadUsers();
-    /*
+    /**
+     * Permite filtrar ususarios mediante un cuadro de texto
+     */
     $('#filter-by-name').on('input',function(e){
         let filteredFriends = [];
         let filterValue = $("#filter-by-name").val();
         filteredFriends = friends.filter(friend => friend.name.includes(filterValue));
         updateFriendTable(filteredFriends);
-    });*/
+    });
 </script>
