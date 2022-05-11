@@ -119,12 +119,31 @@ module.exports = function (app, publicationsRepository, usersRepository, message
 
     app.post("/api/message/add", async function (req, res) {
 
+
+        let receiverEmail = null;
+        let noReceiver = false;
+
+        await usersRepository.findUser({_id: ObjectId(req.body.idReceiver)}, {})
+            .then( results => {
+                if(results.length <= 0){
+                    noReceiver = true;
+                }else{
+                    receiverEmail = results[0].email;
+                }
+
+            })
+            .catch(error => {
+                noReceiver = true;
+            })
+
+
+
         //Si en el cuerpo de la peticoon no hay ni receptor ni contenido del mensaje
-        if(!req.body.receiverEmail || !req.body.text){
+        if(!receiverEmail || !req.body.text || noReceiver){
 
             res.status(401);
             res.json({
-                message: "Falta email receptor o contenido del mensaje"
+                message: "Falta email receptor o contenido del mensaje, o el receptor no existe."
             })
             return;
         }
@@ -135,7 +154,7 @@ module.exports = function (app, publicationsRepository, usersRepository, message
 
 
             let sender = await usersRepository.findUser({email: res.user},{})
-            let receiver = await usersRepository.findUser({email: req.body.receiverEmail},{}) ;
+            let receiver = await usersRepository.findUser({email: receiverEmail},{}) ;
 
             sender = sender[0]
             receiver = receiver[0]
@@ -147,7 +166,7 @@ module.exports = function (app, publicationsRepository, usersRepository, message
 
                         let message = {
                             senderEmail : res.user,
-                            receiverEmail : req.body.receiverEmail,
+                            receiverEmail : receiverEmail,
                             text : req.body.text,
                             leido : false
                         }
@@ -165,7 +184,7 @@ module.exports = function (app, publicationsRepository, usersRepository, message
 
                                 res.status(500);
                                 res.json({
-                                    message: "Error al crear mensaje entre" + res.user + " y " + req.body.receiverEmail + ".",
+                                    message: "Error al crear mensaje entre" + res.user + " y " + receiverEmail + ".",
                                     error: error
                                 })
 
@@ -175,7 +194,7 @@ module.exports = function (app, publicationsRepository, usersRepository, message
 
                         res.status(500);
                         res.json({
-                            message: "" + res.user + " y " + req.body.receiverEmail + " no son amigos"
+                            message: "" + res.user + " y " + receiverEmail + " no son amigos"
                         })
 
                     }
@@ -185,7 +204,7 @@ module.exports = function (app, publicationsRepository, usersRepository, message
 
                     res.status(500);
                     res.json({
-                        message: "Error comprobando si " + res.user + " y " + req.body.receiverEmail + " son amigos",
+                        message: "Error comprobando si " + res.user + " y " + receiverEmail + " son amigos",
                         error: error
                     })
 
