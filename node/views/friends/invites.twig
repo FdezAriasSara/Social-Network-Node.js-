@@ -20,7 +20,7 @@
                         <td>{{ invite.surname }}</td>
                         <td>
                             <form method="post" action="/friends/accept/{{ invite._id }}">
-                                <button>
+                                <button id="acceptButton{{ invite.email }}">
                                     Aceptar
                                 </button>
                             </form>
