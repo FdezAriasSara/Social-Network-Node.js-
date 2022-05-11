@@ -256,7 +256,7 @@ module.exports = function (app, usersRepository, publicationsRepository) {
                         if(response === true){ //Son amigos
 
                             //Metodo para reutilizar código, renderiza las publicaciones del usuario que se pase como parametro
-                            renderPublicationsOf(friendId,page, req,res);
+                            renderPublicationsOf(friendId,true,page, req,res);
 
                         }else{ //No son amigos
 
@@ -302,7 +302,7 @@ module.exports = function (app, usersRepository, publicationsRepository) {
 
 
 
-    async function renderPublicationsOf(userStringId, page, req, res) {
+    async function renderPublicationsOf(userStringId, isFriend, page, req, res) {
 
         publicationsRepository.findAllPublicationsByAuthorAndPage( ObjectId(userStringId), page)
             .then((publications) => {
@@ -336,7 +336,9 @@ module.exports = function (app, usersRepository, publicationsRepository) {
                             isLoggedIn:( req.session.user!=null && req.session.user!= 'undefined'),
                             pages: pages,
                             currentPage: page,
-                            author: publications.author
+                            author: publications.author,
+                            isFriend: isFriend,
+                            authorID: userStringId
                         });
 
                 }else{ //El usuario aun no tiene publicaciones
@@ -347,7 +349,9 @@ module.exports = function (app, usersRepository, publicationsRepository) {
                             isLoggedIn:( req.session.user!=null && req.session.user!= 'undefined'),
                             pages: 1,
                             currentPage: 1,
-                            author: publications.author
+                            author: publications.author,
+                            isFriend: isFriend,
+                            authorID: userStringId
                         });
 
                 }
