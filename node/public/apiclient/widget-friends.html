@@ -44,10 +44,8 @@
     /**
      * Nos lleva a otro widget , el de la conversación.
      */
-    function showConversationWith(friend){
-        console.log(friend)
-        console.log(currentFriend)
-                currentFriend=friend
+    function showConversationWith(i){
+                currentFriend=friends[i]._id;
                 $("#main-container").load("widget-conversation.html");
 
     }
@@ -57,7 +55,7 @@
      * Si hay más de un mensaje, se muestra como un enlace a la converasción.
      * @param friend
      */
-
+    let friendAtTheMoment;
     function obtainLastMessage(friend,i) {
 
            $.ajax({
@@ -67,13 +65,13 @@
                dataType: 'json',
                headers: {"token": token},
             success: function (response) {
-                currentFriend= JSON.parse(JSON.stringify(friend._id))
+                friendAtTheMoment= JSON.parse(JSON.stringify(i))
                 messages = response.messages;
 
                 var last=messages[messages.length-1];
 
                 if(messages.length>1){//A link to the conversation is only available if there is more than one message.
-                    $("#friendsTableBody").find('#friendMsg'+i).append("<tr><td><a"+" onclick=showConversationWith(currentFriend)>["+last.date+"] "+last.senderEmail+" dijo :"+last.text+"<a/></td></tr>");
+                    $("#friendsTableBody").find('#friendMsg'+i).append("<tr><td><a"+" onclick=showConversationWith(friendAtTheMoment)>["+last.date+"] "+last.senderEmail+" dijo :"+last.text+"<a/></td></tr>");
 
                 }else if(messages.length==1){
 
