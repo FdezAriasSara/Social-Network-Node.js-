@@ -1195,7 +1195,7 @@ class SdiPractica234ApplicationTests {
 
     }
 
-    //[Prueba 34] Acceder a la lista de amigos de un usuario, y realizar un filtrado para encontrar a un amigo
+    //[Prueba 35] Acceder a la lista de amigos de un usuario, y realizar un filtrado para encontrar a un amigo
     //concreto, el nombre a buscar debe coincidir con el de un amigo.
     @Test
     @Order(39)
@@ -1244,5 +1244,68 @@ class SdiPractica234ApplicationTests {
                     "El usuario "+ nameInView+" no debería aparecer en vista.");
         }
 
+    }
+
+    //[Prueba 36] Acceder a la lista de mensajes de un amigo, la lista debe contener al menos tres mensajes.
+    @Test
+    @Order(39)
+    public void PR036() {
+        PO_APIClientView.goToApiView(driver);
+        //Iniciamos sesión correctamente
+        PO_APIClientView.fillForm(driver,"user01@email.com","user01");
+
+        List<WebElement> alert = driver.findElements(By.id("alert"));
+        //Login con éxito no muestra alerta de error.
+        Assertions.assertTrue(alert.isEmpty(), "Alerta enseñada al iniciar sesión con credenciales correctas");
+
+
+        //The user is redirected to the list view:
+        PO_View.checkElementBy(driver, "id", "widget-friends" ); //Esperamos que cargue el widget
+
+        //Esperamos que cargue lista de normal, con los amigos que tiene en total el usuario logueado, al menos 1
+        SeleniumUtils.waitLoadElementsByXpath(driver,"//*[@id=\"friendsTableBody\"]/tr[2]", 20 );
+        //Cogemos link a la conversación con el primer usuario, será el user02.
+        WebElement linkToConver = driver.findElement(By.xpath("//*[@id=\"friendsTableBody\"]/tr[2]/tr/td/a"));
+        linkToConver.click();//acedemos a lista de
+
+        //Cogemos los mensajes de la vista
+        List<WebElement> messages = driver.findElements(By.className("chatMessage"));
+
+        Assertions.assertTrue(messages.size()>=3, "List of messages in view is less than 3");
+        //Cogemos mensajes entre user01 y user02 de la BD para comparar con la vista.
+        List<String> messsagesFromDB = getMessagesFromDB("user01@email.com", "user02@email.com");
+        Assertions.assertTrue(messages.size()==messsagesFromDB.size(),
+                "Size of messages in review differs from the one retrieved from DB");
+
+        for (int i = 0; i < messsagesFromDB.size(); i++) {
+            Assertions.assertTrue(messages.get(i).getText().contains(messsagesFromDB.get(i)),
+                    "Message: " + messsagesFromDB.get(i) +" not present in view");
+        }
+
+
+
+
+    }
+
+    private List<String> getMessagesFromDB(String sender, String receiver) {
+        List<Document> messagesInDB = new LinkedList<>();
+        msgsCollection.find(or(
+                and( eq("senderEmail", sender),
+                        eq("receiverEmail", receiver)
+                ),
+                and( eq("senderEmail", receiver),
+                        eq("receiverEmail", sender)
+                )
+                )).sort(ascending("date")).into(messagesInDB);
+        List<String> messagesFromDB = new LinkedList<>();
+        StringBuilder sb = new StringBuilder();
+        for (Document msg:
+             messagesInDB) {
+            sb.append("["+msg.getString("senderEmail")+"]:")
+                    .append(msg.getString("text"));
+            messagesFromDB.add(sb.toString());
+            sb.setLength(0);
+        }
+        return messagesFromDB;
     }
 }
