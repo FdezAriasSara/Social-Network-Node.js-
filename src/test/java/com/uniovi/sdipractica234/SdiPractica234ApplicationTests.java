@@ -1311,6 +1311,10 @@ class SdiPractica234ApplicationTests {
         //We will assert that the message is in the view:
         List<WebElement>  messagesInView = driver.findElements(By.className("chatMessage"));
 
+        //Eliminamos de la DB el mensaje que enviamos en este test. Antes de comprobaciones para dejarla en estado correcto.
+        msgsCollection.deleteOne(and(eq("senderEmail", "user01@email.com"),
+                eq("text", messageToBeSent)));
+
         Assertions.assertTrue(messagesInViewPrevious.size()+1==messsagesFromDB.size(),
                 "Size of messages in  the view before sending message should be the same" +
                         " like the one retrieved from DB +1");
@@ -1322,9 +1326,7 @@ class SdiPractica234ApplicationTests {
         Assertions.assertTrue(messagesInView.get(messagesInView.size()-1).getText().contains(messageToBeSent),
                 "Message: " + messageToBeSent +" not present in view");
 
-        //Eliminamos de la DB el mensaje que enviamos en este test.
-        msgsCollection.deleteOne(and(eq("senderEmail", "user01@email.com"),
-                eq("text", messageToBeSent)));
+
 
 
 
