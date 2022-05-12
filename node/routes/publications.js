@@ -263,7 +263,7 @@ module.exports = function (app, usersRepository, publicationsRepository) {
                             res.render("error.twig",
                                 {
                                     message: "El usuario " + req.session.user
-                                        + " NO es amigo del usuario con ID: " + friendId ,
+                                        + " NO es amigo del usuario especificado.",
                                     error: new Error()
                                 });
 
@@ -277,7 +277,7 @@ module.exports = function (app, usersRepository, publicationsRepository) {
                         res.render("error.twig",
                             {
                                 message: "Error comprobando si el usuario " + req.session.user
-                                    + " es amigo del usuario con ID: " + friendId ,
+                                    + " es amigo del usuario especificado." ,
                                 error: error
                             });
 
