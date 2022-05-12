@@ -746,11 +746,26 @@ class SdiPractica234ApplicationTests {
 
         PO_NavView.clickListPosts(driver);
         //We check that two pages are displayed,each with 5 posts
-        PO_ListPostsView.checkPosts(driver, 5);//primera página.
+
+        List<WebElement> publicationTitles= driver.findElements(By.tagName("h3"));
+        Assertions.assertEquals(5, publicationTitles.size());
+        Assertions.assertEquals("Mi primera publicación.",publicationTitles.get(0).getText());
+        Assertions.assertEquals("Mi segunda publicación",publicationTitles.get(1).getText());
+        Assertions.assertEquals("Tercera publicación.",publicationTitles.get(2).getText());
+        Assertions.assertEquals("Mi cuarta publicación.",publicationTitles.get(3).getText());
+        Assertions.assertEquals("Mi quinta publicación",publicationTitles.get(4).getText());
+
+        //go to the last page.
         List<WebElement> elements = PO_View.checkElementBy(driver, "free", "//a[contains(@class, 'page-link')]");
-        //Nos vamos a la última página
+
         elements.get(1).click();
-        PO_ListPostsView.checkPosts(driver, 5);//segunda página.
+         publicationTitles= driver.findElements(By.tagName("h3"));
+        Assertions.assertEquals(5, publicationTitles.size());
+        Assertions.assertEquals("Mi sexta publicación",publicationTitles.get(0).getText());
+        Assertions.assertEquals("Mi séptima publicación",publicationTitles.get(1).getText());
+        Assertions.assertEquals("Mi octava publicación",publicationTitles.get(2).getText());
+        Assertions.assertEquals("Mi novena publicación",publicationTitles.get(3).getText());
+        Assertions.assertEquals("Mi décima publicación.",publicationTitles.get(4).getText());
     }
 
 
@@ -785,11 +800,12 @@ class SdiPractica234ApplicationTests {
     public void PR28() {
         PO_LoginView.goToLoginPage(driver);
         //El usuario debe estar registrado para hacer un post , por tanto
-        PO_LoginView.fillForm(driver, "user02@email.com", "user02");
-        //El usuario 02 NO es amigo del usuario 12, que tiene 10 publicaciones.
-        driver.get("http://localhost:8090/posts/listFor/user12@email.com");
-//        List<WebElement> forbiddenMessage= PO_View.checkElementBy(driver, "text", PO_View.getP().getString("error.message",PO_Properties.getSPANISH()));
-        //Assertions.assertEquals("Parece que este sitio no existe o no tienes acceso a él :(",forbiddenMessage.get(0).getText());
+        PO_LoginView.fillForm(driver, "user01@email.com", "user01");
+        //El usuario 13 NO es amigo del usuario 2, que tiene 10 publicaciones.
+        driver.get("http://localhost:8090/publications/friend/627a689d7d2484b870a321fe");
+
+        Assertions.assertEquals("ERROR:",driver.findElements(By.tagName("h1")).get(0).getText());
+        Assertions.assertEquals("El usuario user01@email.com NO es amigo del usuario con ID: 627a689d7d2484b870a321fe",driver.findElements(By.tagName("h1")).get(1).getText());
     }
 
 

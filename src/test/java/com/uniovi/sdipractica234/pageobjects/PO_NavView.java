@@ -72,7 +72,7 @@ public class PO_NavView extends PO_View {
         WebElement myDynamicElement = (new WebDriverWait(driver,
                 10))
                 .until(ExpectedConditions.presenceOfElementLocated(By.id("listOwnPosts")));
-
+        driver.findElement(By.id("listOwnPosts")).click();
 
 
     }
