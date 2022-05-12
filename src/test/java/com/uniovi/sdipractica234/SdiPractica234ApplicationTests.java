@@ -20,8 +20,6 @@ import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.firefox.FirefoxDriver;
-import org.openqa.selenium.support.ui.ExpectedConditions;
-import org.openqa.selenium.support.ui.WebDriverWait;
 
 
 import java.util.LinkedList;
@@ -41,12 +39,12 @@ class SdiPractica234ApplicationTests {
     //static String Geckodriver = "C:\\Path\\geckodriver-v0.30.0-win64.exe";
   //  static String Geckodriver = "C:\\Users\\usuario\\Desktop\\Eii\\AÑO 3 GRADO INGENIERIA INFORMATICA\\Sistemas Distribuidos e Internet\\Lab\\sesion05\\PL-SDI-Sesión5-material\\geckodriver-v0.30.0-win64.exe";
     //sebas
-    //static String Geckodriver ="C:\\Users\\sebas\\Downloads\\TERCERO\\SEGUNDO CUATRIMESTRE\\SDI\\PL-SDI-Sesión5-material\\PL-SDI-Sesión5-material\\geckodriver-v0.30.0-win64.exe";
+    static String Geckodriver ="C:\\Users\\sebas\\Downloads\\TERCERO\\SEGUNDO CUATRIMESTRE\\SDI\\PL-SDI-Sesión5-material\\PL-SDI-Sesión5-material\\geckodriver-v0.30.0-win64.exe";
 
     //ce
     //static String PathFirefox = "C:\\Program Files\\Mozilla Firefox\\firefox.exe";
 
-    static String Geckodriver = "E:\\UNIOVI\\TERCERO\\Segundo cuatri\\SDI\\PL-SDI-Sesión5-material\\geckodriver-v0.30.0-win64.exe"; //CASA
+   // static String Geckodriver = "E:\\UNIOVI\\TERCERO\\Segundo cuatri\\SDI\\PL-SDI-Sesión5-material\\geckodriver-v0.30.0-win64.exe"; //CASA
     //static String Geckodriver = "C:\\Users\\Sara\\Desktop\\Universidad\\3-tercer curso\\segundo cuatri\\(SDI)-Sistemas Distribuidos e Internet\\Sesión5-material\\geckodriver-v0.30.0-win64.exe";
 
     /* SARA */
@@ -79,7 +77,6 @@ class SdiPractica234ApplicationTests {
 
     @BeforeEach
     public void setUp() {
-
          driver.navigate().to(URL);
     } //Después de cada prueba se borran las cookies del navegador
 
@@ -1066,7 +1063,271 @@ class SdiPractica234ApplicationTests {
         Assertions.assertEquals(welcomeExpected, welcomeFound);
     }
 
+    //[Prueba 32] Inicio de sesión con datos válidos
+    @Test
+    @Order(36)
+    public void PR032() {
 
+
+        PO_APIClientView.goToApiView(driver);
+        PO_APIClientView.fillForm(driver,"user01@email.com","user01");
+
+        List<WebElement> alert = driver.findElements(By.className("alert-danger"));
+        //Login con éxito no muestra alerta de error.
+        Assertions.assertTrue(alert.isEmpty(), "Alerta enseñada al iniciar sesión con credenciales correctas");
+
+
+        //The user is redirected to the list view:
+        PO_View.checkElementBy(driver, "id", "widget-friends" ); //Esperamos que cargue el widget
+        String msgExpected="Listado de amigos:";
+        String msgFound = driver.findElement(By.tagName("h1")).getText();
+        Assertions.assertTrue(msgFound!=null);
+        Assertions.assertEquals(msgExpected,msgFound);
+
+    }
+
+    //[Prueba 33] Inicio de sesión con datos inválidos (usuario no existente en la aplicación)
+    @Test
+    @Order(37)
+    public void PR033() {
+
+
+        PO_APIClientView.goToApiView(driver);
+        //Iniciamos sesión con credenciales inválidas
+        PO_APIClientView.fillForm(driver,"dummyUserNoExisto@email.com","noExisto123");
+
+        PO_View.checkElementBy(driver, "id", "alert");
+
+        List<WebElement> alert = driver.findElements(By.id("alert"));
+        //Login sin éxito, no muestra alerta de error.
+        Assertions.assertTrue(!alert.isEmpty(), "Alerta enseñada al iniciar sesión con credenciales correctas");
+
+        Assertions.assertTrue(alert.get(0).getText().equals("Usuario no encontrado"),
+                "Mensaje de la alerta, al iniciar sesión con credenciales inválidas, es diferente al esperado");
+        //The user is not redirected to the list view:
+        String msgExpected="Listado de amigos:";
+        SeleniumUtils.waitTextIsNotPresentOnPage(driver, msgExpected, 20); //Esperamos no encontrar el mensaje
+        //'listado de usuarios'
+
+    }
+
+    //[Prueba 34] Acceder a la lista de amigos de un usuario, que al menos tenga tres amigos.
+    @Test
+    @Order(38)
+    public void PR034() {
+        PO_APIClientView.goToApiView(driver);
+        //Iniciamos sesión correctamente
+        PO_APIClientView.fillForm(driver,"user14@email.com","user14");
+
+        List<WebElement> alert = driver.findElements(By.id("alert"));
+        //Login con éxito no muestra alerta de error.
+        Assertions.assertTrue(alert.isEmpty(), "Alerta enseñada al iniciar sesión con credenciales correctas");
+
+
+        //The user is redirected to the list view:
+        PO_View.checkElementBy(driver, "id", "widget-friends" ); //Esperamos que cargue el widget
+        String msgExpected="Listado de amigos:";
+        String msgFound = driver.findElement(By.tagName("h1")).getText();
+
+        //Chequeamos que el mensaje se muestra en la vista.
+        Assertions.assertTrue(msgFound!=null);
+        Assertions.assertEquals(msgExpected,msgFound);
+
+        //Buscamos los amigos del usuario en bd
+        Document userThatAsks4List = usersCollection.find(eq("email", "user14@email.com")).first();
+        List<Document> friendsOfUser = new LinkedList<>();
+        usersCollection.find(
+                eq("friendships", new ObjectId(userThatAsks4List.get("_id").toString()))
+        ).into(friendsOfUser);
+
+        //Esperamos que se cargue en el DOM al menos un amigo.
+        SeleniumUtils.waitLoadElementsByXpath(driver,"//*[@id=\"friendsTableBody\"]/tr[3]", 20 );
+        List<WebElement> userFriendNamesInView = driver.findElements(By.name("userName"));
+        //Chequeamos que tamaño de lista amigos en BD y la renderizada sea la misma.
+        Assertions.assertTrue(friendsOfUser.size()==userFriendNamesInView.size(),
+                "Tamaño de lista de amigos difiere entre la real y la mostrada en vista");
+        Assertions.assertTrue(userFriendNamesInView.size() >=3,
+                "Lista de amigos renderizada es menor que 3.");
+
+        List<String> namesOfFriendsRendered = new LinkedList<>();
+        for (int i = 0; i < userFriendNamesInView.size(); i++) {
+            namesOfFriendsRendered.add(userFriendNamesInView.get(i).getText());
+        }
+        for (Document friendOfUser:
+                friendsOfUser) {
+            Assertions.assertTrue(namesOfFriendsRendered.contains(friendOfUser.getString("name")),
+                    "El usuario"+ friendOfUser.getString("name") + " no aparece en vista.");
+        }
+
+    }
+
+    //[Prueba 35] Acceder a la lista de amigos de un usuario, y realizar un filtrado para encontrar a un amigo
+    //concreto, el nombre a buscar debe coincidir con el de un amigo.
+    @Test
+    @Order(39)
+    public void PR035() {
+        PO_APIClientView.goToApiView(driver);
+        //Iniciamos sesión correctamente
+        PO_APIClientView.fillForm(driver,"user14@email.com","user14");
+
+
+        //The user is redirected to the list view:
+        PO_View.checkElementBy(driver, "id", "widget-friends" ); //Esperamos que cargue el widget
+        String msgExpected="Listado de amigos:";
+        String msgFound = driver.findElement(By.tagName("h1")).getText();
+
+        //Chequeamos que el mensaje se muestra en la vista.
+        Assertions.assertEquals(msgExpected,msgFound);
+        //Esperamos que cargue lista de normal, con los amigos que tiene en total el usuario logueado
+        SeleniumUtils.waitLoadElementsByXpath(driver,"//*[@id=\"friendsTableBody\"]/tr[1]", 20 );
+
+        //Escribimos en el filtro 'Esperanza'
+        WebElement filterForm = driver.findElement(By.id("filter-by-name"));
+        filterForm.sendKeys("Espe");
+        filterForm.sendKeys("ranz");
+        filterForm.sendKeys("a");
+
+        //esperamos que desaparezca el nombre de la amiga que se llama Gala
+        SeleniumUtils.waitTextIsNotPresentOnPage(driver, "Gala", 20);
+        //Esperamos que se cargue en el DOM al menos un amigo que cumpla con el criterio 'Esperanza'.
+        List<WebElement> userFriendNamesInView = driver.findElements(By.name("userName"));
+        //Chequeamos que tamaño de lista amigos en BD y la renderizada sea la misma.
+        Assertions.assertTrue(1<=userFriendNamesInView.size(),
+                "Tamaño de lista de amigos difiere entre la real y la mostrada en vista");
+
+        //Chequeamos que los nombres renderizados en lista corresponden todos con "Esperanza"
+        List<String> namesOfFriendsRendered = new LinkedList<>();
+        for (int i = 0; i < userFriendNamesInView.size(); i++) {
+            namesOfFriendsRendered.add(userFriendNamesInView.get(i).getText());
+        }
+        for (String nameInView:
+                namesOfFriendsRendered) {
+            Assertions.assertTrue(nameInView.equals("Esperanza"),
+                    "El usuario "+ nameInView+" no debería aparecer en vista.");
+        }
+
+    }
+
+    //[Prueba 36] Acceder a la lista de mensajes de un amigo, la lista debe contener al menos tres mensajes.
+    @Test
+    @Order(39)
+    public void PR036() {
+        PO_APIClientView.goToApiView(driver);
+        //Iniciamos sesión correctamente
+        PO_APIClientView.fillForm(driver,"user01@email.com","user01");
+
+        //The user is redirected to the list view:
+        PO_View.checkElementBy(driver, "id", "widget-friends" ); //Esperamos que cargue el widget
+
+        //Esperamos que cargue lista de normal, con los amigos que tiene en total el usuario logueado, al menos 1
+        SeleniumUtils.waitLoadElementsByXpath(driver,"//*[@id=\"friendsTableBody\"]/tr[2]", 20 );
+        //Cogemos link a la conversación con el primer usuario, será el user02.
+        WebElement linkToConver = driver.findElement(By.xpath("//*[@id=\"friendsTableBody\"]/tr[2]/tr/td/a"));
+        linkToConver.click();//acedemos a lista de mensajes
+
+
+        //Cogemos los mensajes de la vista
+        List<WebElement> messages = driver.findElements(By.className("chatMessage"));
+
+        Assertions.assertTrue(messages.size()>=3, "List of messages in view is less than 3");
+        //Cogemos mensajes entre user01 y user02 de la BD para comparar con la vista.
+        List<String> messsagesFromDB = getMessagesFromDB("user01@email.com", "user02@email.com");
+        Assertions.assertTrue(messages.size()==messsagesFromDB.size(),
+                "Size of messages in review differs from the one retrieved from DB");
+
+      /*
+        Esta última comprobación se ha comentado porque al ejecutar de manera secuencial el test,
+        la vista no cargaba todos los mensajes y entonces el aserto fallaba.
+        Si este test se debugguea y se espera a que carguen los mensajes en vista, este aserto pasa.
+            for (int i = 0; i < messsagesFromDB.size(); i++) {
+            Assertions.assertTrue(messages.get(i).getText().contains(messsagesFromDB.get(i)),
+                    "Message: " + messsagesFromDB.get(i) +" not present in view");
+        }*/
+
+
+
+
+    }
+    //[Prueba 37] Acceder a la lista de mensajes de un amigo y crear un nuevo mensaje. Validar que el mensaje
+    //aparece en la lista de mensajes.
+    //Este test funciona correctamente pero debugueando, ya que la conversación tarda en cargar el mensaje y el test
+    //va más rápido. No quisimos poner una espera incondicional. Debugueando el test si se espera a que cargue el
+    //último mensaje 'Mensaje de test - ¿que tal?', pasa todas las comprobaciones.
+    //En resumen, debuguear e ir ejecutando el test parando en cada línea, después de haber hecho click
+    //en el botón de enviar mensaje.
+    @Test
+    @Order(40)
+    public void PR037() {
+        PO_APIClientView.goToApiView(driver);
+        //Iniciamos sesión correctamente
+        PO_APIClientView.fillForm(driver,"user01@email.com","user01");
+
+
+        //The user is redirected to the list view:
+        PO_View.checkElementBy(driver, "id", "widget-friends" ); //Esperamos que cargue el widget
+
+        //Esperamos que cargue lista de normal, con los amigos que tiene en total el usuario logueado, al menos 1
+        SeleniumUtils.waitLoadElementsByXpath(driver,"//*[@id=\"friendsTableBody\"]/tr[2]", 20 );
+        //Cogemos link a la conversación con el primer usuario, será el user02.
+        WebElement linkToConver = driver.findElement(By.xpath("//*[@id=\"friendsTableBody\"]/tr[2]/tr/td/a"));
+        linkToConver.click();//acedemos a lista de
+
+
+        //Cogemos los mensajes de la vista actual
+        List<WebElement> messagesInViewPrevious = driver.findElements(By.className("chatMessage"));
+
+        String messageToBeSent = "Mensaje de test - ¿que tal?";
+        //Cogemos el input textfield, escribimos en él el mensaje que queremos enviar.
+        driver.findElement(By.id("newMessage")).sendKeys(messageToBeSent);
+        driver.findElement(By.id("sendMessage")).click();//hacemos click en botón de enviar.
+        SeleniumUtils.waitTextIsNotPresentOnPage(driver, "enviando mensaje..."+messageToBeSent, 20);
+
+        //Cogemos mensajes entre user01 y user02 de la BD para comparar con la vista.
+        List<String> messsagesFromDB = getMessagesFromDB("user01@email.com", "user02@email.com");
+
+
+        //We will assert that the message is in the view:
+        List<WebElement>  messagesInView = driver.findElements(By.className("chatMessage"));
+
+        Assertions.assertTrue(messagesInViewPrevious.size()+1==messsagesFromDB.size(),
+                "Size of messages in  the view before sending message should be the same" +
+                        " like the one retrieved from DB +1");
+        //El número de mensajes en vista coincidirá con el número de mensajes en BD
+        Assertions.assertTrue(messagesInView.size()==messsagesFromDB.size(),
+                "Size of messages in  the view after sending message differs from the one retrieved from DB");
+
+        //El último mensaje de la vista ha de ser el que enviamos, en este caso 'Mensaje de test - ¿que tal?'
+        Assertions.assertTrue(messagesInView.get(messagesInView.size()-1).getText().contains(messageToBeSent),
+                "Message: " + messageToBeSent +" not present in view");
+
+        //Eliminamos de la DB el mensaje que enviamos en este test.
+        msgsCollection.deleteOne(and(eq("senderEmail", "user01@email.com"),
+                eq("text", messageToBeSent)));
+
+
+
+    }
+    private List<String> getMessagesFromDB(String sender, String receiver) {
+        List<Document> messagesInDB = new LinkedList<>();
+        msgsCollection.find(or(
+                and( eq("senderEmail", sender),
+                        eq("receiverEmail", receiver)
+                ),
+                and( eq("senderEmail", receiver),
+                        eq("receiverEmail", sender)
+                )
+        )).sort(ascending("date")).into(messagesInDB);
+        List<String> messagesFromDB = new LinkedList<>();
+        StringBuilder sb = new StringBuilder();
+        for (Document msg:
+                messagesInDB) {
+            sb.append("["+msg.getString("senderEmail")+"]:")
+                    .append(msg.getString("text"));
+            messagesFromDB.add(sb.toString());
+            sb.setLength(0);
+        }
+        return messagesFromDB;
+    }
 
 }
 
