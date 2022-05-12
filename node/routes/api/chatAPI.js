@@ -263,7 +263,7 @@ module.exports = function (app, publicationsRepository, usersRepository, message
             let messages = await messagesRepository.getMessagesFromTo(myself, otherUser.email)
             messages =messages.concat( await messagesRepository.getMessagesFromTo(otherUser.email, myself))
 
-           // messages.sort( (a,b) => b.date - a.date);
+            messages.sort( (a,b) =>a.date - b.date);
 
             res.status(200);
             res.json({
