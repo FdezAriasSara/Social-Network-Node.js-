@@ -22,7 +22,7 @@ module.exports = {
                 //Si no tiene publicaciones, creamos el documento
                 await publicationsCollection.insert({userID: userObjectID, publications: [publication] });
             }else{
-                if(publicationsOfUser[0].publications.length > 0 ){ //Si ya tiene publicaciones, y
+                if(publicationsOfUser[0].publications.length <= 0 ){ //Si ya tiene publicaciones, y
                     //la array de publicaciones NO está vacia insertamos la nueva
                     await publicationsCollection.update({userID: userObjectID}, {$push: { publications: publication } } );
                 }else{

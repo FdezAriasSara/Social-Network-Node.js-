@@ -131,10 +131,11 @@ module.exports = function (app, usersRepository, publicationsRepository) {
             }
 
             let publication;
+            let randomUUIDForImage = null;
             if(req.files != null){//Se envió imagen
 
                 //Generate random UUID unique for the image
-                let randomUUIDForImage = uuidv4();
+                randomUUIDForImage = uuidv4();
                  publication = {
                     dateofcreation: new Date(),
                     content: req.body.description,
