@@ -25,7 +25,7 @@ public class PO_PostFormView {
     }
 
     public static void goToPostFormView(WebDriver driver) {
-        driver.get("localhost:8090/post/add");
+        driver.get("localhost:8090/publications/add");
 
     }
 }
