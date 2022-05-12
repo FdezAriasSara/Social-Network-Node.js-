@@ -58,8 +58,10 @@
             success: function (response) {
                 conversationFriendId= JSON.parse(JSON.stringify(response.idOtherUser))
                 messages = response.messages;
+                $(".alert").remove();
             },
             error: function (error) {
+
                 $(".alert").remove();
                 $("#widget-conversation").append("<div class='alert alert-danger' > Se ha producido un error al acceder a la conversación</div>");
             }
@@ -126,7 +128,7 @@
             displayConversation(toWrite);
         }
         oldMessages=messages;//now messages are up to date.
-    }, 5000);
+    }, 3000);
 
     loadMessages(currentFriend);
     displayConversation(messages);//will be executed when this view is accesed for the first time
