@@ -1,5 +1,4 @@
 const {ObjectId} = require('mongodb');
-const {v4: uuidv4} = require("uuid");
 var log4js = require("log4js");
 var logger = log4js.getLogger();
 logger.level = "debug";
@@ -10,6 +9,7 @@ module.exports = function (app, usersRepository) {
 
     /**
      * Devuelve la lista de invitaciones de amistad recibidas por el usuario en sesión
+     * Muestra una vista en la que aparecen un máximo de 5 invitaciones por página con sistema de paginación
      */
     app.get('/friends/invites', function(req, res) {
 
@@ -42,7 +42,7 @@ module.exports = function (app, usersRepository) {
             usersRepository.findInvitesReceivedByUser(user, page, TOTAL_INVITES_PER_PAGE).then(invites => {
 
                 let invitesToShow = [];
-                let pages = []; // paginas mostrar
+                let pages = []; // páginas a mostrar
 
                 if (invites.total > 0) {
 
@@ -85,6 +85,7 @@ module.exports = function (app, usersRepository) {
 
     /**
      * Devuelve la lista de amigos del usuario en sesión
+     * Muestra una vista en la que aparecen un máximo de 5 amistades por página con sistema de paginación
      */
     app.get('/friends/list', function (req, res){
         logger.info("[GET] - [/friends/list]");
@@ -156,9 +157,11 @@ module.exports = function (app, usersRepository) {
     });
 
     /**
-     * Mandar invitación de amistad a un usuario
-     * No podemos enviar una invitación a uno mismo, a amigos, ni a gente con invitaciones
-     * pendientes nuestras, tanto recibidas como mandadas
+     * Manda una invitación de amistad al usuario especificado de párametro
+     * Si este usuario no existe, nos redirige a la página de error
+     * Comprobamos también si esa invitación se puede mandar, ya que no podemos enviar una invitación a uno mismo,
+     * a usuarios que ya son nuestros amigos, ni a usuarios con invitaciones pendientes nuestras, tanto recibidas
+     * como mandadas
      */
     app.post('/friends/invite/:id', function (req, res){
 
@@ -247,7 +250,10 @@ module.exports = function (app, usersRepository) {
     });
 
     /**
-     * Aceptar una invitación de amistad
+     * Aceptar una invitación de amistad del usuario especificado de párametro
+     * Si este usuario no existe, nos redirige a la página de error
+     * Comprobamos también si esa invitación se puede aceptar, ya que no podemos aceptar una invitación que no se
+     * encuentre en nuestro listado de invitaciones recibidas
      */
     app.post('/friends/accept/:id', function (req, res){
 

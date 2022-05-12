@@ -29,9 +29,7 @@ module.exports = {
 
         }
 
-
     },
-
     findUser: async function (filter, options) {
         try {
 
@@ -46,8 +44,6 @@ module.exports = {
             throw (error);
         }
     },
-
-
     findUserByStringId: async function (stringId){
         try {
 
@@ -61,29 +57,6 @@ module.exports = {
         } catch (error) {
             throw (error);
         }
-    },
-
-    findInvitesReceivedBy: async function ( receiverObjectID ){
-
-        try {
-            const client = await this.mongoClient.connect(this.app.get('connectionStrings'));
-            const database = client.db("redsocial");
-            const collectionName = 'users';
-            const usersCollection = database.collection(collectionName);
-
-            //Encuentra el usuario con ObjectID
-            let filterUsers = {_id: receiverObjectID};
-            //Las opciones: solo seleccionamos el ID del receptor y la lista de ID's de usuarios
-            // de los qie tenemos invitaciones recibidas
-            let options = {  invitesReceived: 1, _id:0}
-
-            const invitesReceived = await usersCollection.find(filterUsers, options).toArray();
-            client.close();
-            return invitesReceived;
-        } catch (error) {
-            throw (error);
-        }
-
     },
     findInvitesReceivedByUser: async function ( receiver, page, limit ){
 
@@ -151,8 +124,7 @@ module.exports = {
 
             //Encuentra el usuario con ObjectID --> miraremos el emisor primero
             let filterUsers = {_id: senderObjectID};
-            //Las opciones: solo seleccionamos el ID del emisor y la lista de ID's de usuarios
-            //que han recibido su invitación
+
             //Actualizamos la lista de peticiones enviadas por el emisor, añadimos el id del receptor
             await usersCollection.update(filterUsers, {$push: { invitesSent: receiverObjectID } } );
 
@@ -161,8 +133,6 @@ module.exports = {
 
             //Encuentra el usuario con ObjectID --> miraremos el RECEPTOR
             filterUsers = {_id: receiverObjectID};
-            //Las opciones: solo seleccionamos el ID del receptor y la lista de ID's de usuarios
-            // que le han enviado solicitud
 
             //Actualizamos la lista de peticiones enviadas por el emisor, ahora contiene la enviada al receptor
             await usersCollection.update(filterUsers, {$push: { invitesReceived: senderObjectID } } );
@@ -172,30 +142,6 @@ module.exports = {
             throw (error);
         }
     },
-    findInvitesSentBy: async function ( senderObjectID ){
-
-        try {
-            const client = await this.mongoClient.connect(this.app.get('connectionStrings'));
-            const database = client.db("redsocial");
-            const collectionName = 'users';
-            const usersCollection = database.collection(collectionName);
-
-            //Encuentra el usuario con ObjectID
-            let filterUsers = {_id: senderObjectID};
-            //Las opciones: solo seleccionamos el ID del emisor y la lista de ID's de usuarios
-            // que han recibido su invitación
-            let options = {  invitesSent: 1, _id:0}
-
-            const invitesSent = await usersCollection.find(filterUsers, options).toArray();
-            client.close();
-            return invitesSent;
-        } catch (error) {
-            throw (error);
-        }
-
-    }
-    ,
-
     acceptInvite: async function ( senderObjectID, receiverObjectID ){
 
         try {
@@ -207,29 +153,22 @@ module.exports = {
 
             //Encuentra el usuario con ObjectID --> miraremos el emisor primero
             let filterUsers = {_id: senderObjectID};
-            //Las opciones: solo seleccionamos el ID del emisor y la lista de ID's de usuarios
-            // que han recibido su invitación
+
             //Actualizamos la lista de peticiones enviadas por el emisor, ahora ya no contiene la enviada al receptor
             await usersCollection.update(filterUsers, {$pull: { invitesSent: receiverObjectID } } );
 
             //Establecemos la amistad entre el emisor y el receptor
-
             await usersCollection.update(filterUsers, {$push: { friendships: receiverObjectID } } );
 
-
-
-            /////////HACEMOS LO MISMO CON EL RECEPTOR: BORRAMOS LA PETITION RECIBIDA
+            /////////HACEMOS LO MISMO CON EL RECEPTOR: BORRAMOS LA INVITACIÓN RECIBIDA
 
             //Encuentra el usuario con ObjectID --> miraremos el RECEPTOR
             filterUsers = {_id: receiverObjectID};
-            //Las opciones: solo seleccionamos el ID del receptor y la lista de ID's de usuarios
-            // que le han enviado solicitud
 
             //Actualizamos la lista de peticiones enviadas por el emisor, ahora ya no contiene la enviada al receptor
             await usersCollection.update(filterUsers, {$pull: { invitesReceived: senderObjectID } } );
 
             //Establecemos la amistad entre el receptor y el emisor
-
             await usersCollection.update(filterUsers, {$push: { friendships: senderObjectID } } );
             client.close();
 
