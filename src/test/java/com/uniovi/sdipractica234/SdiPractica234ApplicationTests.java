@@ -82,6 +82,7 @@ class SdiPractica234ApplicationTests {
 
     @AfterEach
     public void tearDown() {
+        driver.navigate().to(URL+"/users/logout");
         driver.manage().deleteAllCookies();
 
     }
@@ -1010,11 +1011,27 @@ class SdiPractica234ApplicationTests {
         Assertions.assertEquals(welcomeExpected, welcomeFound);
 
         //We check that two pages are displayed,each with 5 posts
-        PO_ListPostsView.checkPosts(driver, 5);//primera página.
+
+        List<WebElement> publicationTitles= driver.findElements(By.tagName("h3"));
+        Assertions.assertEquals(5, publicationTitles.size());
+        Assertions.assertEquals("Mi primera publicación.",publicationTitles.get(0).getText());
+        Assertions.assertEquals("Mi segunda publicación",publicationTitles.get(1).getText());
+        Assertions.assertEquals("Tercera publicación.",publicationTitles.get(2).getText());
+        Assertions.assertEquals("Mi cuarta publicación.",publicationTitles.get(3).getText());
+        Assertions.assertEquals("Mi quinta publicación",publicationTitles.get(4).getText());
+
+        //go to the last page.
         List<WebElement> elements = PO_View.checkElementBy(driver, "free", "//a[contains(@class, 'page-link')]");
-        //Nos vamos a la última página
+
         elements.get(1).click();
-        PO_ListPostsView.checkPosts(driver, 5);//segunda página.
+        publicationTitles= driver.findElements(By.tagName("h3"));
+        Assertions.assertEquals(5, publicationTitles.size());
+        Assertions.assertEquals("Mi sexta publicación",publicationTitles.get(0).getText());
+        Assertions.assertEquals("Mi séptima publicación",publicationTitles.get(1).getText());
+        Assertions.assertEquals("Mi octava publicación",publicationTitles.get(2).getText());
+        Assertions.assertEquals("Mi novena publicación",publicationTitles.get(3).getText());
+        Assertions.assertEquals("Mi décima publicación.",publicationTitles.get(4).getText());
+
 
     }
 
