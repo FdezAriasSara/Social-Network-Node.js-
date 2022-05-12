@@ -465,17 +465,12 @@ class SdiPractica234ApplicationTests {
         driver.findElement(By.id("deleteButton")).click(); //Press delete button and delete users.
         SeleniumUtils.waitSeconds(driver, 1); //wait a second in order for the database to update
         List<Document> usersAfterDeleting = getUsersAdminView();
-        Assertions.assertTrue(totalUsers.size() == usersAfterDeleting.size()+3);
-        Assertions.assertTrue(!usersAfterDeleting.contains(firstDeleted), "User with id: "+ idFirstUser+" was not deleted");
-        Assertions.assertTrue(!usersAfterDeleting.contains(secondDeleted), "User with id: "+ idFirstUser+" was not deleted");
-        Assertions.assertTrue(!usersAfterDeleting.contains(thirdDeleted), "User with id: "+ idFirstUser+" was not deleted");
-        //volvemos a añadir los usuarios eliminados así como los datos relacionados con los mismos
-        //(amigos, publicaciones, mensajes.....)
         restoreUser(firstDeleted);
         restoreFriendsAndInvites(friendsInvitesInvolvingFirst);
         restorePublications(publicationsInvolvingFirst);
         restoreMessages(messagesInvolvingFirst);
-
+        //volvemos a añadir los usuarios eliminados así como los datos relacionados con los mismos
+        //(amigos, publicaciones, mensajes.....)
         restoreUser(secondDeleted);
         restoreFriendsAndInvites(friendsInvitesInvolvingSecond);
         restorePublications(publicationsInvolvingSecond);
@@ -485,6 +480,13 @@ class SdiPractica234ApplicationTests {
         restoreFriendsAndInvites(friendsInvitesInvolvingThird);
         restorePublications(publicationsInvolvingThird);
         restoreMessages(messagesInvolvingThird);
+
+        Assertions.assertTrue(totalUsers.size() == usersAfterDeleting.size()+3);
+        Assertions.assertTrue(!usersAfterDeleting.contains(firstDeleted), "User with id: "+ idFirstUser+" was not deleted");
+        Assertions.assertTrue(!usersAfterDeleting.contains(secondDeleted), "User with id: "+ idFirstUser+" was not deleted");
+        Assertions.assertTrue(!usersAfterDeleting.contains(thirdDeleted), "User with id: "+ idFirstUser+" was not deleted");
+
+
     }
 
     private void restoreMessages(List<Document> messages) {
@@ -542,17 +544,20 @@ class SdiPractica234ApplicationTests {
         driver.findElement(By.id("deleteButton")).click(); //we delete the user
 
         List<Document> remainingUsers = getUsersAdminView();
-        Assertions.assertTrue(!remainingUsers.contains(userDeleted), "User was not deleted");
-        Assertions.assertTrue( totalUsers.size() == remainingUsers.size()+1,
-                "Sizes differ: seems like user was not deleted");
 
 
-        //Volvemos a añadir la información eliminada!!!!!!
+
+        //Volvemos a añadir la información eliminada!!!!!! Antes de los asertos asi nos aseguramos
+        //de que la BD queda restaurada
         restoreUser(userDeleted);
         restoreFriendsAndInvites(usersWithFriendsAndInvitesRelated2DeletedUser);
         restoreMessages(messagesInvolvingDeletedUser);
         restorePublications(publicationsDeleted);
 
+
+        Assertions.assertTrue(!remainingUsers.contains(userDeleted), "User was not deleted");
+        Assertions.assertTrue( totalUsers.size() == remainingUsers.size()+1,
+                "Sizes differ: seems like user was not deleted");
 
     }
 
