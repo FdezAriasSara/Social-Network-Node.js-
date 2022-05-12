@@ -7,12 +7,10 @@ import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Filters;
-import com.uniovi.sdipractica234.pageobjects.PO_LoginView;
-import com.uniovi.sdipractica234.pageobjects.PO_NavView;
-import com.uniovi.sdipractica234.pageobjects.PO_SignUpView;
-import com.uniovi.sdipractica234.pageobjects.PO_UsersView;
-import com.uniovi.sdipractica234.util.SeleniumUtils;
+
+import com.mongodb.client.model.Updates;
 import com.uniovi.sdipractica234.pageobjects.*;
+import com.uniovi.sdipractica234.util.SeleniumUtils;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.bson.types.ObjectId;
@@ -31,7 +29,6 @@ import java.util.List;
 
 import static com.mongodb.client.model.Filters.*;
 import static com.mongodb.client.model.Sorts.ascending;
-import java.util.List;
 
 import static com.mongodb.client.model.Filters.eq;
 
@@ -42,19 +39,20 @@ class SdiPractica234ApplicationTests {
     public static final int USERS_PER_PAGE = 5;
     //static String PathFirefox = "C:\\Program Files\\Mozilla Firefox\\firefox.exe";
     //static String Geckodriver = "C:\\Path\\geckodriver-v0.30.0-win64.exe";
-    //  static String Geckodriver = "C:\\Users\\usuario\\Desktop\\Eii\\AÑO 3 GRADO INGENIERIA INFORMATICA\\Sistemas Distribuidos e Internet\\Lab\\sesion05\\PL-SDI-Sesión5-material\\geckodriver-v0.30.0-win64.exe";
+  //  static String Geckodriver = "C:\\Users\\usuario\\Desktop\\Eii\\AÑO 3 GRADO INGENIERIA INFORMATICA\\Sistemas Distribuidos e Internet\\Lab\\sesion05\\PL-SDI-Sesión5-material\\geckodriver-v0.30.0-win64.exe";
     //sebas
     //static String Geckodriver ="C:\\Users\\sebas\\Downloads\\TERCERO\\SEGUNDO CUATRIMESTRE\\SDI\\PL-SDI-Sesión5-material\\PL-SDI-Sesión5-material\\geckodriver-v0.30.0-win64.exe";
 
     //ce
     //static String PathFirefox = "C:\\Program Files\\Mozilla Firefox\\firefox.exe";
-    // static String Geckodriver = "E:\\UNIOVI\\TERCERO\\Segundo cuatri\\SDI\\PL-SDI-Sesión5-material\\geckodriver-v0.30.0-win64.exe"; //CASA
+
+    static String Geckodriver = "E:\\UNIOVI\\TERCERO\\Segundo cuatri\\SDI\\PL-SDI-Sesión5-material\\geckodriver-v0.30.0-win64.exe"; //CASA
     //static String Geckodriver = "C:\\Users\\Sara\\Desktop\\Universidad\\3-tercer curso\\segundo cuatri\\(SDI)-Sistemas Distribuidos e Internet\\Sesión5-material\\geckodriver-v0.30.0-win64.exe";
 
     /* SARA */
     static String PathFirefox = "C:\\Program Files\\Mozilla Firefox\\firefox.exe";
     //static String Geckodriver = "C:\\Path\\geckodriver-v0.30.0-win64.exe";
-    static String Geckodriver = "C:\\Users\\Sara\\Desktop\\Universidad\\3-tercer curso\\segundo cuatri\\(SDI)-Sistemas Distribuidos e Internet\\Sesión5-material\\geckodriver-v0.30.0-win64.exe";
+    //static String Geckodriver = "C:\\Users\\Sara\\Desktop\\Universidad\\3-tercer curso\\segundo cuatri\\(SDI)-Sistemas Distribuidos e Internet\\Sesión5-material\\geckodriver-v0.30.0-win64.exe";
 
     //static String PathFirefox = "/Applications/Firefox.app/Contents/MacOS/firefox-bin";
     // static String Geckodriver = "/Users/USUARIO/selenium/geckodriver-v0.30.0-macos";
@@ -114,6 +112,7 @@ class SdiPractica234ApplicationTests {
         mongoClient.close();
         driver.quit();
     }
+
 
 
     //[Prueba1-1] Registro de Usuario con datos válidos.
@@ -374,10 +373,10 @@ class SdiPractica234ApplicationTests {
     }
 
 
-    //Prueba[4-1] Mostrar el listado de usuarios y comprobar que se muestran todos los que existen en el sistema.
+    //Prueba[11] Mostrar el listado de usuarios y comprobar que se muestran todos los que existen en el sistema.
     @Test
     @Order(32)
-    public void PR04_1(){
+    public void PR11(){
         loginAs("admin@email.com", "admin");
         PO_UsersView.goToUsersList(driver);
         List<Document> totalUsers = getUsersAdminView();
@@ -405,33 +404,33 @@ class SdiPractica234ApplicationTests {
         return totalUsers;
     }
 
-    //Prueba[5-1] Ir a la lista de usuarios, borrar el primer usuario de la lista, comprobar que la lista se actualiza
+    //Prueba[12] Ir a la lista de usuarios, borrar el primer usuario de la lista, comprobar que la lista se actualiza
     //y dicho usuario desaparece.
     @Test
     @Order(33)
-    public void PR05_1(){
+    public void PR12(){
         loginAs("admin@email.com", "admin");
         PO_UsersView.goToUsersList(driver);
         deleteUserInPath("//*[@id=\"tableUsers\"]/tbody/tr[1]/td[4]/input");
 
 
     }
-    //Prueba[5-2] Ir a la lista de usuarios, borrar el último usuario de la lista, comprobar que la lista se actualiza
+    //Prueba[13] Ir a la lista de usuarios, borrar el último usuario de la lista, comprobar que la lista se actualiza
     //y dicho usuario desaparece.
     @Test
     @Order(34)
-    public void PR05_2(){
+    public void PR13(){
         loginAs("admin@email.com", "admin");
         PO_UsersView.goToUsersList(driver);
-        deleteUserInPath("//*[@id=\"tableUsers\"]/tbody/tr[last()-1]/td[4]/input");
+        deleteUserInPath("//*[@id=\"tableUsers\"]/tbody/tr[last()]/td[4]/input");
 
     }
 
-    //Prueba[5-3] Ir a la lista de usuarios, borrar 3 usuarios, comprobar que la lista se actualiza y dichos usuarios
+    //Prueba[14] Ir a la lista de usuarios, borrar 3 usuarios, comprobar que la lista se actualiza y dichos usuarios
     //desaparecen.
     @Test
     @Order(35)
-    public void PR05_3(){
+    public void PR14(){
         loginAs("admin@email.com", "admin");
         PO_UsersView.goToUsersList(driver);
         List<Document> totalUsers = getUsersAdminView();//usersBefore
@@ -584,11 +583,11 @@ class SdiPractica234ApplicationTests {
         return publicationsDeleted;
     }
 
-    //Prueba[5-2] Mostrar el listado de usuarios y comprobar que se muestran todos los que existen en el sistema,
+    //Prueba[15] Mostrar el listado de usuarios y comprobar que se muestran todos los que existen en el sistema,
     //excepto el propio usuario y aquellos que sean Administradores
     @Test
     @Order(36)
-    public void PR06_1(){
+    public void PR15(){
         //Login como user01 y nos vamos a la vista de listar usuarios
         loginAs("user01@email.com", "user01");
         PO_UsersView.goToUsersList(driver);
@@ -644,11 +643,11 @@ class SdiPractica234ApplicationTests {
 
     }
 
-    //Prueba[7_1]Hacer una búsqueda con el campo vacío y comprobar que se muestra la página que
+    //Prueba[16]Hacer una búsqueda con el campo vacío y comprobar que se muestra la página que
     //corresponde con el listado usuarios existentes en el sistema.
     @Test
     @Order(37)
-    public void PR07_1(){
+    public void PR16(){
         //Login como user01 y nos vamos a la vista de listar usuarios
         loginAs("user01@email.com", "user01");
         PO_UsersView.goToUsersList(driver);
@@ -656,11 +655,11 @@ class SdiPractica234ApplicationTests {
         driver.findElement(By.id("searchButton")).click();
         compareUserListViewWithUserListInSystem("user01@email.com");
     }
-    //Prueba[7_2]Hacer una búsqueda escribiendo en el campo un texto que no exista y comprobar que se
+    //Prueba[17]Hacer una búsqueda escribiendo en el campo un texto que no exista y comprobar que se
     //muestra la página que corresponde, con la lista de usuarios vacía.
     @Test
     @Order(38)
-    public void PR07_2(){
+    public void PR17(){
         //Login como user01 y nos vamos a la vista de listar usuarios
         loginAs("user01@email.com", "user01");
         PO_UsersView.goToUsersList(driver);
@@ -669,12 +668,12 @@ class SdiPractica234ApplicationTests {
         Assertions.assertTrue(driver.findElements(By.className("username")).isEmpty());
     }
 
-    //Prueba[7_3]Hacer una búsqueda con un texto específico y comprobar que se muestra la página que
+    //Prueba[18]Hacer una búsqueda con un texto específico y comprobar que se muestra la página que
     //corresponde, con la lista de usuarios en los que el texto especificado sea parte de su nombre, apellidos o
     //de su email.
     @Test
     @Order(39)
-    public void PR07_3(){
+    public void PR18(){
         //Login como user01 y nos vamos a la vista de listar usuarios
         loginAs("user01@email.com", "user01");
         PO_UsersView.goToUsersList(driver);
@@ -690,6 +689,234 @@ class SdiPractica234ApplicationTests {
             Assertions.assertTrue(userNamesObtainedWithSearchBy_2_.contains(usernameDisplayed.getText()), "Username: "+ usernameDisplayed.getText() + " should not be displayed!");
         }
     }
+
+    //[Prueba19] Iniciamos sesión, mandamos una invitación de amistad a otro usuario, cerramos sesión y entramos como
+    // el otro usuario para comprobar que la nueva invitación aparece en la lista.
+    @Test
+    @Order(11)
+    public void PR19(){
+        PO_SignUpView.goToSignUpPage(driver);
+        PO_SignUpView.fillForm(driver,"test@email.com","test","Test Friends",
+                "password","password");
+        PO_LoginView.goToLoginPage(driver);
+        PO_LoginView.fillForm(driver,"user02@email.com","user02");
+
+        //get the user id
+        WebElement receiver = driver.findElement(By.xpath("//*[@id=\"tableUsers\"]/tbody/tr[2]/td[4]/form"));
+        String url = receiver.getAttribute("action");
+        ObjectId id = new ObjectId(url.substring(37));
+
+        //send invite
+        driver.findElement(By.xpath("//*[@id=\"sendButtontest@email.com\"]")).click();
+
+        //logout
+        PO_NavView.clickLogout(driver);
+
+        //login as user01
+        PO_LoginView.fillForm(driver,"test@email.com","password");
+
+        //go to invite list
+        PO_FriendsView.goToListFriendsInvitations(driver);
+
+        //check that user 02 is there
+        String checkText = "Ellie";
+        List<WebElement> result = PO_View.checkElementBy(driver, "text", checkText);
+        Assertions.assertEquals(checkText, result.get(0).getText());
+
+        //now we remove the user from the database.
+        usersCollection.deleteOne(eq("email","test@email.com"));
+        usersCollection.findOneAndUpdate(eq("email", "user02@email.com"),
+                Updates.pull("invitesSent", id));
+    }
+
+    //[Prueba20] Iniciamos sesión, mandamos una invitación de amistad a otro usuario, y tratamos de volver a mandar una
+    //invitación. No existirá un botón para mandarlo ni deberá dejarnos mandarla desde la url
+    @Test
+    @Order(12)
+    public void PR20(){
+        PO_SignUpView.goToSignUpPage(driver);
+        PO_SignUpView.fillForm(driver,"test@email.com","test","Test Friends",
+                "password","password");
+        PO_LoginView.goToLoginPage(driver);
+        PO_LoginView.fillForm(driver,"user04@email.com","user04");
+
+        //get the user id
+        WebElement receiver = driver.findElement(By.xpath("//*[@id=\"tableUsers\"]/tbody/tr[2]/td[4]/form"));
+        String url = receiver.getAttribute("action");
+        ObjectId id = new ObjectId(url.substring(37));
+
+        //send invite
+        By path = By.xpath("//*[@id=\"sendButtontest@email.com\"]");
+        driver.findElement(path).click();
+
+        //ya no hay botón
+        Exception thrown = Assertions.assertThrows(NoSuchElementException.class, () -> driver.findElement(path));
+        Assertions.assertEquals("Unable to locate element: //*[@id=\"sendButtontest@email.com\"]", thrown.getMessage().split("\n")[0]);
+
+        //intentamos acceder mediante la url y nos lleva a página de error
+        driver.get(url);
+        Assertions.assertEquals("ERROR:", PO_View.checkElementBy(driver, "text", "ERROR").get(0).getText());
+
+        //now we remove the user from the database.
+        usersCollection.deleteOne(eq("email","test@email.com"));
+        usersCollection.findOneAndUpdate(eq("email", "user04@email.com"),
+                Updates.pull("invitesSent", id));
+    }
+
+    //[Prueba21] Iniciamos sesión y mostramos el listado de invitaciones de amistad recibidas
+    @Test
+    @Order(13)
+    public void PR21(){
+        PO_LoginView.goToLoginPage(driver);
+        PO_LoginView.fillForm(driver,"user05@email.com","user05");
+
+        //go to invite list
+        PO_FriendsView.goToListFriendsInvitations(driver);
+
+        //check that all invites inputted are there
+        List<WebElement> inviteList = SeleniumUtils.waitLoadElementsBy(driver, "free", "//tbody/tr", PO_View.getTimeout());
+        Assertions.assertEquals(3, inviteList.size());
+    }
+
+    private void sendTestInvite(boolean create){
+        //Mandamos una invitación con un usuario de prueba
+        if (create){
+            PO_SignUpView.goToSignUpPage(driver);
+            PO_SignUpView.fillForm(driver,"test@email.com","test","Test Friends",
+                    "password","password");
+        }
+        PO_LoginView.goToLoginPage(driver);
+        PO_LoginView.fillForm(driver,"test@email.com","password");
+        driver.findElements(By.className("page-link")).get(1).click();
+        driver.findElement(By.xpath("//*[@id=\"sendButtonuser05@email.com\"]")).click();
+        //logout
+        PO_NavView.clickLogout(driver);
+    }
+
+    //[Prueba22] Sobre el listado de invitaciones recibidas. Hacer clic en el botón/enlace de una de ellas y comprobar
+    // que dicha solicitud desaparece del listado de invitaciones
+    @Test
+    @Order(14)
+    public void PR22(){
+        PO_SignUpView.goToSignUpPage(driver);
+        PO_SignUpView.fillForm(driver,"test@email.com","test","Test Friends",
+                "password","password");
+
+        PO_LoginView.goToLoginPage(driver);
+        PO_LoginView.fillForm(driver,"user05@email.com","user05");
+
+        //get the user id
+        WebElement receiver = driver.findElement(By.xpath("//*[@id=\"tableUsers\"]/tbody/tr[2]/td[4]/form"));
+        String url = receiver.getAttribute("action");
+        ObjectId id = new ObjectId(url.substring(37));
+
+        //logout
+        PO_NavView.clickLogout(driver);
+
+        sendTestInvite(false);
+
+        PO_LoginView.goToLoginPage(driver);
+        PO_LoginView.fillForm(driver,"user05@email.com","user05");
+
+        //go to invite list
+        PO_FriendsView.goToListFriendsInvitations(driver);
+
+        //Número inicial de invitaciones
+        List<WebElement> inviteList = SeleniumUtils.waitLoadElementsBy(driver, "free", "//tbody/tr", PO_View.getTimeout());
+        Assertions.assertEquals(4, inviteList.size());
+
+        //Aceptamos la de test
+        By path = By.xpath("//*[@id=\"acceptButtontest@email.com\"]");
+        driver.findElement(path).click();
+
+        //check that it disappears from the invite list
+        inviteList = SeleniumUtils.waitLoadElementsBy(driver, "free", "//tbody/tr", PO_View.getTimeout());
+        Assertions.assertEquals(3, inviteList.size());
+
+        //now we remove the user from the database.
+        usersCollection.deleteOne(eq("email","test@email.com"));
+
+
+        usersCollection.findOneAndUpdate(eq("email", "user05@email.com"),
+                Updates.pull("friendships", id));
+    }
+
+    //[Prueba22_1] Prueba adicional para comprobar que tras aceptar la invitación, aparece el usuario en el listado de
+    // amigos
+    @Test
+    @Order(15)
+    public void PR22_1(){
+        PO_SignUpView.goToSignUpPage(driver);
+        PO_SignUpView.fillForm(driver,"test@email.com","test","Test Friends",
+                "password","password");
+
+        PO_LoginView.goToLoginPage(driver);
+        PO_LoginView.fillForm(driver,"user05@email.com","user05");
+
+        //get the user id
+        WebElement receiver = driver.findElement(By.xpath("//*[@id=\"tableUsers\"]/tbody/tr[2]/td[4]/form"));
+        String url = receiver.getAttribute("action");
+        ObjectId id = new ObjectId(url.substring(37));
+
+        //logout
+        PO_NavView.clickLogout(driver);
+
+        sendTestInvite(false);
+
+        PO_LoginView.goToLoginPage(driver);
+        PO_LoginView.fillForm(driver,"user05@email.com","user05");
+
+        //go to friends list
+        PO_FriendsView.goToListFriends(driver);
+
+        //check that user is NOT there (user05 has no friends)
+        Assertions.assertEquals("No hay usuarios en tu lista de amigos",
+                PO_View.checkElementBy(driver, "text", "No hay usuarios en tu lista de amigos").get(0).getText());
+
+        //go to invite list
+        PO_FriendsView.goToListFriendsInvitations(driver);
+
+        //accept test invite
+        By path = By.xpath("//*[@id=\"acceptButtontest@email.com\"]");
+        driver.findElement(path).click();
+
+        //go to friends list
+        PO_FriendsView.goToListFriends(driver);
+
+        //check that test user is now there
+        List<WebElement> friendList = SeleniumUtils.waitLoadElementsBy(driver, "free", "//tbody/tr", PO_View.getTimeout());
+        Assertions.assertEquals(1, friendList.size());
+
+        //now we remove the user from the database.
+        usersCollection.deleteOne(eq("email","test@email.com"));
+        usersCollection.findOneAndUpdate(eq("email", "user05@email.com"),
+                Updates.pull("friendships", id));
+    }
+
+    //[Prueba23] Mostrar el listado de amigos de un usuario. Comprobar que el listado contiene los amigos que deben ser
+    @Test
+    @Order(16)
+    public void PR23(){
+        PO_LoginView.goToLoginPage(driver);
+        PO_LoginView.fillForm(driver,"user02@email.com","user02");
+
+        //go to friends list
+        PO_FriendsView.goToListFriends(driver);
+
+        //check correct number of friends
+        List<WebElement> friendList = SeleniumUtils.waitLoadElementsBy(driver, "free", "//tbody/tr", PO_View.getTimeout());
+        Assertions.assertEquals(2, friendList.size());
+
+        //Check specifically every friend
+        String checkText = "Joel-Joseph";
+        PO_View.checkElementBy(driver, "text", checkText);
+
+        checkText = "José";
+        PO_View.checkElementBy(driver, "text", checkText);
+
+    }
+
+
     //[Prueba24] Ir al formulario de crear publicaciones , rellenarlo con datos VÁLIDOS y pulsar el botón de enviar.
     @Test
     @Order(17)
