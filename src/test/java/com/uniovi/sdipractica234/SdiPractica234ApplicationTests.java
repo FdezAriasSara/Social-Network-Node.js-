@@ -1032,7 +1032,7 @@ class SdiPractica234ApplicationTests {
         driver.get("http://localhost:8090/publications/friend/627a689d7d2484b870a321fe");
 
         Assertions.assertEquals("ERROR:",driver.findElements(By.tagName("h1")).get(0).getText());
-        Assertions.assertEquals("El usuario user01@email.com NO es amigo del usuario con ID: 627a689d7d2484b870a321fe",driver.findElements(By.tagName("h1")).get(1).getText());
+        Assertions.assertEquals("El usuario user01@email.com NO es amigo del usuario especificado.",driver.findElements(By.tagName("h1")).get(1).getText());
     }
 
 
